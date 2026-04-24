@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#131313" />
+    <meta
+      name="description"
+      content="Threadline Studio ist ein mehrsprachiger PWA-Bildeditor fuer den Browser mit Canvas-Effekten, Projekt-Backup, Export und mobiler Bedienung."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Threadline Studio" />
+    <meta
+      property="og:description"
+      content="Lade Bilder, kombiniere Effekte, speichere Projekte lokal und exportiere alles direkt im Browser."
+    />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="./icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <title>Threadline Studio</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="heroEyebrow">Threadline</p>
+          <div class="title-row">
+            <div>
+              <h1 data-i18n="appTitle">Threadline Studio</h1>
+              <p class="lede" data-i18n="heroLede">
+                Browserbasierte Bildbearbeitung ohne KI. Effekte, Zuschnitt, Export, Teilen und Projekt-Backup in einer mobilen PWA.
+              </p>
+            </div>
+            <div class="header-actions">
+              <button class="secondary" id="installButton" type="button" hidden data-i18n="installApp">App installieren</button>
+              <button class="secondary" id="shareProjectButton" type="button" data-i18n="shareProject">Projekt teilen</button>
+              <button class="secondary" id="settingsButton" type="button" data-i18n="settings">Einstellungen</button>
+            </div>
+          </div>
+          <div class="hero-status">
+            <span id="versionBadge">v0.1.0</span>
+            <span id="projectRevisionBadge">r0</span>
+            <span id="autosaveBadge" data-i18n="autosaveReady">Autosave aktiv</span>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="visual-card">
+            <p class="visual-kicker" data-i18n="visualKicker">Canvas Workflow</p>
+            <strong data-i18n="visualHeadline">Korrektur, Stil und Verfremdung in einer Pipeline</strong>
+            <p data-i18n="visualBody">
+              Lade ein Bild, kombiniere Effekte, speichere den Stand lokal und exportiere PNG, JPEG, WebP oder PDF.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="stage">
+          <div class="stage-toolbar">
+            <label class="upload-tile" for="imageInput">
+              <input id="imageInput" type="file" accept="image/*" />
+              <span class="upload-title" data-i18n="loadImage">Bild laden</span>
+              <small data-i18n="loadImageHint">PNG, JPG, WebP und HEIC je nach Browser</small>
+            </label>
+            <div class="toolbar-group">
+              <button class="secondary" id="resetImageButton" type="button" data-i18n="resetImage">Bild zuruecksetzen</button>
+              <button class="secondary" id="fitButton" type="button" data-i18n="fitToFrame">Einpassen</button>
+              <button class="secondary" id="centerButton" type="button" data-i18n="centerImage">Zentrieren</button>
+            </div>
+          </div>
+
+          <div class="canvas-wrap">
+            <div class="canvas-frame" id="canvasFrame">
+              <canvas id="previewCanvas" width="1200" height="900" aria-label="Bildvorschau"></canvas>
+              <div class="canvas-overlay" id="emptyState">
+                <strong data-i18n="emptyTitle">Ein Bild fehlt noch</strong>
+                <p data-i18n="emptyBody">Ziehe ein Bild in die App oder nutze den Lade-Button.</p>
+              </div>
+            </div>
+            <div class="canvas-hint">
+              <span data-i18n="gestureHint">Desktop: ziehen und Mausrad. Mobil: ziehen und pinch.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="side-panels">
+          <section class="panel transform-panel">
+            <div class="panel-head">
+              <h2 data-i18n="transformTitle">Ausschnitt</h2>
+              <p data-i18n="transformIntro">Drehen, spiegeln, zoomen und Fokus justieren.</p>
+            </div>
+            <div class="field-grid">
+              <label class="field">
+                <span data-i18n="zoom">Zoom</span>
+                <input id="zoomInput" type="range" min="0.5" max="3" step="0.01" value="1" />
+                <strong id="zoomValue">1.00x</strong>
+              </label>
+              <label class="field">
+                <span data-i18n="panX">X-Verschiebung</span>
+                <input id="panXInput" type="range" min="-1" max="1" step="0.01" value="0" />
+                <strong id="panXValue">0%</strong>
+              </label>
+              <label class="field">
+                <span data-i18n="panY">Y-Verschiebung</span>
+                <input id="panYInput" type="range" min="-1" max="1" step="0.01" value="0" />
+                <strong id="panYValue">0%</strong>
+              </label>
+              <label class="field">
+                <span data-i18n="rotation">Drehung</span>
+                <input id="rotationInput" type="range" min="-180" max="180" step="1" value="0" />
+                <strong id="rotationValue">0°</strong>
+              </label>
+            </div>
+            <div class="button-row">
+              <button class="secondary" id="rotateLeftButton" type="button" data-i18n="rotateLeft">90° links</button>
+              <button class="secondary" id="rotateRightButton" type="button" data-i18n="rotateRight">90° rechts</button>
+              <button class="secondary" id="flipXButton" type="button" data-i18n="flipHorizontal">Horizontal spiegeln</button>
+              <button class="secondary" id="flipYButton" type="button" data-i18n="flipVertical">Vertikal spiegeln</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2 data-i18n="correctionTitle">Korrektur</h2>
+              <p data-i18n="correctionIntro">Basiswerte fuer Licht, Farbe und Schaerfe.</p>
+            </div>
+            <div class="field-grid" id="correctionFields"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2 data-i18n="styleTitle">Stil</h2>
+              <p data-i18n="styleIntro">Looks fuer Graustufen, Vintage, Duotone und Raster.</p>
+            </div>
+            <div class="field-grid" id="styleFields"></div>
+            <div class="color-inline">
+              <label class="field">
+                <span data-i18n="duotoneDark">Duotone dunkel</span>
+                <input id="duotoneDarkInput" type="color" value="#111111" />
+              </label>
+              <label class="field">
+                <span data-i18n="duotoneLight">Duotone hell</span>
+                <input id="duotoneLightInput" type="color" value="#f8d48f" />
+              </label>
+              <label class="field">
+                <span data-i18n="overlayColor">Overlay-Farbe</span>
+                <input id="overlayColorInput" type="color" value="#ff6a3d" />
+              </label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2 data-i18n="fxTitle">Verfremdung</h2>
+              <p data-i18n="fxIntro">Pixelate, Glitch, Relief, Konturen und Zeichnungslooks.</p>
+            </div>
+            <div class="field-grid" id="fxFields"></div>
+          </section>
+
+          <section class="panel export-panel">
+            <div class="panel-head">
+              <h2 data-i18n="exportTitle">Export</h2>
+              <p data-i18n="exportIntro">Verschiedene Formate, PDF-Ausgabe und direkte Share-Option.</p>
+            </div>
+            <div class="field-grid compact-grid">
+              <label class="field">
+                <span data-i18n="exportFormat">Format</span>
+                <select id="exportFormatSelect">
+                  <option value="png">PNG</option>
+                  <option value="jpeg">JPEG</option>
+                  <option value="webp">WebP</option>
+                  <option value="pdf">PDF</option>
+                </select>
+              </label>
+              <label class="field">
+                <span data-i18n="exportSize">Breite</span>
+                <select id="exportWidthSelect">
+                  <option value="1600">1600 px</option>
+                  <option value="2400" selected>2400 px</option>
+                  <option value="3200">3200 px</option>
+                  <option value="4000">4000 px</option>
+                </select>
+              </label>
+              <label class="field">
+                <span data-i18n="quality">Qualitaet</span>
+                <input id="qualityInput" type="range" min="0.4" max="1" step="0.01" value="0.92" />
+                <strong id="qualityValue">92%</strong>
+              </label>
+            </div>
+            <div class="button-row">
+              <button class="primary" id="exportButton" type="button" data-i18n="exportNow">Exportieren</button>
+              <button class="secondary" id="shareImageButton" type="button" data-i18n="shareImage">Bild teilen</button>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <footer class="footer-bar">
+        <div class="footer-copy">
+          <strong data-i18n="footerTitle">Threadline Studio</strong>
+          <span id="footerVersionLabel">Version 0.1.0</span>
+        </div>
+        <div class="footer-actions">
+          <a class="text-link" href="./README.md" target="_blank" rel="noreferrer" data-i18n="readme">README</a>
+          <a class="text-link" href="./LICENSE" target="_blank" rel="noreferrer" data-i18n="license">Lizenz</a>
+          <a
+            class="kofi-link"
+            href="https://ko-fi.com/"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Ko-Fi"
+          >
+            <img src="./assets/kofi-button.svg" alt="Ko-Fi" />
+          </a>
+        </div>
+      </footer>
+    </div>
+
+    <dialog id="settingsDialog" class="dialog">
+      <form method="dialog" class="dialog-card">
+        <div class="dialog-head">
+          <div>
+            <h2 data-i18n="settingsTitle">Einstellungen</h2>
+            <p data-i18n="settingsIntro">Sprache, Backup, Updates und Projektverwaltung.</p>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Close">×</button>
+        </div>
+
+        <div class="dialog-body">
+          <label class="field">
+            <span data-i18n="language">Sprache</span>
+            <select id="languageSelect">
+              <option value="auto">Automatisch</option>
+              <option value="de">Deutsch</option>
+              <option value="en">English</option>
+              <option value="fr">Francais</option>
+            </select>
+          </label>
+
+          <div class="settings-group">
+            <strong data-i18n="projectStorage">Projekt</strong>
+            <p id="projectMetaText" data-i18n="projectMetaFallback">Noch kein Bild geladen.</p>
+            <div class="button-row">
+              <button class="secondary" id="downloadBackupButton" type="button" data-i18n="downloadBackup">Backup herunterladen</button>
+              <label class="secondary faux-button" for="backupInput" data-i18n="restoreBackup">Backup importieren</label>
+              <input id="backupInput" type="file" accept="application/json,.json" hidden />
+            </div>
+            <div class="button-row">
+              <button class="secondary" id="clearProjectButton" type="button" data-i18n="clearProject">Projekt loeschen</button>
+              <button class="secondary" id="checkUpdateButton" type="button" data-i18n="checkUpdates">Auf Updates pruefen</button>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <strong data-i18n="versioning">Versionierung</strong>
+            <p id="versionText"></p>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./config/i18n.config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
