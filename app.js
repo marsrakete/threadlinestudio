@@ -2,9 +2,9 @@ const I18N = window.THREADLINE_STUDIO_I18N || {};
 const STORAGE_KEY = "threadline-studio-project";
 const SETTINGS_KEY = "threadline-studio-settings";
 const DEFAULT_VERSION = Object.freeze({
-  appVersion: "0.1.0",
-  cacheVersion: "v1",
-  label: "Initialer mobiler Browser-Editor",
+  appVersion: "0.1.14",
+  cacheVersion: "v15",
+  label: "Mobile-Vorschau bleibt oben sticky",
 });
 
 const CONTROL_GROUPS = {
@@ -49,11 +49,14 @@ const state = {
   versionInfo: { ...DEFAULT_VERSION },
   settings: {
     languagePreference: "auto",
+    themeMode: "dark",
   },
   project: createDefaultProject(),
   deferredPrompt: null,
   sourceImage: null,
   renderQueued: false,
+  readmeText: "",
+  updateInProgress: false,
 };
 
 const els = {
@@ -87,7 +90,6 @@ const els = {
   qualityValue: document.getElementById("qualityValue"),
   exportButton: document.getElementById("exportButton"),
   shareImageButton: document.getElementById("shareImageButton"),
-  shareProjectButton: document.getElementById("shareProjectButton"),
   settingsButton: document.getElementById("settingsButton"),
   settingsDialog: document.getElementById("settingsDialog"),
   languageSelect: document.getElementById("languageSelect"),
@@ -95,22 +97,31 @@ const els = {
   backupInput: document.getElementById("backupInput"),
   clearProjectButton: document.getElementById("clearProjectButton"),
   checkUpdateButton: document.getElementById("checkUpdateButton"),
+  reloadAppButton: document.getElementById("reloadAppButton"),
+  updateCheckStatus: document.getElementById("updateCheckStatus"),
   projectMetaText: document.getElementById("projectMetaText"),
   versionText: document.getElementById("versionText"),
-  versionBadge: document.getElementById("versionBadge"),
-  footerVersionLabel: document.getElementById("footerVersionLabel"),
-  projectRevisionBadge: document.getElementById("projectRevisionBadge"),
   autosaveBadge: document.getElementById("autosaveBadge"),
   installButton: document.getElementById("installButton"),
   canvasFrame: document.getElementById("canvasFrame"),
+  themeToggleButton: document.getElementById("themeToggleButton"),
+  themeStatusNote: document.getElementById("themeStatusNote"),
+  helpDialog: document.getElementById("helpDialog"),
+  readmeStatus: document.getElementById("readmeStatus"),
+  readmeContent: document.getElementById("readmeContent"),
+  openReadmeButton: document.getElementById("openReadmeButton"),
+  confirmDialog: document.getElementById("confirmDialog"),
+  confirmDialogTitle: document.getElementById("confirmDialogTitle"),
+  confirmDialogMessage: document.getElementById("confirmDialogMessage"),
+  confirmCancelButton: document.getElementById("confirmCancelButton"),
+  confirmAcceptButton: document.getElementById("confirmAcceptButton"),
 };
-
-const previewCtx = els.previewCanvas.getContext("2d", { willReadFrequently: true });
 
 init();
 
 function init() {
   buildControlFields();
+  initializeCollapsiblePanels();
   loadLocalState();
   bindEvents();
   loadVersionInfo();
@@ -119,6 +130,23 @@ function init() {
   restoreSourceImage();
   registerServiceWorker();
   render();
+  window.setTimeout(() => checkForUpdates(false), 1200);
+}
+
+function initializeCollapsiblePanels() {
+  applyResponsiveLayout();
+  const startCollapsed = isMobileLayout();
+  document.querySelectorAll(".collapsible").forEach((panel) => {
+    panel.open = !startCollapsed;
+  });
+}
+
+function applyResponsiveLayout() {
+  document.body.classList.toggle("mobile-layout", isMobileLayout());
+}
+
+function isMobileLayout() {
+  return window.innerWidth <= 1180;
 }
 
 function createDefaultProject() {
@@ -243,7 +271,6 @@ function bindEvents() {
   els.resetImageButton.addEventListener("click", resetEffects);
   els.exportButton.addEventListener("click", exportCurrentImage);
   els.shareImageButton.addEventListener("click", shareCurrentImage);
-  els.shareProjectButton.addEventListener("click", shareProjectBackup);
   els.settingsButton.addEventListener("click", () => {
     syncUiFromState();
     els.settingsDialog.showModal();
@@ -252,6 +279,11 @@ function bindEvents() {
     state.settings.languagePreference = els.languageSelect.value;
     saveLocalState();
     applyTranslations();
+  });
+  els.themeToggleButton.addEventListener("click", () => {
+    state.settings.themeMode = state.settings.themeMode === "dark" ? "light" : "dark";
+    applyTheme();
+    saveLocalState();
   });
   els.downloadBackupButton.addEventListener("click", downloadBackup);
   els.backupInput.addEventListener("change", async (event) => {
@@ -262,6 +294,13 @@ function bindEvents() {
   });
   els.clearProjectButton.addEventListener("click", clearProject);
   els.checkUpdateButton.addEventListener("click", () => checkForUpdates(true));
+  els.reloadAppButton.addEventListener("click", () => {
+    void performAppReload();
+  });
+  els.openReadmeButton.addEventListener("click", () => {
+    els.helpDialog.showModal();
+    void loadReadmeContent();
+  });
   els.installButton.addEventListener("click", async () => {
     if (!state.deferredPrompt) return;
     state.deferredPrompt.prompt();
@@ -274,6 +313,11 @@ function bindEvents() {
     event.preventDefault();
     state.deferredPrompt = event;
     els.installButton.hidden = false;
+  });
+
+  window.addEventListener("resize", () => {
+    applyResponsiveLayout();
+    queueRender(true);
   });
 
   bindCanvasGestures();
@@ -442,7 +486,8 @@ function queueRender(skipSave = false) {
 
 function render() {
   const canvas = els.previewCanvas;
-  const ctx = previewCtx;
+  ensurePreviewCanvasSize();
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!state.sourceImage) {
@@ -460,6 +505,43 @@ function render() {
   drawBaseImage(workingCtx, workingCanvas.width, workingCanvas.height);
   applyEffects(workingCanvas, workingCtx);
   ctx.drawImage(workingCanvas, 0, 0);
+}
+
+function ensurePreviewCanvasSize() {
+  const canvas = els.previewCanvas;
+  const rect = canvas.getBoundingClientRect();
+  const aspect = 4 / 3;
+  const displayWidth = Math.max(320, Math.round(rect.width || canvas.clientWidth || 800));
+  const heavyFxActive = hasHeavyPreviewEffects();
+  const isMobile = window.innerWidth <= 820;
+  const deviceScale = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
+  const maxDimension = isMobile
+    ? (heavyFxActive ? 640 : 840)
+    : (heavyFxActive ? 900 : 1280);
+
+  let targetWidth = Math.round(displayWidth * deviceScale);
+  targetWidth = Math.min(targetWidth, maxDimension);
+  const targetHeight = Math.round(targetWidth / aspect);
+
+  if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+  }
+}
+
+function hasHeavyPreviewEffects() {
+  const { styles, fx, corrections } = state.project;
+  return (
+    fx.pencil > 0
+    || fx.charcoal > 0
+    || fx.comic > 0
+    || fx.edges > 0
+    || fx.emboss > 0
+    || styles.halftone > 0
+    || fx.backgroundBlur > 0
+    || corrections.blur > 0
+    || corrections.sharpen > 0
+  );
 }
 
 function drawBaseImage(ctx, width, height) {
@@ -794,23 +876,40 @@ function applyHalftone(canvas, step) {
 
 function applyPencilSketch(canvas, amount) {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const original = imageData.data;
-  applyGrayscale(original, 1);
-  invertImageData(original);
-  ctx.putImageData(imageData, 0, 0);
-  applyCanvasBlur(canvas, 12 * amount + 1);
-  const blurred = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const blend = blurred.data;
-  for (let i = 0; i < original.length; i += 4) {
-    const base = 255 - original[i];
-    const dodge = 255 - blend[i];
-    const value = dodge <= 0 ? 255 : Math.min(255, (base * 255) / dodge);
-    original[i] = value;
-    original[i + 1] = value;
-    original[i + 2] = value;
+  const source = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const base = new Uint8ClampedArray(source.data);
+  applyGrayscale(base, 1);
+
+  const invertedCanvas = document.createElement("canvas");
+  invertedCanvas.width = canvas.width;
+  invertedCanvas.height = canvas.height;
+  const invertedCtx = invertedCanvas.getContext("2d", { willReadFrequently: true });
+  const invertedImage = invertedCtx.createImageData(canvas.width, canvas.height);
+  invertedImage.data.set(base);
+  invertImageData(invertedImage.data);
+  invertedCtx.putImageData(invertedImage, 0, 0);
+
+  applyCanvasBlur(invertedCanvas, 4 + amount * 10);
+  const blurred = invertedCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const output = ctx.createImageData(canvas.width, canvas.height);
+
+  for (let i = 0; i < output.data.length; i += 4) {
+    const baseGray = base[i];
+    const blendGray = blurred[i];
+    const value = blendGray >= 255
+      ? 255
+      : clamp((baseGray * 255) / (255 - blendGray), 0, 255);
+    const textured = mix(baseGray, value, 0.35 + amount * 0.6);
+    output.data[i] = textured;
+    output.data[i + 1] = textured;
+    output.data[i + 2] = textured;
+    output.data[i + 3] = source.data[i + 3];
   }
-  ctx.putImageData(imageData, 0, 0);
+
+  ctx.putImageData(output, 0, 0);
+  if (amount > 0.2) {
+    convolveCanvas(canvas, [-1, -1, -1, -1, 8, -1, -1, -1, -1], Math.min(0.35, amount * 0.3));
+  }
 }
 
 function applyCharcoal(canvas, amount) {
@@ -872,6 +971,7 @@ function invertImageData(data) {
 }
 
 async function exportCurrentImage() {
+  if (!state.sourceImage) return;
   try {
     const blob = await createExportBlob();
     downloadBlob(blob, makeExportFilename());
@@ -882,6 +982,7 @@ async function exportCurrentImage() {
 }
 
 async function shareCurrentImage() {
+  if (!state.sourceImage) return;
   if (!navigator.share) {
     alert(t("shareUnsupported"));
     return;
@@ -904,29 +1005,10 @@ async function shareCurrentImage() {
   }
 }
 
-async function shareProjectBackup() {
-  const blob = createBackupBlob();
-  if (!navigator.share) {
-    downloadBlob(blob, "threadline-studio-project.json");
-    return;
-  }
-  try {
-    const file = new File([blob], "threadline-studio-project.json", { type: "application/json" });
-    if (navigator.canShare && !navigator.canShare({ files: [file] })) {
-      downloadBlob(blob, file.name);
-      return;
-    }
-    await navigator.share({
-      title: "Threadline Studio",
-      text: t("projectShareText"),
-      files: [file],
-    });
-  } catch (error) {
-    if (error?.name !== "AbortError") console.error(error);
-  }
-}
-
 async function createExportBlob() {
+  if (!state.sourceImage) {
+    throw new Error("No image loaded");
+  }
   const width = state.project.export.width;
   const aspect = els.previewCanvas.height / els.previewCanvas.width;
   const height = Math.round(width * aspect);
@@ -1060,10 +1142,12 @@ function syncUiFromState() {
     ? `${t("statusLoaded")} · ${state.project.source.fileName || "image"} · ${updated.toLocaleString()}`
     : t("projectMetaFallback");
   els.versionText.textContent = `App ${state.versionInfo.appVersion} · Cache ${state.versionInfo.cacheVersion} · ${state.versionInfo.label} · Revision r${state.project.meta.revision}`;
-  els.versionBadge.textContent = `v${state.versionInfo.appVersion}`;
-  els.footerVersionLabel.textContent = `Version ${state.versionInfo.appVersion}`;
-  els.projectRevisionBadge.textContent = `r${state.project.meta.revision}`;
   els.autosaveBadge.textContent = `${t("autosaveReady")} · ${updated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  const hasImage = Boolean(state.sourceImage);
+  els.exportButton.disabled = !hasImage;
+  els.shareImageButton.disabled = !hasImage;
+  els.downloadBackupButton.disabled = !hasImage;
+  els.clearProjectButton.disabled = !hasImage;
 }
 
 function loadLocalState() {
@@ -1103,7 +1187,19 @@ function applyTranslations() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
+  applyTheme();
   syncUiFromState();
+}
+
+function applyTheme() {
+  document.body.classList.toggle("theme-light", state.settings.themeMode === "light");
+  document.body.classList.toggle("theme-dark", state.settings.themeMode !== "light");
+  if (els.themeToggleButton) {
+    els.themeToggleButton.textContent = state.settings.themeMode === "dark" ? t("lightModeButton") : t("darkModeButton");
+  }
+  if (els.themeStatusNote) {
+    els.themeStatusNote.textContent = state.settings.themeMode === "dark" ? t("themeDarkActive") : t("themeLightActive");
+  }
 }
 
 function getActiveLanguage() {
@@ -1137,22 +1233,69 @@ async function loadVersionInfo() {
 }
 
 function checkForUpdates(showAlert = false) {
-  if (showAlert) alert(t("updateChecking"));
+  if (state.updateInProgress) return;
+  state.updateInProgress = true;
+  els.checkUpdateButton.disabled = true;
+  setUpdateStatus(t("updateChecking"), true, false);
   fetch("./version.json", { cache: "no-store" })
     .then((response) => response.json())
-    .then((data) => {
-      if (String(data.appVersion) !== String(state.versionInfo.appVersion)) {
-        alert(t("updateAvailable", { version: data.appVersion }));
-      } else if (showAlert) {
-        alert(t("updateCurrent"));
+    .then(async (data) => {
+      const remote = { ...DEFAULT_VERSION, ...data };
+      if (String(remote.appVersion) !== String(state.versionInfo.appVersion) || String(remote.cacheVersion) !== String(state.versionInfo.cacheVersion)) {
+        state.versionInfo = remote;
+        syncUiFromState();
+        setUpdateStatus(t("updateAvailable", { version: remote.appVersion }), false, false);
+        const shouldReload = await showConfirmDialog({
+          title: t("updateConfirmTitle"),
+          message: `${t("updateAvailable", { version: remote.appVersion })} ${t("updatePromptQuestion")}`,
+          confirmLabel: t("reloadApp"),
+          cancelLabel: t("close"),
+        });
+        if (shouldReload) {
+          setUpdateStatus(t("updateApplying"), false, false);
+          await performAppReload();
+          return;
+        }
+        return;
       }
-      state.versionInfo = { ...DEFAULT_VERSION, ...data };
-      syncUiFromState();
+      setUpdateStatus(t("updateCurrent"), false, false);
+      if (showAlert) {
+        await showConfirmDialog({
+          title: t("checkUpdates"),
+          message: t("updateCurrent"),
+          confirmLabel: t("close"),
+          cancelLabel: t("close"),
+        });
+      }
     })
     .catch((error) => {
       console.error(error);
-      if (showAlert) alert(t("updateFailed"));
+      setUpdateStatus(t("updateFailed"), false, false);
+      if (showAlert) {
+        void showConfirmDialog({
+          title: t("checkUpdates"),
+          message: t("updateFailed"),
+          confirmLabel: t("close"),
+          cancelLabel: t("close"),
+        });
+      }
+    })
+    .finally(() => {
+      state.updateInProgress = false;
+      els.checkUpdateButton.disabled = false;
     });
+}
+
+function setUpdateStatus(message, loading = false, showReload = false) {
+  els.updateCheckStatus.textContent = message;
+  els.updateCheckStatus.hidden = !message;
+  els.updateCheckStatus.classList.toggle("loading", loading);
+  els.reloadAppButton.hidden = !showReload;
+}
+
+async function performAppReload() {
+  await navigator.serviceWorker?.getRegistration?.().then((registration) => registration?.update()).catch(() => {});
+  window.location.reload();
 }
 
 function registerServiceWorker() {
@@ -1309,4 +1452,146 @@ function normalizeDegrees(value) {
   if (result > 180) result -= 360;
   if (result < -180) result += 360;
   return result;
+}
+
+function showConfirmDialog(options = {}) {
+  const {
+    title = "Confirm",
+    message = "",
+    confirmLabel = "OK",
+    cancelLabel = "Cancel",
+  } = options;
+
+  if (!els.confirmDialog || typeof els.confirmDialog.showModal !== "function") {
+    return Promise.resolve(window.confirm(message));
+  }
+
+  if (els.confirmDialog.open) {
+    els.confirmDialog.close("cancel");
+  }
+
+  els.confirmDialogTitle.textContent = title;
+  els.confirmDialogMessage.textContent = message;
+  els.confirmCancelButton.textContent = cancelLabel;
+  els.confirmAcceptButton.textContent = confirmLabel;
+
+  return new Promise((resolve) => {
+    const onClose = () => resolve(els.confirmDialog.returnValue === "confirm");
+    els.confirmDialog.addEventListener("close", onClose, { once: true });
+    els.confirmDialog.showModal();
+  });
+}
+
+async function loadReadmeContent() {
+  if (state.readmeText) {
+    els.readmeStatus.textContent = "";
+    els.readmeContent.innerHTML = renderMarkdownAsHtml(state.readmeText);
+    return;
+  }
+
+  els.readmeStatus.textContent = t("helpLoading");
+  els.readmeStatus.classList.add("loading");
+  els.readmeContent.innerHTML = "";
+
+  try {
+    const response = await fetch("./README.md", { cache: "no-cache" });
+    if (!response.ok) throw new Error("README unavailable");
+    const text = await response.text();
+    state.readmeText = text;
+    els.readmeStatus.textContent = "";
+    els.readmeStatus.classList.remove("loading");
+    els.readmeContent.innerHTML = renderMarkdownAsHtml(text);
+  } catch (error) {
+    console.error(error);
+    els.readmeStatus.textContent = t("helpFailed");
+    els.readmeStatus.classList.remove("loading");
+    els.readmeContent.innerHTML = "";
+  }
+}
+
+function renderMarkdownAsHtml(markdown) {
+  const lines = markdown.replace(/\r/g, "").split("\n");
+  const html = [];
+  let inList = false;
+  let inCode = false;
+  let paragraph = [];
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    html.push(`<p>${paragraph.join(" ")}</p>`);
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if (inList) {
+      html.push("</ul>");
+      inList = false;
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = escapeHtml(rawLine);
+    if (line.startsWith("```")) {
+      flushParagraph();
+      flushList();
+      html.push(inCode ? "</code></pre>" : "<pre><code>");
+      inCode = !inCode;
+      continue;
+    }
+    if (inCode) {
+      html.push(`${line}\n`);
+      continue;
+    }
+    if (!line.trim()) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+    if (line.startsWith("# ")) {
+      flushParagraph();
+      flushList();
+      html.push(`<h1>${line.slice(2)}</h1>`);
+      continue;
+    }
+    if (line.startsWith("## ")) {
+      flushParagraph();
+      flushList();
+      html.push(`<h2>${line.slice(3)}</h2>`);
+      continue;
+    }
+    if (line.startsWith("### ")) {
+      flushParagraph();
+      flushList();
+      html.push(`<h3>${line.slice(4)}</h3>`);
+      continue;
+    }
+    if (line.startsWith("- ")) {
+      flushParagraph();
+      if (!inList) {
+        html.push("<ul>");
+        inList = true;
+      }
+      html.push(`<li>${line.slice(2)}</li>`);
+      continue;
+    }
+    flushList();
+    paragraph.push(line);
+  }
+
+  flushParagraph();
+  flushList();
+  return linkifyInline(html.join(""));
+}
+
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function linkifyInline(html) {
+  return html
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
 }

@@ -1,5 +1,5 @@
 {
-  "appVersion": "0.1.0",
-  "cacheVersion": "v1",
-  "label": "Initialer mobiler Browser-Editor"
+  "appVersion": "0.1.14",
+  "cacheVersion": "v15",
+  "label": "Mobile-Vorschau bleibt oben sticky"
 }
