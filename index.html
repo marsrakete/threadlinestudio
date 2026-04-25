@@ -54,10 +54,10 @@
               <canvas id="previewCanvas" width="1200" height="900" aria-label="Bildvorschau"></canvas>
               <div class="canvas-overlay" id="emptyState">
                 <strong data-i18n="emptyTitle">Ein Bild fehlt noch</strong>
-                <p data-i18n="emptyBody">Ziehe ein Bild in die App oder nutze den Lade-Button.</p>
+                <p id="emptyBodyText" data-i18n="emptyBody">Ziehe ein Bild in die App oder nutze den Lade-Button.</p>
               </div>
             </div>
-            <div class="canvas-hint">
+            <div class="canvas-hint" id="canvasHint">
               <span data-i18n="gestureHint">Desktop: ziehen und Mausrad. Mobil: ziehen und pinch.</span>
             </div>
           </section>
@@ -171,6 +171,66 @@
             </summary>
             <div class="panel-body">
               <div class="field-grid" id="fxFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="morphTitle">Morphologie</h2>
+                <p data-i18n="morphIntro">Kanten, Dilatation, Erosion und strukturierte Operatoren.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="morphologyFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="patternTitle">Muster</h2>
+                <p data-i18n="patternIntro">Streifen, Raster, Schraffur, Wellen und grafische Overlays.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="patternFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="materialTitle">Material</h2>
+                <p data-i18n="materialIntro">Glas, Papier, Metall, Stoff und andere Oberflaechen-Looks.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="materialFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="atmosphereTitle">Stoerung</h2>
+                <p data-i18n="atmosphereIntro">Signalfehler, Licht, Staub, Nebel und Atmosphaere.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="atmosphereFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="artTitle">Kunst</h2>
+                <p data-i18n="artIntro">Rasterzerfall, Collage, Facetten und traumartige Bildbrueche.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="artFields"></div>
             </div>
           </details>
 
