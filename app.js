@@ -2,9 +2,9 @@ const I18N = window.THREADLINE_STUDIO_I18N || {};
 const STORAGE_KEY = "threadline-studio-project";
 const SETTINGS_KEY = "threadline-studio-settings";
 const DEFAULT_VERSION = Object.freeze({
-  appVersion: "0.1.32",
-  cacheVersion: "v33",
-  label: "Kunst, Material und Stoerung weiter ausgebaut",
+  appVersion: "0.1.43",
+  cacheVersion: "v44",
+  label: "Reifenspuren ohne transparente Artefakte",
 });
 
 const CONTROL_GROUPS = {
@@ -32,7 +32,7 @@ const CONTROL_GROUPS = {
     { key: "edges", min: 0, max: 100, step: 1, value: 0, label: "Konturen" },
     { key: "emboss", min: 0, max: 100, step: 1, value: 0, label: "Relief" },
     { key: "pencil", min: 0, max: 100, step: 1, value: 0, label: "Konturzeichnung" },
-    { key: "lineBlend", min: 0, max: 100, step: 1, value: 0, label: "Linienmix" },
+    { key: "lineBlend", min: 0, max: 1000, step: 1, value: 0, label: "Bleistiftpause", i18nKey: "fxLineBlend" },
     { key: "charcoal", min: 0, max: 100, step: 1, value: 0, label: "Kohle" },
     { key: "hueShift", min: -180, max: 180, step: 1, value: 0, label: "Farbton" },
     { key: "invert", min: 0, max: 100, step: 1, value: 0, label: "Invertieren" },
@@ -64,8 +64,8 @@ const CONTROL_GROUPS = {
     { key: "crosshatch", min: 0, max: 100, step: 1, value: 0, label: "Schraffur" },
     { key: "waves", min: 0, max: 100, step: 1, value: 0, label: "Wellen" },
     { key: "meshFence", min: 0, max: 100, step: 1, value: 0, label: "Maschendraht" },
-    { key: "tireTracks", min: 0, max: 100, step: 1, value: 0, label: "Reifenspuren" },
-    { key: "fingerprint", min: 0, max: 100, step: 1, value: 0, label: "Fingerabdruck" },
+    { key: "tireTracks", min: 0, max: 1000, step: 1, value: 0, label: "Reifenspuren" },
+    { key: "fingerprint", min: 0, max: 1000, step: 1, value: 0, label: "Fingerabdruck" },
     { key: "topoLines", min: 0, max: 100, step: 1, value: 0, label: "Topografie" },
     { key: "staffLines", min: 0, max: 100, step: 1, value: 0, label: "Notenlinien" },
     { key: "blueprintGrid", min: 0, max: 100, step: 1, value: 0, label: "Blueprint" },
@@ -709,7 +709,7 @@ function applyEffects(canvas, ctx) {
   const edgeAmount = curveAmount(fx.edges / 100, isMobileLayout() ? 1.9 : 1.55, 0.34);
   const embossAmount = curveAmount(fx.emboss / 100, isMobileLayout() ? 1.95 : 1.6, 0.3);
   const pencilAmount = curveAmount(fx.pencil / 100, isMobileLayout() ? 1.55 : 1.35, 1);
-  const lineBlendAmount = curveAmount(fx.lineBlend / 100, isMobileLayout() ? 1.45 : 1.25, 1);
+  const lineBlendAmount = curveThousand(fx.lineBlend / 100, isMobileLayout() ? 1.45 : 1.25, 1);
   const charcoalAmount = curveAmount(fx.charcoal / 100, isMobileLayout() ? 2.25 : 1.8, 0.72);
   const comicAmount = curveAmount(fx.comic / 100, isMobileLayout() ? 2.25 : 1.85, 0.32);
   const focusBlurAmount = curveAmount(fx.backgroundBlur / 32, isMobileLayout() ? 1.7 : 1.35, 1) * 18;
@@ -1072,30 +1072,37 @@ function applyLineBlend(canvas, amount) {
   const edgeCanvas = cloneCanvas(canvas);
   const embossCanvas = cloneCanvas(canvas);
   const traceCanvas = cloneCanvas(canvas);
+  const cannyCanvas = cloneCanvas(canvas);
+  const progress = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
 
-  convolveCanvas(edgeCanvas, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0.16 + amount * 0.18);
-  convolveCanvas(embossCanvas, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 0.12 + amount * 0.16);
-  applyContourTracing(traceCanvas, 0.2 + amount * 0.8);
+  convolveCanvas(edgeCanvas, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0.12 + progress * 0.16 + turbo * 0.08);
+  convolveCanvas(embossCanvas, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 0.16 + progress * 0.24 + turbo * 0.1);
+  applyContourTracing(traceCanvas, 0.28 + progress * 0.84 + turbo * 0.18);
+  applyCannyLikeEdges(cannyCanvas, 0.24 + progress * 0.7 + turbo * 0.16);
 
   const baseCtx = canvas.getContext("2d", { willReadFrequently: true });
   const base = baseCtx.getImageData(0, 0, canvas.width, canvas.height);
   const edge = edgeCanvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
   const emboss = embossCanvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
   const trace = traceCanvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  const canny = cannyCanvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
 
   for (let i = 0; i < base.data.length; i += 4) {
     const baseGray = (base.data[i] + base.data[i + 1] + base.data[i + 2]) / 3;
     const edgeGray = (edge[i] + edge[i + 1] + edge[i + 2]) / 3;
     const embossGray = (emboss[i] + emboss[i + 1] + emboss[i + 2]) / 3;
     const traceGray = (trace[i] + trace[i + 1] + trace[i + 2]) / 3;
+    const cannyGray = (canny[i] + canny[i + 1] + canny[i + 2]) / 3;
     const composite = clamp(
-      traceGray * 0.52
-      + edgeGray * 0.24
-      + embossGray * 0.24,
+      traceGray * (0.64 + turbo * 0.08)
+      + edgeGray * (0.11 + turbo * 0.02)
+      + embossGray * (0.15 + turbo * 0.06)
+      + cannyGray * (0.1 + turbo * 0.05),
       0,
       255
     );
-    const mixed = clamp(mix(baseGray, composite, 0.25 + amount * 0.75), 0, 255);
+    const mixed = clamp(mix(baseGray, composite, 0.22 + progress * 0.72 + turbo * 0.08), 0, 255);
     base.data[i] = mixed;
     base.data[i + 1] = mixed;
     base.data[i + 2] = mixed;
@@ -1424,20 +1431,20 @@ function applyMaterialEffects(canvas, materials, colors) {
   const soft = hexToRgb(colors.duotoneLight);
   const dark = hexToRgb(colors.duotoneDark);
 
-  if (materials.bottleGlass > 0) applyBottleGlass(canvas, materials.bottleGlass / 100);
-  if (materials.frostedGlass > 0) applyFrostedGlass(canvas, materials.frostedGlass / 100);
-  if (materials.raindrops > 0) drawRaindrops(ctx, canvas, materials.raindrops / 100);
-  if (materials.scratches > 0) drawScratches(ctx, canvas, materials.scratches / 100);
-  if (materials.plasticWrap > 0) drawPlasticWrap(ctx, canvas, materials.plasticWrap / 100);
-  if (materials.paperFiber > 0) tintAndNoiseCanvas(canvas, materials.paperFiber / 100, [18, 14, 6], 18);
-  if (materials.cardboard > 0) applyCardboard(canvas, materials.cardboard / 100);
-  if (materials.newsprint > 0) applyNewsprint(canvas, materials.newsprint / 100);
-  if (materials.thermalFax > 0) applyThermalFax(canvas, materials.thermalFax / 100);
-  if (materials.brushedMetal > 0) drawBrushedMetal(ctx, canvas, materials.brushedMetal / 100);
-  if (materials.concrete > 0) tintAndNoiseCanvas(canvas, materials.concrete / 100, [-10, -10, -10], 28);
-  if (materials.asphalt > 0) tintAndNoiseCanvas(canvas, materials.asphalt / 100, [-28, -24, -18], 34);
-  if (materials.linen > 0) drawLinen(ctx, canvas, materials.linen / 100, soft);
-  if (materials.meshFabric > 0) drawFabricMesh(ctx, canvas, materials.meshFabric / 100, accent, dark);
+  if (materials.bottleGlass > 0) applyBottleGlass(canvas, curveThousand(materials.bottleGlass / 100, 1.3, 1));
+  if (materials.frostedGlass > 0) applyFrostedGlass(canvas, curveThousand(materials.frostedGlass / 100, 1.35, 1));
+  if (materials.raindrops > 0) drawRaindrops(ctx, canvas, curveThousand(materials.raindrops / 100, 1.35, 2.4));
+  if (materials.scratches > 0) drawScratches(ctx, canvas, curveThousand(materials.scratches / 100, 1.5, 1));
+  if (materials.plasticWrap > 0) drawPlasticWrap(ctx, canvas, curveThousand(materials.plasticWrap / 100, 1.4, 1));
+  if (materials.paperFiber > 0) tintAndNoiseCanvas(canvas, curveThousand(materials.paperFiber / 100, 1.3, 1), [18, 14, 6], 18);
+  if (materials.cardboard > 0) applyCardboard(canvas, curveThousand(materials.cardboard / 100, 1.28, 1));
+  if (materials.newsprint > 0) applyNewsprint(canvas, curveThousand(materials.newsprint / 100, 1.18, 1));
+  if (materials.thermalFax > 0) applyThermalFax(canvas, curveThousand(materials.thermalFax / 100, 1.32, 1));
+  if (materials.brushedMetal > 0) drawBrushedMetal(ctx, canvas, curveThousand(materials.brushedMetal / 100, 1.35, 1));
+  if (materials.concrete > 0) tintAndNoiseCanvas(canvas, curveThousand(materials.concrete / 100, 1.28, 1), [-10, -10, -10], 28);
+  if (materials.asphalt > 0) tintAndNoiseCanvas(canvas, curveThousand(materials.asphalt / 100, 1.28, 1), [-28, -24, -18], 34);
+  if (materials.linen > 0) drawLinen(ctx, canvas, curveThousand(materials.linen / 100, 1.3, 1), soft);
+  if (materials.meshFabric > 0) drawFabricMesh(ctx, canvas, curveThousand(materials.meshFabric / 100, 1.35, 1), accent, dark);
 }
 
 function applyAtmosphereEffects(canvas, atmosphere, colors) {
@@ -1446,18 +1453,18 @@ function applyAtmosphereEffects(canvas, atmosphere, colors) {
   const soft = hexToRgb(colors.duotoneLight);
   const dark = hexToRgb(colors.duotoneDark);
 
-  if (atmosphere.tvNoise > 0) applyTvNoise(canvas, atmosphere.tvNoise / 100);
-  if (atmosphere.crtDrift > 0) applyCrtDrift(canvas, atmosphere.crtDrift / 100);
-  if (atmosphere.jpegArtifacts > 0) applyJpegArtifacts(canvas, atmosphere.jpegArtifacts / 100);
-  if (atmosphere.printMisregister > 0) applyPrintMisregister(canvas, atmosphere.printMisregister / 100);
-  if (atmosphere.overexposure > 0) applyOverexposure(canvas, atmosphere.overexposure / 100);
-  if (atmosphere.lightLeak > 0) drawLightLeak(ctx, canvas, atmosphere.lightLeak / 100, accent, soft);
-  if (atmosphere.dustScratches > 0) drawDustAndScratches(ctx, canvas, atmosphere.dustScratches / 100);
-  if (atmosphere.haze > 0) drawHaze(ctx, canvas, atmosphere.haze / 100, soft);
-  if (atmosphere.shadowCast > 0) drawShadowCast(ctx, canvas, atmosphere.shadowCast / 100);
-  if (atmosphere.reflections > 0) drawReflections(ctx, canvas, atmosphere.reflections / 100, soft);
-  if (atmosphere.moire > 0) drawMoire(ctx, canvas, atmosphere.moire / 100, dark);
-  if (atmosphere.doubleExposure > 0) applyDoubleExposure(canvas, atmosphere.doubleExposure / 100);
+  if (atmosphere.tvNoise > 0) applyTvNoise(canvas, curveThousand(atmosphere.tvNoise / 100, 1.35, 1));
+  if (atmosphere.crtDrift > 0) applyCrtDrift(canvas, curveThousand(atmosphere.crtDrift / 100, 1.4, 1));
+  if (atmosphere.jpegArtifacts > 0) applyJpegArtifacts(canvas, curveThousand(atmosphere.jpegArtifacts / 100, 1.32, 1));
+  if (atmosphere.printMisregister > 0) applyPrintMisregister(canvas, curveThousand(atmosphere.printMisregister / 100, 1.45, 1));
+  if (atmosphere.overexposure > 0) applyOverexposure(canvas, curveThousand(atmosphere.overexposure / 100, 1.4, 1));
+  if (atmosphere.lightLeak > 0) drawLightLeak(ctx, canvas, curveThousand(atmosphere.lightLeak / 100, 1.35, 1), accent, soft);
+  if (atmosphere.dustScratches > 0) drawDustAndScratches(ctx, canvas, curveThousand(atmosphere.dustScratches / 100, 1.45, 1));
+  if (atmosphere.haze > 0) drawHaze(ctx, canvas, curveThousand(atmosphere.haze / 100, 1.35, 1), soft);
+  if (atmosphere.shadowCast > 0) drawShadowCast(ctx, canvas, curveThousand(atmosphere.shadowCast / 100, 1.4, 1));
+  if (atmosphere.reflections > 0) drawReflections(ctx, canvas, curveThousand(atmosphere.reflections / 100, 1.35, 1), soft);
+  if (atmosphere.moire > 0) drawMoire(ctx, canvas, curveThousand(atmosphere.moire / 100, 1.45, 1), dark);
+  if (atmosphere.doubleExposure > 0) applyDoubleExposure(canvas, curveThousand(atmosphere.doubleExposure / 100, 1.35, 1));
 }
 
 function applyArtEffects(canvas, art, colors) {
@@ -1525,47 +1532,69 @@ function applyGridDecay(canvas, amount, dark) {
 function applyDadaCollage(canvas, amount, accent, soft, dark) {
   const ctx = canvas.getContext("2d");
   const source = cloneCanvas(canvas);
-  const density = Math.max(0, amount);
-  const strength = clamp(amount, 0, 1);
-  const fragmentCount = Math.round(10 + density * 90);
+  const sample = source.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  const progress = clamp(amount / 10, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const fragmentCount = Math.round(10 + progress * 120 + turbo * 80);
 
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgba(246,242,234,${0.96})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.globalAlpha = 0.18 + progress * 0.18;
+  ctx.drawImage(source, 0, 0);
+  ctx.restore();
   ctx.save();
   ctx.globalCompositeOperation = "multiply";
   for (let i = 0; i < fragmentCount; i += 1) {
     const x = seededNoise(i, 1, 0.14) * canvas.width * 0.82;
     const y = seededNoise(i, 2, 0.49) * canvas.height * 0.82;
-    const w = canvas.width * (0.08 + seededNoise(i, 3, 0.92) * 0.18);
-    const h = canvas.height * (0.05 + seededNoise(i, 4, 1.31) * 0.14);
-    const dx = x + (seededNoise(i, 6, 2.53) - 0.5) * canvas.width * 0.12 * density;
-    const dy = y + (seededNoise(i, 7, 3.11) - 0.5) * canvas.height * 0.12 * density;
-    const rotation = (seededNoise(i, 5, 1.89) - 0.5) * (0.85 + density * 0.14);
+    const w = canvas.width * (0.05 + seededNoise(i, 3, 0.92) * (0.1 + progress * 0.12 + turbo * 0.03));
+    const h = canvas.height * (0.035 + seededNoise(i, 4, 1.31) * (0.08 + progress * 0.09 + turbo * 0.025));
+    const dx = x + (seededNoise(i, 6, 2.53) - 0.5) * canvas.width * (0.026 + progress * 0.13 + turbo * 0.03);
+    const dy = y + (seededNoise(i, 7, 3.11) - 0.5) * canvas.height * (0.026 + progress * 0.13 + turbo * 0.03);
+    const rotation = (seededNoise(i, 5, 1.89) - 0.5) * (0.16 + progress * 0.72 + turbo * 0.18);
+    const sx = clamp(Math.round(x + w / 2), 0, canvas.width - 1);
+    const sy = clamp(Math.round(y + h / 2), 0, canvas.height - 1);
+    const colorIndex = (sy * canvas.width + sx) * 4;
+    const paperColor = {
+      r: mix(sample[colorIndex], soft.r, 0.42),
+      g: mix(sample[colorIndex + 1], accent.g, 0.18),
+      b: mix(sample[colorIndex + 2], dark.b, 0.12),
+    };
 
     ctx.save();
     ctx.translate(dx + w / 2, dy + h / 2);
     ctx.rotate(rotation);
-    ctx.globalAlpha = clamp(0.18 + strength * 0.2, 0, 0.9);
+    ctx.globalAlpha = clamp(0.16 + progress * 0.24 + turbo * 0.06, 0, 0.58);
     ctx.drawImage(source, x, y, w, h, -w / 2, -h / 2, w, h);
     ctx.fillStyle = i % 3 === 0
-      ? rgbaString(accent, 0.08 + amount * 0.12)
+      ? rgbaString(paperColor, 0.04 + progress * 0.1 + turbo * 0.025)
       : i % 3 === 1
-        ? rgbaString(soft, 0.1 + strength * 0.1)
-        : rgbaString(dark, 0.06 + strength * 0.08);
+        ? rgbaString(soft, 0.05 + progress * 0.085 + turbo * 0.02)
+        : rgbaString(accent, 0.03 + progress * 0.07 + turbo * 0.018);
     ctx.fillRect(-w / 2, -h / 2, w, h);
-    ctx.strokeStyle = rgbaString(dark, 0.2 + strength * 0.18);
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = rgbaString(dark, 0.07 + progress * 0.09 + turbo * 0.02);
+    ctx.lineWidth = 0.55 + progress * 0.6 + turbo * 0.08;
     ctx.strokeRect(-w / 2, -h / 2, w, h);
     ctx.restore();
   }
   ctx.restore();
 
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  ctx.globalAlpha = clamp(0.08 + strength * 0.16, 0, 0.45);
-  for (let layer = 0; layer < Math.max(1, Math.round(1 + density * 0.7)); layer += 1) {
-    const drift = layer + 1;
-    ctx.drawImage(source, canvas.width * (0.012 * drift), -canvas.height * (0.008 * drift), canvas.width, canvas.height);
+  if (progress > 0.45) {
+    const wordCount = Math.round(2 + progress * 8 + turbo * 3);
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i < wordCount; i += 1) {
+      const word = ["void", "echo", "clip", "noise", "paste", "cut"][i % 6];
+      const size = 10 + seededNoise(i, 8, 0.9) * (10 + progress * 30);
+      ctx.font = `${Math.round(size)}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = rgbaString(i % 2 === 0 ? dark : accent, 0.03 + progress * 0.045);
+      ctx.fillText(word, seededNoise(i, 9, 1.2) * canvas.width, seededNoise(i, 10, 1.8) * canvas.height);
+    }
+    ctx.restore();
   }
-  ctx.restore();
 }
 
 function applyCubistFacets(canvas, amount, accent, soft, dark) {
@@ -1578,17 +1607,14 @@ function applyCubistFacets(canvas, amount, accent, soft, dark) {
   const cellW = canvas.width / cols;
   const cellH = canvas.height / rows;
 
-  ctx.save();
-  ctx.fillStyle = rgbaString(soft, 0.04 + strength * 0.08);
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.restore();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
       const x = col * cellW;
       const y = row * cellH;
-      const shiftX = (seededNoise(col, row, 3.9) - 0.5) * cellW * 0.34 * density;
-      const shiftY = (seededNoise(col, row, 4.7) - 0.5) * cellH * 0.34 * density;
+      const shiftX = (seededNoise(col, row, 3.9) - 0.5) * cellW * 0.42 * density;
+      const shiftY = (seededNoise(col, row, 4.7) - 0.5) * cellH * 0.42 * density;
       const skewA = 0.14 + seededNoise(col, row, 5.1) * 0.3;
       const skewB = 0.12 + seededNoise(col, row, 5.6) * 0.32;
 
@@ -1600,24 +1626,18 @@ function applyCubistFacets(canvas, amount, accent, soft, dark) {
       ctx.lineTo(x + shiftX, y + cellH * (1 - skewB) + shiftY);
       ctx.closePath();
       ctx.clip();
-      ctx.globalAlpha = clamp(0.56 + strength * 0.14, 0, 0.84);
+      ctx.globalAlpha = clamp(0.66 + strength * 0.12, 0, 0.9);
       ctx.drawImage(
         source,
         x,
         y,
         cellW,
         cellH,
-        x + shiftX * 0.65,
-        y + shiftY * 0.65,
-        cellW * (0.98 + strength * 0.06),
-        cellH * (0.98 + strength * 0.06)
+        x + shiftX * (0.7 + density * 0.04),
+        y + shiftY * (0.7 + density * 0.04),
+        cellW * (0.98 + strength * 0.12 + density * 0.03),
+        cellH * (0.98 + strength * 0.12 + density * 0.03)
       );
-      ctx.fillStyle = (row + col) % 3 === 0
-        ? rgbaString(accent, 0.05 + strength * 0.08)
-        : (row + col) % 3 === 1
-          ? rgbaString(soft, 0.06 + strength * 0.08)
-          : rgbaString(dark, 0.03 + strength * 0.05);
-      ctx.fillRect(x - 2, y - 2, cellW + 4, cellH + 4);
       ctx.restore();
 
       ctx.save();
@@ -1627,8 +1647,8 @@ function applyCubistFacets(canvas, amount, accent, soft, dark) {
       ctx.lineTo(x + cellW * (1 - skewA) + shiftX, y + cellH + shiftY);
       ctx.lineTo(x + shiftX, y + cellH * (1 - skewB) + shiftY);
       ctx.closePath();
-      ctx.strokeStyle = rgbaString(dark, 0.12 + strength * 0.14);
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = rgbaString(dark, 0.06 + strength * 0.1);
+      ctx.lineWidth = 0.6 + strength * 0.5;
       ctx.stroke();
       ctx.restore();
     }
@@ -1638,96 +1658,146 @@ function applyCubistFacets(canvas, amount, accent, soft, dark) {
 function applyDreamLook(canvas, amount, soft) {
   const ctx = canvas.getContext("2d");
   const source = cloneCanvas(canvas);
+  const sample = source.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
   const density = Math.max(0, amount);
   const strength = clamp(amount, 0, 1);
-  const blurCanvas = document.createElement("canvas");
-  blurCanvas.width = canvas.width;
-  blurCanvas.height = canvas.height;
+  const step = Math.max(10, Math.round(28 - Math.min(18, density * 1.6)));
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgb(248, 244, 240)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let y = 0; y < canvas.height; y += step) {
+    for (let x = 0; x < canvas.width; x += step) {
+      const sx = clamp(Math.round(x + step / 2), 0, canvas.width - 1);
+      const sy = clamp(Math.round(y + step / 2), 0, canvas.height - 1);
+      const index = (sy * canvas.width + sx) * 4;
+      const w = step * (1.12 + seededNoise(x, y, 0.8) * 0.42);
+      const h = step * (1.04 + seededNoise(x, y, 1.6) * 0.42);
+      const dx = x + (seededNoise(x, y, 2.3) - 0.5) * step * (0.22 + density * 0.018);
+      const dy = y + (seededNoise(x, y, 3.1) - 0.5) * step * (0.22 + density * 0.018);
+      ctx.save();
+      ctx.translate(dx + w / 2, dy + h / 2);
+      ctx.rotate((seededNoise(x, y, 4.2) - 0.5) * (0.14 + density * 0.03));
+      ctx.fillStyle = `rgba(${sample[index]},${sample[index + 1]},${sample[index + 2]},${0.3 + strength * 0.18})`;
+      drawRoundedRectPath(ctx, -w / 2, -h / 2, w, h, Math.min(w, h) * 0.28);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  const blurCanvas = cloneCanvas(canvas);
   const blurCtx = blurCanvas.getContext("2d");
   blurCtx.filter = `blur(${2 + strength * 10 + density * 1.8}px)`;
-  blurCtx.drawImage(source, 0, 0);
-
+  blurCtx.drawImage(canvas, 0, 0);
   ctx.save();
   ctx.globalCompositeOperation = "screen";
-  for (let layer = 0; layer < Math.max(2, Math.round(2 + density * 1.2)); layer += 1) {
-    const factor = layer + 1;
-    ctx.globalAlpha = clamp(0.08 + strength * 0.14, 0, 0.3);
-    ctx.drawImage(
-      blurCanvas,
-      canvas.width * (0.012 * factor),
-      canvas.height * ((layer % 2 === 0 ? -1 : 1) * 0.008 * factor)
-    );
-  }
+  ctx.globalAlpha = clamp(0.14 + strength * 0.12, 0, 0.28);
+  ctx.drawImage(blurCanvas, canvas.width * 0.014, -canvas.height * 0.012, canvas.width, canvas.height);
+  ctx.drawImage(blurCanvas, -canvas.width * 0.012, canvas.height * 0.01, canvas.width, canvas.height);
   ctx.restore();
 
   const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-  gradient.addColorStop(0, rgbaString(soft, 0.04 + strength * 0.08));
-  gradient.addColorStop(0.5, "rgba(255,255,255,0)");
-  gradient.addColorStop(1, rgbaString(soft, 0.08 + strength * 0.14));
-  ctx.save();
+  gradient.addColorStop(0, rgbaString(soft, 0.05 + strength * 0.08));
+  gradient.addColorStop(0.5, "rgba(255,255,255,0.04)");
+  gradient.addColorStop(1, rgbaString(soft, 0.1 + strength * 0.14));
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.restore();
 }
 
 function applyAsciiText(canvas, amount, dark, soft) {
   const source = cloneCanvas(canvas);
   const sampleCanvas = document.createElement("canvas");
-  const step = Math.max(7, Math.round(16 - amount * 8));
+  const progress = clamp(amount / 10, 0, 1);
+  const step = Math.max(7, Math.round(30 - progress * 21));
   sampleCanvas.width = Math.max(1, Math.round(canvas.width / step));
   sampleCanvas.height = Math.max(1, Math.round(canvas.height / step));
   const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
   sampleCtx.drawImage(source, 0, 0, sampleCanvas.width, sampleCanvas.height);
   const sample = sampleCtx.getImageData(0, 0, sampleCanvas.width, sampleCanvas.height).data;
   const ctx = canvas.getContext("2d");
-  const chars = "@%#*+=-:. ";
+  const chars = " .'`^\",:;Il!i~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 
   ctx.save();
-  ctx.fillStyle = rgbaString(soft, 0.94);
+  ctx.fillStyle = rgbaString(soft, 0.985);
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.font = `${step}px 'Courier New', monospace`;
+  ctx.font = `${Math.max(8, Math.round(step * 1.02))}px 'Consolas', 'Courier New', monospace`;
   ctx.textBaseline = "top";
   for (let y = 0; y < sampleCanvas.height; y += 1) {
     for (let x = 0; x < sampleCanvas.width; x += 1) {
       const index = (y * sampleCanvas.width + x) * 4;
       const gray = (sample[index] + sample[index + 1] + sample[index + 2]) / 3;
-      const charIndex = clamp(Math.floor((gray / 255) * (chars.length - 1)), 0, chars.length - 1);
+      const darkness = 1 - gray / 255;
+      const charIndex = clamp(Math.floor(darkness * (chars.length - 1)), 0, chars.length - 1);
       const color = {
-        r: mix(dark.r, sample[index], 0.3),
-        g: mix(dark.g, sample[index + 1], 0.3),
-        b: mix(dark.b, sample[index + 2], 0.3),
+        r: mix(sample[index], dark.r, 0.08 + darkness * 0.16),
+        g: mix(sample[index + 1], dark.g, 0.08 + darkness * 0.16),
+        b: mix(sample[index + 2], dark.b, 0.08 + darkness * 0.16),
       };
-      ctx.fillStyle = rgbaString(color, 0.64 + amount * 0.24);
-      ctx.fillText(chars[chars.length - 1 - charIndex], x * step, y * step);
+      ctx.fillStyle = rgbaString(color, 0.42 + darkness * 0.26 + progress * 0.08);
+      ctx.fillText(chars[charIndex], x * step, y * step);
     }
   }
   ctx.restore();
 }
 
 function applyCarpet(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const sample = source.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
   const ctx = canvas.getContext("2d");
-  ctx.save();
-  ctx.fillStyle = `rgba(132,40,26,${0.04 + amount * 0.08})`;
+  const density = Math.max(0, amount);
+  const strength = clamp(amount, 0, 1);
+  const step = Math.max(7, Math.round(22 - Math.min(14, density * 1.4)));
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgb(241, 230, 214)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.restore();
-  drawLinePattern(ctx, canvas, {
-    spacing: Math.max(7, 16 - amount * 7),
-    lineWidth: 1 + amount * 1.4,
-    angle: 0,
-    color: rgbaString(accent, 0.06 + amount * 0.06),
-  });
-  drawLinePattern(ctx, canvas, {
-    spacing: Math.max(7, 16 - amount * 7),
-    lineWidth: 1 + amount * 1.4,
-    angle: 90,
-    color: rgbaString(dark, 0.04 + amount * 0.06),
-  });
-  drawWavePattern(ctx, canvas, {
-    spacing: Math.max(14, 34 - amount * 10),
-    amplitude: 2 + amount * 5,
-    color: rgbaString(soft, 0.06 + amount * 0.08),
-    lineWidth: 1,
-  });
+
+  for (let y = 0; y < canvas.height; y += step) {
+    for (let x = 0; x < canvas.width; x += step) {
+      const sx = clamp(Math.round(x + step / 2), 0, canvas.width - 1);
+      const sy = clamp(Math.round(y + step / 2), 0, canvas.height - 1);
+      const index = (sy * canvas.width + sx) * 4;
+      const baseColor = {
+        r: sample[index],
+        g: sample[index + 1],
+        b: sample[index + 2],
+      };
+      const warmColor = {
+        r: clamp(baseColor.r * 0.86 + accent.r * 0.18 + 18, 0, 255),
+        g: clamp(baseColor.g * 0.78 + soft.r * 0.1 + 10, 0, 255),
+        b: clamp(baseColor.b * 0.66 + dark.b * 0.08, 0, 255),
+      };
+      const coolColor = {
+        r: clamp(baseColor.r * 0.74 + soft.r * 0.16, 0, 255),
+        g: clamp(baseColor.g * 0.82 + soft.g * 0.18, 0, 255),
+        b: clamp(baseColor.b * 0.8 + accent.b * 0.12 + 8, 0, 255),
+      };
+      const yarnShift = (seededNoise(x, y, 0.37) - 0.5) * step * (0.18 + density * 0.01);
+      const loopW = step * (0.86 + seededNoise(x, y, 1.11) * 0.34);
+      const loopH = step * (0.38 + seededNoise(x, y, 1.77) * 0.18);
+      const corner = Math.min(loopW, loopH) * 0.48;
+
+      ctx.save();
+      ctx.translate(x + step / 2, y + step / 2);
+      ctx.rotate((seededNoise(x, y, 2.33) - 0.5) * (0.18 + density * 0.018));
+      ctx.fillStyle = rgbaString(warmColor, 0.82 + strength * 0.12);
+      drawRoundedRectPath(ctx, -loopW / 2, -loopH / 2 + yarnShift, loopW, loopH, corner);
+      ctx.fill();
+      ctx.fillStyle = rgbaString(coolColor, 0.7 + strength * 0.12);
+      drawRoundedRectPath(ctx, -loopH / 2 + yarnShift, -loopW / 2, loopH, loopW, corner);
+      ctx.fill();
+
+      const shine = ctx.createLinearGradient(-loopW / 2, 0, loopW / 2, 0);
+      shine.addColorStop(0, "rgba(255,255,255,0)");
+      shine.addColorStop(0.45, `rgba(255,255,255,${0.08 + strength * 0.08})`);
+      shine.addColorStop(0.55, `rgba(255,255,255,${0.18 + strength * 0.12})`);
+      shine.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = shine;
+      drawRoundedRectPath(ctx, -loopW / 2, -loopH / 2 + yarnShift, loopW, loopH, corner);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
 }
 
 function applyMosaic(canvas, amount) {
@@ -1759,24 +1829,36 @@ function applyMosaic(canvas, amount) {
 }
 
 function applyMatrixRain(canvas, amount) {
+  const source = cloneCanvas(canvas);
+  const sampleCanvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
-  const cols = Math.max(10, Math.round(canvas.width / Math.max(12, 22 - amount * 8)));
+  const density = Math.max(0, amount);
+  const strength = clamp(amount, 0, 1);
+  const cols = Math.max(10, Math.round(canvas.width / Math.max(9, 22 - Math.min(12, density * 1.2))));
   const size = canvas.width / cols;
   const rows = Math.ceil(canvas.height / size);
   const glyphs = "01アイウエオカキクケコサシスセソ";
+  sampleCanvas.width = cols;
+  sampleCanvas.height = rows;
+  const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+  sampleCtx.drawImage(source, 0, 0, cols, rows);
+  const sample = sampleCtx.getImageData(0, 0, cols, rows).data;
   ctx.save();
-  ctx.fillStyle = `rgba(0,18,8,${0.25 + amount * 0.28})`;
+  ctx.fillStyle = `rgba(0,18,8,${0.12 + strength * 0.18})`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.font = `${Math.round(size)}px monospace`;
   ctx.textBaseline = "top";
   for (let col = 0; col < cols; col += 1) {
     const head = Math.floor(seededNoise(col, 5, amount) * rows);
     for (let row = 0; row < rows; row += 1) {
+      const sampleIndex = (row * cols + col) * 4;
+      const luminance = (sample[sampleIndex] + sample[sampleIndex + 1] + sample[sampleIndex + 2]) / 3;
       const char = glyphs[Math.floor(seededNoise(col, row, 1.2) * glyphs.length)];
       const distance = Math.abs(row - head);
-      const alpha = Math.max(0, 0.92 - distance * 0.15) * (0.22 + amount * 0.78);
+      const alpha = Math.max(0, 0.92 - distance * 0.15) * (0.18 + strength * 0.82) * (0.35 + (255 - luminance) / 255 * 0.65);
       if (alpha <= 0.03) continue;
-      ctx.fillStyle = `rgba(${distance === 0 ? "210,255,220" : "64,255,128"},${alpha})`;
+      const glow = clamp(80 + (255 - luminance), 80, 255);
+      ctx.fillStyle = `rgba(${distance === 0 ? `210,255,${glow}` : `64,${glow},128`},${alpha})`;
       ctx.fillText(char, col * size, row * size);
     }
   }
@@ -1878,45 +1960,82 @@ function applyIcehouse(canvas, amount) {
   const source = cloneCanvas(canvas);
   const sample = source.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
   const ctx = canvas.getContext("2d");
-  const spacing = Math.max(8, Math.round(22 - amount * 10));
+  const progress = clamp(amount / 10, 0, 1);
+  const spacing = Math.max(7, Math.round(28 - progress * 18));
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgb(238, 244, 252)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.globalCompositeOperation = "screen";
+  ctx.globalAlpha = 0.18 + progress * 0.22;
+  ctx.drawImage(source, 0, 0);
+  ctx.restore();
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
   for (let baseY = 0; baseY < canvas.height; baseY += spacing) {
     ctx.beginPath();
-    for (let x = 0; x <= canvas.width; x += 8) {
+    let hasSegment = false;
+    for (let x = 0; x <= canvas.width; x += 6) {
       const sx = clamp(Math.round(x), 0, canvas.width - 1);
       const sy = clamp(Math.round(baseY), 0, canvas.height - 1);
       const index = (sy * canvas.width + sx) * 4;
       const gray = (sample[index] + sample[index + 1] + sample[index + 2]) / 3;
-      const y = baseY + Math.sin(x * 0.03 + gray * 0.02) * (3 + amount * 10);
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      const saturation = Math.max(sample[index], sample[index + 1], sample[index + 2]) - Math.min(sample[index], sample[index + 1], sample[index + 2]);
+      const amplitude = (1 - gray / 255) * (5 + progress * 18) + saturation * 0.02;
+      const wave = Math.sin(x * (0.016 + progress * 0.01) + gray * 0.025 + baseY * 0.018) * amplitude;
+      const detail = Math.cos(x * 0.048 + baseY * 0.021) * amplitude * 0.28;
+      const y = baseY + wave + detail;
+      if (!hasSegment) {
+        ctx.moveTo(x, y);
+        hasSegment = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
     }
     const hue = (baseY / Math.max(1, canvas.height)) * 360;
-    ctx.strokeStyle = `hsla(${hue}, 88%, 64%, ${0.08 + amount * 0.2})`;
-    ctx.lineWidth = 0.9 + amount * 1.5;
+    ctx.strokeStyle = `hsla(${hue}, 82%, 54%, ${0.18 + progress * 0.22})`;
+    ctx.lineWidth = 0.7 + progress * 1.8;
     ctx.stroke();
   }
+  ctx.globalCompositeOperation = "screen";
+  ctx.globalAlpha = 0.06 + progress * 0.1;
+  ctx.drawImage(source, 0, 0);
   ctx.restore();
 }
 
 function applySandstorm(canvas, amount) {
+  const source = cloneCanvas(canvas);
+  const sampleCanvas = document.createElement("canvas");
+  const density = Math.max(0, amount);
+  const progress = clamp(amount / 10, 0, 1);
+  const cols = Math.max(20, Math.round(26 + progress * 60));
+  const rows = Math.max(18, Math.round((canvas.height / canvas.width) * cols));
+  sampleCanvas.width = cols;
+  sampleCanvas.height = rows;
+  const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+  sampleCtx.drawImage(source, 0, 0, cols, rows);
+  const sample = sampleCtx.getImageData(0, 0, cols, rows).data;
   const ctx = canvas.getContext("2d");
-  ctx.save();
-  ctx.fillStyle = `rgba(211,178,121,${0.06 + amount * 0.12})`;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, 0, 0);
+  ctx.fillStyle = `rgba(230, 208, 168,${0.06 + progress * 0.2})`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.restore();
-  const count = Math.round(140 + amount * 520);
+  const count = Math.round(180 + progress * 2400);
   ctx.save();
-  ctx.strokeStyle = `rgba(232,210,164,${0.06 + amount * 0.12})`;
-  ctx.lineWidth = 0.4 + amount * 0.7;
+  ctx.strokeStyle = `rgba(232,210,164,${0.04 + progress * 0.14})`;
+  ctx.lineWidth = 0.35 + progress * 1.1;
   for (let i = 0; i < count; i += 1) {
     const x = seededNoise(i, 1, 0.4) * canvas.width;
     const y = seededNoise(i, 2, 1.3) * canvas.height;
-    const len = 3 + seededNoise(i, 3, 2.1) * (16 + amount * 24);
+    const col = clamp(Math.floor((x / canvas.width) * cols), 0, cols - 1);
+    const row = clamp(Math.floor((y / canvas.height) * rows), 0, rows - 1);
+    const index = (row * cols + col) * 4;
+    const luminance = (sample[index] + sample[index + 1] + sample[index + 2]) / 3;
+    const drift = (seededNoise(i, 5, 0.93) - 0.5) * (8 + progress * 60);
+    const len = 3 + seededNoise(i, 3, 2.1) * (8 + progress * 32) * (0.45 + (255 - luminance) / 255);
+    ctx.strokeStyle = `rgba(${210 + (255 - luminance) * 0.15},${186 + (255 - luminance) * 0.08},${140 + (255 - luminance) * 0.05},${0.045 + progress * 0.12})`;
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(x + len, y + len * 0.25);
+    ctx.lineTo(x + len + drift, y + len * (0.12 + progress * 0.28));
     ctx.stroke();
   }
   ctx.restore();
@@ -2000,17 +2119,20 @@ function applyLinoCut(canvas, amount, dark, soft) {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
+  const progress = clamp(amount / 10, 0, 1);
   applyGrayscale(data, 1);
-  const threshold = 182 - amount * 64;
+  const threshold = 214 - progress * 150;
   for (let i = 0; i < data.length; i += 4) {
     const gray = data[i];
-    const value = gray > threshold ? 244 : 24;
+    const jitter = (Math.random() - 0.5) * (6 + progress * 30);
+    const edgeBias = smoothstep(threshold - 30, threshold + 20, gray + jitter);
+    const value = edgeBias > 0.54 ? 246 : 18;
     data[i] = value;
     data[i + 1] = value;
     data[i + 2] = value;
   }
   ctx.putImageData(imageData, 0, 0);
-  convolveCanvas(canvas, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0.1 + amount * 0.24);
+  convolveCanvas(canvas, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0.04 + progress * 0.28);
   const tinted = ctx.getImageData(0, 0, canvas.width, canvas.height);
   for (let i = 0; i < tinted.data.length; i += 4) {
     const isLight = tinted.data[i] > 180;
@@ -2025,7 +2147,9 @@ function applyPointillism(canvas, amount) {
   const source = cloneCanvas(canvas);
   const data = source.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
   const ctx = canvas.getContext("2d");
-  const step = Math.max(5, Math.round(14 - amount * 6));
+  const density = Math.max(0, amount);
+  const strength = clamp(amount, 0, 1);
+  const step = Math.max(4, Math.round(8 + Math.min(14, density * 1.1)));
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#f8f4ef";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2034,8 +2158,8 @@ function applyPointillism(canvas, amount) {
       const sx = clamp(Math.round(x), 0, canvas.width - 1);
       const sy = clamp(Math.round(y), 0, canvas.height - 1);
       const index = (sy * canvas.width + sx) * 4;
-      const radius = 1 + (1 - ((data[index] + data[index + 1] + data[index + 2]) / 765)) * step * 0.55;
-      ctx.fillStyle = `rgba(${data[index]},${data[index + 1]},${data[index + 2]},${0.76 + amount * 0.16})`;
+      const radius = 0.8 + (1 - ((data[index] + data[index + 1] + data[index + 2]) / 765)) * step * (0.2 + strength * 0.24);
+      ctx.fillStyle = `rgba(${data[index]},${data[index + 1]},${data[index + 2]},${0.72 + strength * 0.16})`;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.fill();
@@ -2044,28 +2168,53 @@ function applyPointillism(canvas, amount) {
 }
 
 function applyBallpointPen(canvas, amount) {
+  const density = Math.max(0, amount);
+  const progress = clamp(amount / 10, 0, 1);
   const source = cloneCanvas(canvas);
+  const edgeCanvas = cloneCanvas(canvas);
+  applyCannyLikeEdges(edgeCanvas, 0.2 + progress * 0.55);
   const sample = source.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  const edges = edgeCanvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#f8f7f1";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.strokeStyle = `rgba(37,64,148,${0.12 + amount * 0.2})`;
-  ctx.lineWidth = 0.7 + amount * 0.8;
-  const spacing = Math.max(5, Math.round(10 - amount * 4));
+  ctx.strokeStyle = `rgba(37,64,148,${0.12 + progress * 0.2})`;
+  ctx.lineWidth = 0.55 + progress * 0.65;
+  const spacing = Math.max(5, Math.round(13 - progress * 7));
   for (let y = 0; y < canvas.height; y += spacing) {
     ctx.beginPath();
-    for (let x = 0; x <= canvas.width; x += 8) {
+    for (let x = 0; x <= canvas.width; x += 6) {
       const sx = clamp(Math.round(x), 0, canvas.width - 1);
       const sy = clamp(Math.round(y), 0, canvas.height - 1);
       const index = (sy * canvas.width + sx) * 4;
       const gray = (sample[index] + sample[index + 1] + sample[index + 2]) / 3;
-      const offset = (1 - gray / 255) * spacing * 0.8;
+      const edgeGray = (edges[index] + edges[index + 1] + edges[index + 2]) / 3;
+      const offset = (1 - gray / 255) * spacing * (0.46 + progress * 0.2) + (1 - edgeGray / 255) * spacing * 0.38;
       if (x === 0) ctx.moveTo(x, y + offset);
       else ctx.lineTo(x, y + offset);
     }
     ctx.stroke();
   }
+  if (density > 0.8) {
+    ctx.globalAlpha = 0.22 + progress * 0.18;
+    for (let y = spacing / 2; y < canvas.height; y += spacing * 1.4) {
+      ctx.beginPath();
+      for (let x = 0; x <= canvas.width; x += 8) {
+        const sx = clamp(Math.round(x), 0, canvas.width - 1);
+        const sy = clamp(Math.round(y), 0, canvas.height - 1);
+        const index = (sy * canvas.width + sx) * 4;
+        const gray = (sample[index] + sample[index + 1] + sample[index + 2]) / 3;
+        const edgeGray = (edges[index] + edges[index + 1] + edges[index + 2]) / 3;
+        const offset = (1 - gray / 255) * spacing * 0.32 + (1 - edgeGray / 255) * spacing * 0.24;
+        if (x === 0) ctx.moveTo(x, y + offset);
+        else ctx.lineTo(x, y + offset);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 0.3 + progress * 0.24;
+  ctx.drawImage(edgeCanvas, 0, 0);
   ctx.restore();
 }
 
@@ -2087,24 +2236,25 @@ function applySquashStretch(canvas, amount) {
 
 function applyRandomWords(canvas, amount, accent, soft, dark) {
   const ctx = canvas.getContext("2d");
+  const density = Math.max(0, amount);
+  const strength = clamp(amount, 0, 1);
   const words = ["noise", "echo", "urban", "fragment", "signal", "color", "dream", "grid", "pixel", "tempo", "trace"];
   const palette = [accent, soft, dark, { r: 255, g: 255, b: 255 }];
-  const count = Math.round(6 + amount * 22);
+  const count = Math.round(8 + density * 12);
   ctx.save();
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   for (let i = 0; i < count; i += 1) {
-    const color = palette[i % palette.length];
-    const size = 12 + seededNoise(i, 3, 0.9) * (18 + amount * 28);
+    const paletteColor = palette[i % palette.length];
+    const size = 12 + seededNoise(i, 3, 0.9) * (12 + density * 16);
     ctx.font = `${Math.round(size)}px 'Aptos Display', 'Segoe UI', sans-serif`;
-    ctx.translate(0, 0);
     const x = seededNoise(i, 1, 0.2) * canvas.width;
     const y = seededNoise(i, 2, 1.2) * canvas.height;
-    const rotation = (seededNoise(i, 4, 1.8) - 0.5) * 1.4;
+    const rotation = (seededNoise(i, 4, 1.8) - 0.5) * (0.3 + density * 0.06);
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(rotation);
-    ctx.fillStyle = rgbaString(color, 0.08 + amount * 0.12);
+    ctx.fillStyle = rgbaString(paletteColor, 0.08 + strength * 0.12);
     ctx.fillText(words[Math.floor(seededNoise(i, 5, 2.6) * words.length)], 0, 0);
     ctx.restore();
   }
@@ -2253,37 +2403,117 @@ function drawDiamondMesh(ctx, canvas, { size, lineWidth, color }) {
 }
 
 function drawTireTracks(ctx, canvas, amount, accent) {
+  const progress = clamp(amount / 10, 0, 1);
+  const trackCount = Math.max(4, Math.round(6 + progress * 28));
   ctx.save();
-  ctx.strokeStyle = rgbaString(accent, 0.1 + amount * 0.18);
-  ctx.lineWidth = 14 + amount * 24;
-  const gap = 48 + amount * 36;
-  [canvas.width * 0.36, canvas.width * 0.36 + gap].forEach((xBase, trackIndex) => {
-    ctx.beginPath();
-    for (let y = -30; y <= canvas.height + 30; y += 24) {
-      const x = xBase + Math.sin((y + trackIndex * 18) * 0.025) * (12 + amount * 18);
-      if (y <= 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  });
+  const treadInk = `rgba(18,18,18,${0.18 + progress * 0.34})`;
+  for (let band = 0; band < trackCount; band += 1) {
+    const tireWidth = 12 + seededNoise(band, 12, 0.21) * 18 + progress * 28;
+    const treadStep = 8 + seededNoise(band, 15, 0.31) * 8 + progress * 9;
+    const trackGap = tireWidth * (0.56 + seededNoise(band, 18, 0.41) * 0.3);
+    const margin = tireWidth * 1.2;
+    const centerBase = margin + seededNoise(band, 91, 0.31) * Math.max(margin, canvas.width - margin * 2);
+    const verticalShift = (seededNoise(band, 77, 0.18) - 0.5) * canvas.height * 0.32;
+    const profileType = Math.floor(seededNoise(band, 66, 0.52) * 4);
+    [-trackGap / 2, trackGap / 2].forEach((pairOffset, trackIndex) => {
+      const xBase = centerBase + pairOffset;
+      for (let y = -treadStep; y <= canvas.height + treadStep; y += treadStep) {
+        const sweep = y + verticalShift;
+        const sway = (
+          Math.sin((sweep + trackIndex * 23 + band * 17) * (0.012 + seededNoise(band, 22, 0.44) * 0.012))
+          + Math.cos((sweep + band * 11) * (0.007 + seededNoise(band, 24, 0.62) * 0.008)) * 0.9
+        ) * (3 + progress * 15);
+        const centerX = xBase + sway;
+        const blockW = tireWidth * (0.18 + seededNoise(band, y, 0.17) * 0.08);
+        const blockH = treadStep * 0.84;
+        ctx.fillStyle = treadInk;
+        if (profileType === 0) {
+          // Chevron
+          for (let lane = -1; lane <= 1; lane += 2) {
+            const laneCenter = centerX + lane * tireWidth * 0.22;
+            const lean = lane * (trackIndex === 0 ? 1 : -1);
+            ctx.save();
+            ctx.translate(laneCenter, y + treadStep * 0.48);
+            ctx.rotate((lean * 30 * Math.PI) / 180);
+            ctx.fillRect(-blockW / 2, -blockH / 2, blockW, blockH);
+            ctx.restore();
+          }
+          ctx.fillRect(centerX - tireWidth * 0.04, y + treadStep * 0.08, tireWidth * 0.08, treadStep * 0.74);
+        } else if (profileType === 1) {
+          // Block
+          for (let lane = -1; lane <= 1; lane += 1) {
+            const laneCenter = centerX + lane * tireWidth * 0.16;
+            ctx.save();
+            ctx.translate(laneCenter, y + treadStep * 0.5);
+            ctx.rotate(((lane === 0 ? 0 : lane * 18) * Math.PI) / 180);
+            ctx.fillRect(-blockW * 0.42, -blockH / 2, blockW * 0.84, blockH);
+            ctx.restore();
+          }
+        } else if (profileType === 2) {
+          // Lamelle
+          for (let lane = -2; lane <= 2; lane += 1) {
+            const laneCenter = centerX + lane * tireWidth * 0.11;
+            ctx.save();
+            ctx.translate(laneCenter, y + treadStep * 0.5);
+            ctx.rotate(((lane % 2 === 0 ? 12 : -12) * Math.PI) / 180);
+            ctx.fillRect(-blockW * 0.18, -blockH / 2, blockW * 0.36, blockH);
+            ctx.restore();
+          }
+        } else {
+          // Rallye
+          for (let lane = -1; lane <= 1; lane += 2) {
+            const laneCenter = centerX + lane * tireWidth * 0.24;
+            ctx.save();
+            ctx.translate(laneCenter, y + treadStep * 0.5);
+            ctx.rotate((lane * 42 * Math.PI) / 180);
+            ctx.fillRect(-blockW * 0.62, -blockH * 0.4, blockW * 1.24, blockH * 0.8);
+            ctx.restore();
+          }
+          ctx.fillRect(centerX - tireWidth * 0.06, y + treadStep * 0.14, tireWidth * 0.12, treadStep * 0.64);
+        }
+        if ((Math.floor(y / treadStep) + trackIndex + band) % 3 === 0) {
+          ctx.fillStyle = "rgba(18,18,18,0.04)";
+          ctx.fillRect(centerX - tireWidth * 0.46, y + treadStep * 0.28, tireWidth * 0.92, treadStep * 0.14);
+          ctx.fillStyle = treadInk;
+        }
+        if (seededNoise(band, Math.floor(y / treadStep), trackIndex * 0.71) > 0.68) {
+          ctx.fillStyle = "rgba(18,18,18,0.03)";
+          ctx.fillRect(centerX - tireWidth * 0.5, y + treadStep * 0.04, tireWidth * 0.16, treadStep * 0.2);
+          ctx.fillStyle = treadInk;
+        }
+      }
+    });
+  }
   ctx.restore();
 }
 
 function drawFingerprint(ctx, canvas, amount, dark) {
+  const progress = clamp(amount / 10, 0, 1);
   ctx.save();
-  ctx.translate(canvas.width * 0.72, canvas.height * 0.34);
-  ctx.strokeStyle = rgbaString(dark, 0.05 + amount * 0.16);
-  ctx.lineWidth = 1 + amount * 1.8;
-  for (let r = 24; r < Math.min(canvas.width, canvas.height) * 0.18; r += 8) {
-    ctx.beginPath();
-    for (let a = 0; a <= Math.PI * 2; a += 0.1) {
-      const wobble = Math.sin(a * 3.2) * (4 + amount * 8);
-      const x = Math.cos(a) * (r + wobble);
-      const y = Math.sin(a) * (r * 0.72 + wobble * 0.4);
-      if (a === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+  const printCount = Math.max(2, Math.round(3 + progress * 18));
+  for (let p = 0; p < printCount; p += 1) {
+    const ax = 0.16 + seededNoise(p, 14, 0.21) * 0.68;
+    const ay = 0.16 + seededNoise(p, 28, 0.49) * 0.68;
+    ctx.save();
+    ctx.translate(canvas.width * ax, canvas.height * ay);
+    ctx.rotate((seededNoise(p, 35, 0.73) - 0.5) * Math.PI * 0.8);
+    ctx.strokeStyle = rgbaString(dark, 0.08 + progress * 0.18);
+    ctx.lineWidth = 0.7 + progress * 1.25;
+    const sizeBias = 0.045 + seededNoise(p, 42, 0.93) * 0.1;
+    const maxRadius = Math.min(canvas.width, canvas.height) * (sizeBias + progress * 0.08);
+    for (let r = 10; r < maxRadius; r += 4.2) {
+      ctx.beginPath();
+      for (let a = 0; a <= Math.PI * 3.6; a += 0.055) {
+        const spiral = a * (2.8 + progress * 1.8);
+        const wobble = Math.sin(a * 3.2) * (2.8 + progress * 9) + Math.cos(a * 1.8) * (1.4 + progress * 5);
+        const x = Math.cos(a) * (r + wobble) + Math.cos(spiral) * (2.8 + progress * 6);
+        const y = Math.sin(a) * (r * 0.84 + wobble * 0.5) + Math.sin(spiral) * (2.2 + progress * 5.5);
+        if (a === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
     }
-    ctx.stroke();
+    ctx.restore();
   }
   ctx.restore();
 }
@@ -2388,13 +2618,15 @@ function applyFrostedGlass(canvas, amount) {
 
 function drawRaindrops(ctx, canvas, amount) {
   ctx.save();
-  const drops = Math.round(18 + amount * 70);
+  const density = Math.max(0, amount);
+  const progress = clamp(amount, 0, 1);
+  const drops = Math.round(28 + density * 180 + Math.max(0, density - 1) * 320);
   for (let i = 0; i < drops; i += 1) {
     const x = Math.random() * canvas.width;
     const y = Math.random() * canvas.height;
-    const r = 2 + Math.random() * (4 + amount * 10);
+    const r = 1.8 + Math.random() * (3.5 + density * 8);
     const gradient = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, 0, x, y, r);
-    gradient.addColorStop(0, `rgba(255,255,255,${0.22 + amount * 0.35})`);
+    gradient.addColorStop(0, `rgba(255,255,255,${0.18 + progress * 0.28})`);
     gradient.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = gradient;
     ctx.beginPath();
@@ -2443,16 +2675,34 @@ function applyCardboard(canvas, amount) {
 }
 
 function applyNewsprint(canvas, amount) {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  applyGrayscale(data.data, 1);
-  applyPosterize(data.data, Math.round(2 + amount * 4));
-  ctx.putImageData(data, 0, 0);
-  drawDotPattern(ctx, canvas, {
-    spacing: Math.max(8, 18 - amount * 6),
-    radius: Math.max(1, 1.2 + amount * 2.2),
-    color: `rgba(20,20,20,${0.04 + amount * 0.12})`,
-  });
+  const source = cloneCanvas(canvas);
+  const sample = source.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  const ctx = canvas.getContext("2d");
+  const progress = clamp(amount / 10, 0, 1);
+  const step = Math.max(5, Math.round(5 + progress * 15));
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#f2ece3";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let y = 0; y < canvas.height; y += step) {
+    for (let x = 0; x < canvas.width; x += step) {
+      const sx = clamp(Math.round(x), 0, canvas.width - 1);
+      const sy = clamp(Math.round(y), 0, canvas.height - 1);
+      const index = (sy * canvas.width + sx) * 4;
+      const gray = (sample[index] + sample[index + 1] + sample[index + 2]) / 3;
+      const radius = (1 - gray / 255) * (0.35 + step * (0.28 + progress * 0.22));
+      if (radius < 0.22) continue;
+      ctx.fillStyle = `rgba(24,22,20,${0.14 + progress * 0.18})`;
+      ctx.beginPath();
+      ctx.arc(
+        x + (y / step % 2 === 0 ? step * 0.15 : step * 0.48),
+        y + step * 0.4,
+        radius,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+  }
 }
 
 function applyThermalFax(canvas, amount) {
@@ -2553,8 +2803,44 @@ function applyCrtDrift(canvas, amount) {
 }
 
 function applyJpegArtifacts(canvas, amount) {
-  const block = Math.max(4, Math.round(10 + amount * 18));
+  const density = Math.max(0, amount);
+  const strength = clamp(amount, 0, 1);
+  const block = Math.max(6, Math.round(8 + density * 10));
   applyPixelate(canvas, block);
+
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  const corruptionChance = 0.02 + strength * 0.08;
+  const macro = Math.max(4, Math.round(10 + density * 8));
+
+  for (let y = 0; y < canvas.height; y += macro) {
+    for (let x = 0; x < canvas.width; x += macro) {
+      if (seededNoise(x, y, 0.73) > corruptionChance) continue;
+      const tintMode = seededNoise(x, y, 1.91);
+      for (let by = y; by < Math.min(canvas.height, y + macro); by += 1) {
+        for (let bx = x; bx < Math.min(canvas.width, x + macro); bx += 1) {
+          const i = (by * canvas.width + bx) * 4;
+          if (tintMode > 0.68) {
+            data[i] = clamp(data[i] * 0.4, 0, 255);
+            data[i + 1] = clamp(data[i + 1] + 70 + strength * 70, 0, 255);
+            data[i + 2] = clamp(data[i + 2] * 0.45, 0, 255);
+          } else if (tintMode > 0.4) {
+            data[i] = clamp(data[i] + 40 + strength * 40, 0, 255);
+            data[i + 1] = clamp(data[i + 1] * 0.55, 0, 255);
+            data[i + 2] = clamp(data[i + 2] + 18, 0, 255);
+          } else {
+            const shift = ((bx + by) % 2 === 0 ? 1 : -1) * (12 + strength * 18);
+            data[i] = clamp(data[i] + shift, 0, 255);
+            data[i + 1] = clamp(data[i + 1] + shift * 0.4, 0, 255);
+            data[i + 2] = clamp(data[i + 2] - shift * 0.5, 0, 255);
+          }
+        }
+      }
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
 }
 
 function applyPrintMisregister(canvas, amount) {
@@ -3379,6 +3665,10 @@ function mix(a, b, amount) {
 
 function curveAmount(value, exponent = 1.5, max = 1) {
   return Math.pow(clamp(value, 0, 1), exponent) * max;
+}
+
+function curveThousand(value, exponent = 1.4, max = 1) {
+  return curveAmount(value / 10, exponent, max);
 }
 
 function smoothstep(edge0, edge1, x) {

@@ -1,6 +1,6 @@
 {
   "name": "Threadline Studio",
-  "short_name": "Threadline",
+  "short_name": "ThreadlineStudio",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
