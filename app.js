@@ -2,9 +2,9 @@ const I18N = window.THREADLINE_STUDIO_I18N || {};
 const STORAGE_KEY = "threadline-studio-project";
 const SETTINGS_KEY = "threadline-studio-settings";
 const DEFAULT_VERSION = Object.freeze({
-  appVersion: "0.1.43",
-  cacheVersion: "v44",
-  label: "Reifenspuren ohne transparente Artefakte",
+  appVersion: "0.1.47",
+  cacheVersion: "v48",
+  label: "Farbfokus-Block und mobile Preview weiter verfeinert",
 });
 
 const CONTROL_GROUPS = {
@@ -20,6 +20,8 @@ const CONTROL_GROUPS = {
     { key: "blackwhite", min: 0, max: 255, step: 1, value: 0, label: "Schwarzweiss" },
     { key: "sepia", min: 0, max: 100, step: 1, value: 0, label: "Sepia" },
     { key: "duotone", min: 0, max: 100, step: 1, value: 0, label: "Duotone" },
+    { key: "colorFocus", min: 0, max: 100, step: 1, value: 0, label: "Farbfokus", i18nKey: "styleColorFocus" },
+    { key: "colorFocusTolerance", min: 0, max: 100, step: 1, value: 28, label: "Toleranz", i18nKey: "styleColorFocusTolerance" },
     { key: "vintage", min: 0, max: 100, step: 1, value: 0, label: "Vintage" },
     { key: "oilPaint", min: 0, max: 100, step: 1, value: 0, label: "Oelfarbe" },
     { key: "popArt", min: 0, max: 100, step: 1, value: 0, label: "Pop Art" },
@@ -138,6 +140,7 @@ const state = {
   project: createDefaultProject(),
   deferredPrompt: null,
   sourceImage: null,
+  focusColorPicking: false,
   renderQueued: false,
   readmeText: "",
   updateInProgress: false,
@@ -165,6 +168,7 @@ const els = {
   flipYButton: document.getElementById("flipYButton"),
   correctionFields: document.getElementById("correctionFields"),
   styleFields: document.getElementById("styleFields"),
+  colorFocusFields: document.getElementById("colorFocusFields"),
   fxFields: document.getElementById("fxFields"),
   morphologyFields: document.getElementById("morphologyFields"),
   patternFields: document.getElementById("patternFields"),
@@ -174,6 +178,8 @@ const els = {
   duotoneDarkInput: document.getElementById("duotoneDarkInput"),
   duotoneLightInput: document.getElementById("duotoneLightInput"),
   overlayColorInput: document.getElementById("overlayColorInput"),
+  focusColorInput: document.getElementById("focusColorInput"),
+  focusColorPickerButton: document.getElementById("focusColorPickerButton"),
   exportFormatSelect: document.getElementById("exportFormatSelect"),
   exportWidthSelect: document.getElementById("exportWidthSelect"),
   qualityInput: document.getElementById("qualityInput"),
@@ -194,7 +200,6 @@ const els = {
   autosaveBadge: document.getElementById("autosaveBadge"),
   installButton: document.getElementById("installButton"),
   canvasFrame: document.getElementById("canvasFrame"),
-  canvasHint: document.getElementById("canvasHint"),
   themeToggleButton: document.getElementById("themeToggleButton"),
   themeStatusNote: document.getElementById("themeStatusNote"),
   helpDialog: document.getElementById("helpDialog"),
@@ -243,10 +248,15 @@ function getPanelStorageKey(panel) {
 
 function applyResponsiveLayout() {
   document.body.classList.toggle("mobile-layout", isMobileLayout());
+  document.body.classList.toggle("mobile-landscape", isMobileLandscape());
 }
 
 function isMobileLayout() {
-  return window.innerWidth <= 1180;
+  return window.innerWidth <= 1180 && window.innerHeight >= window.innerWidth;
+}
+
+function isMobileLandscape() {
+  return window.innerWidth <= 1180 && window.innerWidth > window.innerHeight;
 }
 
 function createDefaultProject() {
@@ -281,6 +291,7 @@ function createDefaultProject() {
       duotoneDark: "#111111",
       duotoneLight: "#f8d48f",
       overlayColor: "#ff6a3d",
+      focusColor: "#ff3b30",
     },
     export: {
       format: "png",
@@ -292,7 +303,8 @@ function createDefaultProject() {
 
 function buildControlFields() {
   renderControls(els.correctionFields, CONTROL_GROUPS.corrections, "corrections");
-  renderControls(els.styleFields, CONTROL_GROUPS.styles, "styles");
+  renderControls(els.styleFields, CONTROL_GROUPS.styles.filter((control) => !["colorFocus", "colorFocusTolerance"].includes(control.key)), "styles");
+  renderControls(els.colorFocusFields, CONTROL_GROUPS.styles.filter((control) => ["colorFocus", "colorFocusTolerance"].includes(control.key)), "styles");
   renderControls(els.fxFields, CONTROL_GROUPS.fx, "fx");
   renderControls(els.morphologyFields, CONTROL_GROUPS.morphology, "morphology");
   renderControls(els.patternFields, CONTROL_GROUPS.patterns, "patterns");
@@ -343,13 +355,19 @@ function bindEvents() {
     input.addEventListener("input", handleControlInput);
   });
 
-  [els.duotoneDarkInput, els.duotoneLightInput, els.overlayColorInput].forEach((input) => {
+  [els.duotoneDarkInput, els.duotoneLightInput, els.overlayColorInput, els.focusColorInput].forEach((input) => {
     input.addEventListener("input", () => {
       state.project.colors.duotoneDark = els.duotoneDarkInput.value;
       state.project.colors.duotoneLight = els.duotoneLightInput.value;
       state.project.colors.overlayColor = els.overlayColorInput.value;
+      state.project.colors.focusColor = els.focusColorInput.value;
       touchProject();
     });
+  });
+
+  els.focusColorPickerButton.addEventListener("click", () => {
+    state.focusColorPicking = !state.focusColorPicking;
+    syncUiFromState();
   });
 
   [els.zoomInput, els.panXInput, els.panYInput, els.rotationInput].forEach((input) => {
@@ -448,6 +466,11 @@ function bindCanvasGestures() {
   let pinchStart = null;
 
   const onPointerDown = (event) => {
+    if (state.focusColorPicking && state.sourceImage) {
+      event.preventDefault();
+      pickFocusColorFromPoint(event.clientX, event.clientY);
+      return;
+    }
     els.canvasFrame.setPointerCapture(event.pointerId);
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (activePointers.size === 1) {
@@ -546,6 +569,18 @@ function handleControlInput(event) {
   state.project[group][key] = Number(input.value);
   const config = CONTROL_GROUPS[group].find((item) => item.key === key);
   document.getElementById(`${group}-${key}-value`).textContent = formatControlValue(config, Number(input.value));
+  touchProject();
+}
+
+function pickFocusColorFromPoint(clientX, clientY) {
+  const rect = els.previewCanvas.getBoundingClientRect();
+  const x = clamp(Math.round(((clientX - rect.left) / Math.max(1, rect.width)) * els.previewCanvas.width), 0, els.previewCanvas.width - 1);
+  const y = clamp(Math.round(((clientY - rect.top) / Math.max(1, rect.height)) * els.previewCanvas.height), 0, els.previewCanvas.height - 1);
+  const ctx = els.previewCanvas.getContext("2d", { willReadFrequently: true });
+  const pixel = ctx.getImageData(x, y, 1, 1).data;
+  state.project.colors.focusColor = rgbToHex(pixel[0], pixel[1], pixel[2]);
+  state.focusColorPicking = false;
+  syncUiFromState();
   touchProject();
 }
 
@@ -717,6 +752,9 @@ function applyEffects(canvas, ctx) {
   let data = imageData.data;
 
   applyBasicAdjustments(data, corrections, fx.hueShift);
+  if (styles.colorFocus > 0) {
+    applyColorFocus(data, styles.colorFocus / 100, colors.focusColor, styles.colorFocusTolerance / 100);
+  }
   if (styles.grayscale > 0) applyGrayscale(data, styles.grayscale / 100);
   if (styles.blackwhite > 0) applyBlackWhite(data, styles.blackwhite);
   if (styles.sepia > 0) applySepia(data, styles.sepia / 100);
@@ -850,6 +888,29 @@ function applyDuotone(data, amount, darkColor, lightColor) {
     data[i] = mix(data[i], nr, amount);
     data[i + 1] = mix(data[i + 1], ng, amount);
     data[i + 2] = mix(data[i + 2], nb, amount);
+  }
+}
+
+function applyColorFocus(data, amount, targetHex, tolerance) {
+  const [targetHue, targetSat, targetLight] = rgbToHsl(...Object.values(hexToRgb(targetHex)));
+  const hueTolerance = 8 + tolerance * 96;
+  const satThreshold = 0.08 + tolerance * 0.18;
+  const softRange = 12 + tolerance * 48;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+    const [h, s, l] = rgbToHsl(r, g, b);
+    const hueDistance = getHueDistance(h, targetHue);
+    const satFactor = s <= satThreshold ? 1 : 1 - s * 0.55;
+    const focusDistance = hueDistance + satFactor * 44 + Math.abs(l - targetLight) * 18 + Math.abs(s - targetSat) * 12;
+    const preserve = 1 - smoothstep(hueTolerance, hueTolerance + softRange, focusDistance);
+    const keepAmount = clamp(preserve * amount, 0, 1);
+    data[i] = mix(gray, r, keepAmount);
+    data[i + 1] = mix(gray, g, keepAmount);
+    data[i + 2] = mix(gray, b, keepAmount);
   }
 }
 
@@ -3312,7 +3373,12 @@ function syncUiFromState() {
   els.duotoneDarkInput.value = state.project.colors.duotoneDark;
   els.duotoneLightInput.value = state.project.colors.duotoneLight;
   els.overlayColorInput.value = state.project.colors.overlayColor;
+  els.focusColorInput.value = state.project.colors.focusColor || "#ff3b30";
   els.languageSelect.value = state.settings.languagePreference;
+  els.focusColorPickerButton.classList.toggle("primary", state.focusColorPicking);
+  els.focusColorPickerButton.classList.toggle("secondary", !state.focusColorPicking);
+  els.focusColorPickerButton.textContent = state.focusColorPicking ? t("focusColorPickerActive") : t("focusColorPicker");
+  els.focusColorPickerButton.setAttribute("aria-pressed", state.focusColorPicking ? "true" : "false");
 
   for (const [groupKey, controls] of Object.entries(CONTROL_GROUPS)) {
     for (const control of controls) {
@@ -3339,9 +3405,8 @@ function syncUiFromState() {
   els.exportButton.hidden = mobileLayout;
   els.shareImageButton.classList.toggle("primary", mobileLayout);
   els.shareImageButton.classList.toggle("secondary", !mobileLayout);
-  els.canvasHint.hidden = !hasImage;
   els.emptyBodyText.hidden = mobileLayout;
-  els.canvasFrame.style.cursor = !hasImage && mobileLayout ? "pointer" : "";
+  els.canvasFrame.style.cursor = state.focusColorPicking ? "crosshair" : (!hasImage && mobileLayout ? "pointer" : "");
 }
 
 function loadLocalState() {
@@ -3549,6 +3614,10 @@ function loadImage(src) {
   });
 }
 
+function rgbToHex(r, g, b) {
+  return `#${[r, g, b].map((value) => clamp(Math.round(value), 0, 255).toString(16).padStart(2, "0")).join("")}`;
+}
+
 function canvasToBlob(canvas, type, quality) {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
@@ -3669,6 +3738,11 @@ function curveAmount(value, exponent = 1.5, max = 1) {
 
 function curveThousand(value, exponent = 1.4, max = 1) {
   return curveAmount(value / 10, exponent, max);
+}
+
+function getHueDistance(a, b) {
+  const delta = Math.abs(a - b) % 360;
+  return delta > 180 ? 360 - delta : delta;
 }
 
 function smoothstep(edge0, edge1, x) {
