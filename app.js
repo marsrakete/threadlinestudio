@@ -2,9 +2,9 @@ const I18N = window.THREADLINE_STUDIO_I18N || {};
 const STORAGE_KEY = "threadline-studio-project";
 const SETTINGS_KEY = "threadline-studio-settings";
 const DEFAULT_VERSION = Object.freeze({
-  appVersion: "0.1.47",
-  cacheVersion: "v48",
-  label: "Farbfokus-Block und mobile Preview weiter verfeinert",
+  appVersion: "0.1.48",
+  cacheVersion: "v49",
+  label: "Manueller Versionsbump",
 });
 
 const CONTROL_GROUPS = {
