@@ -2,9 +2,9 @@ const I18N = window.THREADLINE_STUDIO_I18N || {};
 const STORAGE_KEY = "threadline-studio-project";
 const SETTINGS_KEY = "threadline-studio-settings";
 const DEFAULT_VERSION = Object.freeze({
-  appVersion: "0.1.48",
-  cacheVersion: "v49",
-  label: "Manueller Versionsbump",
+  appVersion: "0.1.52",
+  cacheVersion: "v53",
+  label: "Farbwerkzeuge erweitert und neu sortiert",
 });
 
 const CONTROL_GROUPS = {
@@ -20,8 +20,20 @@ const CONTROL_GROUPS = {
     { key: "blackwhite", min: 0, max: 255, step: 1, value: 0, label: "Schwarzweiss" },
     { key: "sepia", min: 0, max: 100, step: 1, value: 0, label: "Sepia" },
     { key: "duotone", min: 0, max: 100, step: 1, value: 0, label: "Duotone" },
+    { key: "hueShift", min: -180, max: 180, step: 1, value: 0, label: "Farbton", i18nKey: "styleHueShift" },
     { key: "colorFocus", min: 0, max: 100, step: 1, value: 0, label: "Farbfokus", i18nKey: "styleColorFocus" },
     { key: "colorFocusTolerance", min: 0, max: 100, step: 1, value: 28, label: "Toleranz", i18nKey: "styleColorFocusTolerance" },
+    { key: "colorSwap", min: 0, max: 100, step: 1, value: 0, label: "Farben tauschen", i18nKey: "styleColorSwap" },
+    { key: "warmCool", min: -100, max: 100, step: 1, value: 0, label: "Warm/Kalt", i18nKey: "styleWarmCool" },
+    { key: "splitTone", min: 0, max: 100, step: 1, value: 0, label: "Split Tone", i18nKey: "styleSplitTone" },
+    { key: "saturationMask", min: 0, max: 100, step: 1, value: 0, label: "Saettigungsmaske", i18nKey: "styleSaturationMask" },
+    { key: "gradientMap", min: 0, max: 100, step: 1, value: 0, label: "Gradient Map", i18nKey: "styleGradientMap" },
+    { key: "falseColor", min: 0, max: 100, step: 1, value: 0, label: "False Color", i18nKey: "styleFalseColor" },
+    { key: "crossProcess", min: 0, max: 100, step: 1, value: 0, label: "Cross Process", i18nKey: "styleCrossProcess" },
+    { key: "heatmap", min: 0, max: 100, step: 1, value: 0, label: "Heatmap", i18nKey: "styleHeatmap" },
+    { key: "posterBlocks", min: 0, max: 100, step: 1, value: 0, label: "Poster-Farbflaechen", i18nKey: "stylePosterBlocks" },
+    { key: "colorSeparation", min: 0, max: 100, step: 1, value: 0, label: "Farbtrennung", i18nKey: "styleColorSeparation" },
+    { key: "luminanceColor", min: -100, max: 100, step: 1, value: 0, label: "Luminanz-Farbe", i18nKey: "styleLuminanceColor" },
     { key: "vintage", min: 0, max: 100, step: 1, value: 0, label: "Vintage" },
     { key: "oilPaint", min: 0, max: 100, step: 1, value: 0, label: "Oelfarbe" },
     { key: "popArt", min: 0, max: 100, step: 1, value: 0, label: "Pop Art" },
@@ -36,7 +48,6 @@ const CONTROL_GROUPS = {
     { key: "pencil", min: 0, max: 100, step: 1, value: 0, label: "Konturzeichnung" },
     { key: "lineBlend", min: 0, max: 1000, step: 1, value: 0, label: "Bleistiftpause", i18nKey: "fxLineBlend" },
     { key: "charcoal", min: 0, max: 100, step: 1, value: 0, label: "Kohle" },
-    { key: "hueShift", min: -180, max: 180, step: 1, value: 0, label: "Farbton" },
     { key: "invert", min: 0, max: 100, step: 1, value: 0, label: "Invertieren" },
     { key: "vignette", min: 0, max: 100, step: 1, value: 0, label: "Vignette" },
     { key: "grain", min: 0, max: 100, step: 1, value: 0, label: "Filmkorn" },
@@ -140,7 +151,7 @@ const state = {
   project: createDefaultProject(),
   deferredPrompt: null,
   sourceImage: null,
-  focusColorPicking: false,
+  focusColorPickingTarget: "",
   renderQueued: false,
   readmeText: "",
   updateInProgress: false,
@@ -179,7 +190,9 @@ const els = {
   duotoneLightInput: document.getElementById("duotoneLightInput"),
   overlayColorInput: document.getElementById("overlayColorInput"),
   focusColorInput: document.getElementById("focusColorInput"),
+  focusColor2Input: document.getElementById("focusColor2Input"),
   focusColorPickerButton: document.getElementById("focusColorPickerButton"),
+  focusColor2PickerButton: document.getElementById("focusColor2PickerButton"),
   exportFormatSelect: document.getElementById("exportFormatSelect"),
   exportWidthSelect: document.getElementById("exportWidthSelect"),
   qualityInput: document.getElementById("qualityInput"),
@@ -292,6 +305,7 @@ function createDefaultProject() {
       duotoneLight: "#f8d48f",
       overlayColor: "#ff6a3d",
       focusColor: "#ff3b30",
+      focusColor2: "#ffd400",
     },
     export: {
       format: "png",
@@ -303,8 +317,8 @@ function createDefaultProject() {
 
 function buildControlFields() {
   renderControls(els.correctionFields, CONTROL_GROUPS.corrections, "corrections");
-  renderControls(els.styleFields, CONTROL_GROUPS.styles.filter((control) => !["colorFocus", "colorFocusTolerance"].includes(control.key)), "styles");
-  renderControls(els.colorFocusFields, CONTROL_GROUPS.styles.filter((control) => ["colorFocus", "colorFocusTolerance"].includes(control.key)), "styles");
+  renderControls(els.styleFields, CONTROL_GROUPS.styles.filter((control) => !["colorFocus", "colorFocusTolerance", "colorSwap"].includes(control.key)), "styles");
+  renderControls(els.colorFocusFields, CONTROL_GROUPS.styles.filter((control) => ["colorFocus", "colorFocusTolerance", "colorSwap"].includes(control.key)), "styles");
   renderControls(els.fxFields, CONTROL_GROUPS.fx, "fx");
   renderControls(els.morphologyFields, CONTROL_GROUPS.morphology, "morphology");
   renderControls(els.patternFields, CONTROL_GROUPS.patterns, "patterns");
@@ -355,19 +369,23 @@ function bindEvents() {
     input.addEventListener("input", handleControlInput);
   });
 
-  [els.duotoneDarkInput, els.duotoneLightInput, els.overlayColorInput, els.focusColorInput].forEach((input) => {
+  [els.duotoneDarkInput, els.duotoneLightInput, els.overlayColorInput, els.focusColorInput, els.focusColor2Input].forEach((input) => {
     input.addEventListener("input", () => {
       state.project.colors.duotoneDark = els.duotoneDarkInput.value;
       state.project.colors.duotoneLight = els.duotoneLightInput.value;
       state.project.colors.overlayColor = els.overlayColorInput.value;
       state.project.colors.focusColor = els.focusColorInput.value;
+      state.project.colors.focusColor2 = els.focusColor2Input.value;
       touchProject();
     });
   });
 
   els.focusColorPickerButton.addEventListener("click", () => {
-    state.focusColorPicking = !state.focusColorPicking;
-    syncUiFromState();
+    toggleFocusColorPicker("focusColor");
+  });
+
+  els.focusColor2PickerButton.addEventListener("click", () => {
+    toggleFocusColorPicker("focusColor2");
   });
 
   [els.zoomInput, els.panXInput, els.panYInput, els.rotationInput].forEach((input) => {
@@ -466,10 +484,10 @@ function bindCanvasGestures() {
   let pinchStart = null;
 
   const onPointerDown = (event) => {
-    if (state.focusColorPicking && state.sourceImage) {
-      event.preventDefault();
-      pickFocusColorFromPoint(event.clientX, event.clientY);
-      return;
+      if (state.focusColorPickingTarget && state.sourceImage) {
+        event.preventDefault();
+        pickFocusColorFromPoint(event.clientX, event.clientY);
+        return;
     }
     els.canvasFrame.setPointerCapture(event.pointerId);
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -573,15 +591,21 @@ function handleControlInput(event) {
 }
 
 function pickFocusColorFromPoint(clientX, clientY) {
+  const targetKey = state.focusColorPickingTarget || "focusColor";
   const rect = els.previewCanvas.getBoundingClientRect();
   const x = clamp(Math.round(((clientX - rect.left) / Math.max(1, rect.width)) * els.previewCanvas.width), 0, els.previewCanvas.width - 1);
   const y = clamp(Math.round(((clientY - rect.top) / Math.max(1, rect.height)) * els.previewCanvas.height), 0, els.previewCanvas.height - 1);
   const ctx = els.previewCanvas.getContext("2d", { willReadFrequently: true });
   const pixel = ctx.getImageData(x, y, 1, 1).data;
-  state.project.colors.focusColor = rgbToHex(pixel[0], pixel[1], pixel[2]);
-  state.focusColorPicking = false;
+  state.project.colors[targetKey] = rgbToHex(pixel[0], pixel[1], pixel[2]);
+  state.focusColorPickingTarget = "";
   syncUiFromState();
   touchProject();
+}
+
+function toggleFocusColorPicker(targetKey) {
+  state.focusColorPickingTarget = state.focusColorPickingTarget === targetKey ? "" : targetKey;
+  syncUiFromState();
 }
 
 function updateTransformFromInputs() {
@@ -751,9 +775,15 @@ function applyEffects(canvas, ctx) {
   let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   let data = imageData.data;
 
-  applyBasicAdjustments(data, corrections, fx.hueShift);
+  applyBasicAdjustments(data, corrections, styles.hueShift || 0);
   if (styles.colorFocus > 0) {
-    applyColorFocus(data, styles.colorFocus / 100, colors.focusColor, styles.colorFocusTolerance / 100);
+    applyColorFocus(data, styles.colorFocus / 100, [colors.focusColor, colors.focusColor2], styles.colorFocusTolerance / 100);
+  }
+  if (styles.colorSwap > 0) {
+    applyColorSwap(data, styles.colorSwap / 100, colors.focusColor, colors.focusColor2, styles.colorFocusTolerance / 100);
+  }
+  if (styles.warmCool !== 0) {
+    applyWarmCoolFocus(data, styles.warmCool / 100);
   }
   if (styles.grayscale > 0) applyGrayscale(data, styles.grayscale / 100);
   if (styles.blackwhite > 0) applyBlackWhite(data, styles.blackwhite);
@@ -761,6 +791,14 @@ function applyEffects(canvas, ctx) {
   if (styles.posterize > 0) applyPosterize(data, styles.posterize);
   if (styles.vintage > 0) applyVintage(data, styles.vintage / 100);
   if (styles.duotone > 0) applyDuotone(data, styles.duotone / 100, colors.duotoneDark, colors.duotoneLight);
+  if (styles.splitTone > 0) applySplitTone(data, styles.splitTone / 100, colors.duotoneDark, colors.duotoneLight);
+  if (styles.saturationMask > 0) applySaturationMask(data, styles.saturationMask / 100);
+  if (styles.gradientMap > 0) applyGradientMap(data, styles.gradientMap / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
+  if (styles.falseColor > 0) applyFalseColor(data, styles.falseColor / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
+  if (styles.crossProcess > 0) applyCrossProcess(data, styles.crossProcess / 100);
+  if (styles.heatmap > 0) applyHeatmap(data, styles.heatmap / 100);
+  if (styles.posterBlocks > 0) applyPosterBlocks(data, styles.posterBlocks / 100);
+  if (styles.luminanceColor !== 0) applyLuminanceColor(data, styles.luminanceColor / 100);
   if (fx.invert > 0) applyInvert(data, fx.invert / 100);
   if (fx.silhouette > 0) applySilhouette(data, fx.silhouette / 100);
 
@@ -794,6 +832,7 @@ function applyEffects(canvas, ctx) {
   if (fx.grain > 0) applyGrain(data, fx.grain / 100);
   if (fx.vignette > 0) applyVignette(data, canvas.width, canvas.height, fx.vignette / 100);
   if (fx.scanlines > 0) applyScanlines(data, canvas.width, canvas.height, fx.scanlines / 100);
+  if (styles.colorSeparation > 0) applyColorSeparation(data, canvas.width, canvas.height, styles.colorSeparation / 100);
   if (fx.overlayOpacity > 0) applyOverlay(data, colors.overlayColor, fx.overlayOpacity / 100);
   if (fx.frame > 0) applyFrame(data, canvas.width, canvas.height, fx.frame / 100);
 
@@ -891,8 +930,15 @@ function applyDuotone(data, amount, darkColor, lightColor) {
   }
 }
 
-function applyColorFocus(data, amount, targetHex, tolerance) {
-  const [targetHue, targetSat, targetLight] = rgbToHsl(...Object.values(hexToRgb(targetHex)));
+function applyColorFocus(data, amount, targetHexes, tolerance) {
+  const focusTargets = (Array.isArray(targetHexes) ? targetHexes : [targetHexes])
+    .filter(Boolean)
+    .map((hex) => {
+      const rgb = hexToRgb(hex);
+      const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b);
+      return { h, s, l };
+    });
+  if (!focusTargets.length) return;
   const hueTolerance = 8 + tolerance * 96;
   const satThreshold = 0.08 + tolerance * 0.18;
   const softRange = 12 + tolerance * 48;
@@ -903,14 +949,208 @@ function applyColorFocus(data, amount, targetHex, tolerance) {
     const b = data[i + 2];
     const gray = 0.299 * r + 0.587 * g + 0.114 * b;
     const [h, s, l] = rgbToHsl(r, g, b);
-    const hueDistance = getHueDistance(h, targetHue);
-    const satFactor = s <= satThreshold ? 1 : 1 - s * 0.55;
-    const focusDistance = hueDistance + satFactor * 44 + Math.abs(l - targetLight) * 18 + Math.abs(s - targetSat) * 12;
+    let focusDistance = Number.POSITIVE_INFINITY;
+    for (const target of focusTargets) {
+      const hueDistance = getHueDistance(h, target.h);
+      const satFactor = s <= satThreshold ? 1 : 1 - s * 0.55;
+      const candidateDistance = hueDistance + satFactor * 44 + Math.abs(l - target.l) * 18 + Math.abs(s - target.s) * 12;
+      if (candidateDistance < focusDistance) focusDistance = candidateDistance;
+    }
     const preserve = 1 - smoothstep(hueTolerance, hueTolerance + softRange, focusDistance);
     const keepAmount = clamp(preserve * amount, 0, 1);
     data[i] = mix(gray, r, keepAmount);
     data[i + 1] = mix(gray, g, keepAmount);
     data[i + 2] = mix(gray, b, keepAmount);
+  }
+}
+
+function applyColorSwap(data, amount, sourceHex, targetHex, tolerance) {
+  if (!sourceHex || !targetHex) return;
+  const sourceRgb = hexToRgb(sourceHex);
+  const targetRgb = hexToRgb(targetHex);
+  const [sourceHue, sourceSat, sourceLight] = rgbToHsl(sourceRgb.r, sourceRgb.g, sourceRgb.b);
+  const hueTolerance = 6 + tolerance * 84;
+  const softRange = 8 + tolerance * 42;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const [h, s, l] = rgbToHsl(r, g, b);
+    const hueDistance = getHueDistance(h, sourceHue);
+    const matchDistance = hueDistance + Math.abs(s - sourceSat) * 30 + Math.abs(l - sourceLight) * 18;
+    const replaceMask = 1 - smoothstep(hueTolerance, hueTolerance + softRange, matchDistance);
+    const blendAmount = clamp(replaceMask * amount, 0, 1);
+    const keepLum = 0.4 + l * 0.6;
+    const nr = clamp(targetRgb.r * keepLum, 0, 255);
+    const ng = clamp(targetRgb.g * keepLum, 0, 255);
+    const nb = clamp(targetRgb.b * keepLum, 0, 255);
+    data[i] = mix(r, nr, blendAmount);
+    data[i + 1] = mix(g, ng, blendAmount);
+    data[i + 2] = mix(b, nb, blendAmount);
+  }
+}
+
+function applyWarmCoolFocus(data, signedAmount) {
+  const amount = Math.abs(signedAmount);
+  if (amount < 0.001) return;
+  const targetHue = signedAmount >= 0 ? 28 : 214;
+  const hueTolerance = mix(48, 20, amount);
+  const softRange = mix(52, 26, amount);
+  const muteStrength = mix(0.18, 0.78, amount);
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+    const [h, s] = rgbToHsl(r, g, b);
+    const hueDistance = getHueDistance(h, targetHue);
+    const preserve = 1 - smoothstep(hueTolerance, hueTolerance + softRange, hueDistance + (1 - s) * 24);
+    const muteAmount = clamp((1 - preserve) * muteStrength, 0, 1);
+    data[i] = mix(r, gray, muteAmount);
+    data[i + 1] = mix(g, gray, muteAmount);
+    data[i + 2] = mix(b, gray, muteAmount);
+  }
+}
+
+function applySplitTone(data, amount, shadowHex, highlightHex) {
+  const shadow = hexToRgb(shadowHex);
+  const highlight = hexToRgb(highlightHex);
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const luma = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const shadowWeight = clamp((0.58 - luma) / 0.5, 0, 1) * amount;
+    const highlightWeight = clamp((luma - 0.42) / 0.5, 0, 1) * amount;
+    const nr = mix(mix(r, shadow.r, shadowWeight), highlight.r, highlightWeight);
+    const ng = mix(mix(g, shadow.g, shadowWeight), highlight.g, highlightWeight);
+    const nb = mix(mix(b, shadow.b, shadowWeight), highlight.b, highlightWeight);
+    data[i] = nr;
+    data[i + 1] = ng;
+    data[i + 2] = nb;
+  }
+}
+
+function applySaturationMask(data, amount) {
+  const threshold = mix(0.18, 0.62, amount);
+  const softRange = mix(0.28, 0.12, amount);
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+    const [, s] = rgbToHsl(r, g, b);
+    const preserve = smoothstep(threshold - softRange, threshold + softRange, s);
+    const keepAmount = clamp(preserve * amount, 0, 1);
+    data[i] = mix(gray, r, keepAmount);
+    data[i + 1] = mix(gray, g, keepAmount);
+    data[i + 2] = mix(gray, b, keepAmount);
+  }
+}
+
+function applyGradientMap(data, amount, paletteHexes) {
+  const palette = paletteHexes.map(hexToRgb);
+  for (let i = 0; i < data.length; i += 4) {
+    const luma = (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]) / 255;
+    const mapped = sampleThreeColorGradient(palette, luma);
+    data[i] = mix(data[i], mapped.r, amount);
+    data[i + 1] = mix(data[i + 1], mapped.g, amount);
+    data[i + 2] = mix(data[i + 2], mapped.b, amount);
+  }
+}
+
+function applyFalseColor(data, amount, paletteHexes) {
+  const palette = paletteHexes.map(hexToRgb);
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const [h, s, l] = rgbToHsl(r, g, b);
+    const mapped = sampleThreeColorGradient(palette, clamp((l * 0.75) + (s * 0.25), 0, 1));
+    const shifted = shiftHue(mapped.r, mapped.g, mapped.b, (h - 180) * 0.18);
+    data[i] = mix(r, shifted[0], amount);
+    data[i + 1] = mix(g, shifted[1], amount);
+    data[i + 2] = mix(b, shifted[2], amount);
+  }
+}
+
+function applyCrossProcess(data, amount) {
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const nr = clamp(r * (1 - 0.08 * amount) + g * 0.04 * amount + 10 * amount, 0, 255);
+    const ng = clamp(g * (1 - 0.04 * amount) + b * 0.08 * amount + 4 * amount, 0, 255);
+    const nb = clamp(b * (1 + 0.12 * amount) - r * 0.05 * amount + 16 * amount, 0, 255);
+    data[i] = nr;
+    data[i + 1] = ng;
+    data[i + 2] = nb;
+  }
+}
+
+function applyHeatmap(data, amount) {
+  const stops = [
+    { r: 18, g: 22, b: 84 },
+    { r: 37, g: 164, b: 196 },
+    { r: 255, g: 214, b: 10 },
+    { r: 221, g: 52, b: 44 },
+  ];
+  for (let i = 0; i < data.length; i += 4) {
+    const luma = (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]) / 255;
+    const mapped = sampleFourColorGradient(stops, luma);
+    data[i] = mix(data[i], mapped.r, amount);
+    data[i + 1] = mix(data[i + 1], mapped.g, amount);
+    data[i + 2] = mix(data[i + 2], mapped.b, amount);
+  }
+}
+
+function applyPosterBlocks(data, amount) {
+  const levels = Math.max(2, Math.round(mix(7, 3, amount)));
+  for (let i = 0; i < data.length; i += 4) {
+    const r = quantizeChannel(data[i], levels);
+    const g = quantizeChannel(data[i + 1], levels);
+    const b = quantizeChannel(data[i + 2], levels);
+    const boosted = posterBlockBoost(r, g, b, amount);
+    data[i] = mix(data[i], boosted.r, amount);
+    data[i + 1] = mix(data[i + 1], boosted.g, amount);
+    data[i + 2] = mix(data[i + 2], boosted.b, amount);
+  }
+}
+
+function applyLuminanceColor(data, signedAmount) {
+  const amount = Math.abs(signedAmount);
+  if (amount < 0.001) return;
+  const biasToHighlights = signedAmount >= 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+    const luma = gray / 255;
+    const preserve = biasToHighlights ? smoothstep(0.32, 0.88, luma) : 1 - smoothstep(0.12, 0.68, luma);
+    const keepAmount = clamp(preserve * amount, 0, 1);
+    data[i] = mix(gray, r, keepAmount);
+    data[i + 1] = mix(gray, g, keepAmount);
+    data[i + 2] = mix(gray, b, keepAmount);
+  }
+}
+
+function applyColorSeparation(data, width, height, amount) {
+  if (amount < 0.001) return;
+  const copy = new Uint8ClampedArray(data);
+  const shift = Math.max(1, Math.round(amount * 8));
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const idx = (y * width + x) * 4;
+      const rIndex = getPixelIndex(clamp(x - shift, 0, width - 1), y, width);
+      const gIndex = idx;
+      const bIndex = getPixelIndex(clamp(x + shift, 0, width - 1), y, width);
+      data[idx] = mix(copy[idx], copy[rIndex], amount);
+      data[idx + 1] = copy[gIndex + 1];
+      data[idx + 2] = mix(copy[idx + 2], copy[bIndex + 2], amount);
+    }
   }
 }
 
@@ -3374,11 +3614,18 @@ function syncUiFromState() {
   els.duotoneLightInput.value = state.project.colors.duotoneLight;
   els.overlayColorInput.value = state.project.colors.overlayColor;
   els.focusColorInput.value = state.project.colors.focusColor || "#ff3b30";
+  els.focusColor2Input.value = state.project.colors.focusColor2 || "#ffd400";
   els.languageSelect.value = state.settings.languagePreference;
-  els.focusColorPickerButton.classList.toggle("primary", state.focusColorPicking);
-  els.focusColorPickerButton.classList.toggle("secondary", !state.focusColorPicking);
-  els.focusColorPickerButton.textContent = state.focusColorPicking ? t("focusColorPickerActive") : t("focusColorPicker");
-  els.focusColorPickerButton.setAttribute("aria-pressed", state.focusColorPicking ? "true" : "false");
+  const pickingFocusOne = state.focusColorPickingTarget === "focusColor";
+  const pickingFocusTwo = state.focusColorPickingTarget === "focusColor2";
+  els.focusColorPickerButton.classList.toggle("primary", pickingFocusOne);
+  els.focusColorPickerButton.classList.toggle("secondary", !pickingFocusOne);
+  els.focusColorPickerButton.textContent = pickingFocusOne ? t("focusColorPickerOneActive") : t("focusColorPickerOne");
+  els.focusColorPickerButton.setAttribute("aria-pressed", pickingFocusOne ? "true" : "false");
+  els.focusColor2PickerButton.classList.toggle("primary", pickingFocusTwo);
+  els.focusColor2PickerButton.classList.toggle("secondary", !pickingFocusTwo);
+  els.focusColor2PickerButton.textContent = pickingFocusTwo ? t("focusColorPickerTwoActive") : t("focusColorPickerTwo");
+  els.focusColor2PickerButton.setAttribute("aria-pressed", pickingFocusTwo ? "true" : "false");
 
   for (const [groupKey, controls] of Object.entries(CONTROL_GROUPS)) {
     for (const control of controls) {
@@ -3406,7 +3653,7 @@ function syncUiFromState() {
   els.shareImageButton.classList.toggle("primary", mobileLayout);
   els.shareImageButton.classList.toggle("secondary", !mobileLayout);
   els.emptyBodyText.hidden = mobileLayout;
-  els.canvasFrame.style.cursor = state.focusColorPicking ? "crosshair" : (!hasImage && mobileLayout ? "pointer" : "");
+  els.canvasFrame.style.cursor = state.focusColorPickingTarget ? "crosshair" : (!hasImage && mobileLayout ? "pointer" : "");
 }
 
 function loadLocalState() {
@@ -3426,7 +3673,7 @@ function saveLocalState() {
 }
 
 function mergeProject(base, incoming) {
-  return {
+  const merged = {
     ...base,
     ...incoming,
     meta: { ...base.meta, ...incoming?.meta },
@@ -3443,6 +3690,10 @@ function mergeProject(base, incoming) {
     colors: { ...base.colors, ...incoming?.colors },
     export: { ...base.export, ...incoming?.export },
   };
+  if (incoming?.styles?.hueShift == null && typeof incoming?.fx?.hueShift === "number") {
+    merged.styles.hueShift = incoming.fx.hueShift;
+  }
+  return merged;
 }
 
 function applyTranslations() {
@@ -3618,6 +3869,10 @@ function rgbToHex(r, g, b) {
   return `#${[r, g, b].map((value) => clamp(Math.round(value), 0, 255).toString(16).padStart(2, "0")).join("")}`;
 }
 
+function getPixelIndex(x, y, width) {
+  return (y * width + x) * 4;
+}
+
 function canvasToBlob(canvas, type, quality) {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
@@ -3730,6 +3985,52 @@ function clamp(value, min, max) {
 
 function mix(a, b, amount) {
   return a + (b - a) * amount;
+}
+
+function sampleThreeColorGradient(colors, t) {
+  const amount = clamp(t, 0, 1);
+  if (amount <= 0.5) {
+    return {
+      r: mix(colors[0].r, colors[1].r, amount * 2),
+      g: mix(colors[0].g, colors[1].g, amount * 2),
+      b: mix(colors[0].b, colors[1].b, amount * 2),
+    };
+  }
+  return {
+    r: mix(colors[1].r, colors[2].r, (amount - 0.5) * 2),
+    g: mix(colors[1].g, colors[2].g, (amount - 0.5) * 2),
+    b: mix(colors[1].b, colors[2].b, (amount - 0.5) * 2),
+  };
+}
+
+function sampleFourColorGradient(colors, t) {
+  const amount = clamp(t, 0, 1);
+  const segment = amount * 3;
+  const index = Math.min(2, Math.floor(segment));
+  const local = segment - index;
+  return {
+    r: mix(colors[index].r, colors[index + 1].r, local),
+    g: mix(colors[index].g, colors[index + 1].g, local),
+    b: mix(colors[index].b, colors[index + 1].b, local),
+  };
+}
+
+function quantizeChannel(value, levels) {
+  if (levels <= 1) return value;
+  const step = 255 / (levels - 1);
+  return Math.round(value / step) * step;
+}
+
+function posterBlockBoost(r, g, b, amount) {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const spread = max - min;
+  const push = mix(0.06, 0.2, amount) * spread;
+  return {
+    r: clamp(r + (r === max ? push : -push * 0.35), 0, 255),
+    g: clamp(g + (g === max ? push : -push * 0.35), 0, 255),
+    b: clamp(b + (b === max ? push : -push * 0.35), 0, 255),
+  };
 }
 
 function curveAmount(value, exponent = 1.5, max = 1) {

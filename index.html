@@ -144,22 +144,6 @@
             </summary>
             <div class="panel-body">
             <div class="field-grid" id="styleFields"></div>
-            <div class="focus-block">
-              <div class="focus-block-head">
-                <h3 data-i18n="styleColorFocusTitle">Farbfokus</h3>
-                <p data-i18n="styleColorFocusIntro">Eine Zielfarbe bleibt stehen, der Rest wird schwarzweiss.</p>
-              </div>
-              <div class="field-grid compact-grid" id="colorFocusFields"></div>
-              <div class="color-inline focus-color-inline">
-                <label class="field">
-                  <span data-i18n="focusColor">Zielfarbe</span>
-                  <input id="focusColorInput" type="color" value="#ff3b30" />
-                </label>
-              </div>
-              <div class="button-row focus-actions">
-                <button class="secondary" id="focusColorPickerButton" type="button" data-i18n="focusColorPicker">Pipette</button>
-              </div>
-            </div>
             <div class="color-inline">
               <label class="field">
                 <span data-i18n="duotoneDark">Duotone dunkel</span>
@@ -173,6 +157,27 @@
                 <span data-i18n="overlayColor">Overlay-Farbe</span>
                 <input id="overlayColorInput" type="color" value="#ff6a3d" />
               </label>
+            </div>
+            <div class="focus-block">
+              <div class="focus-block-head">
+                <h3 data-i18n="styleColorFocusTitle">Farbfokus</h3>
+                <p data-i18n="styleColorFocusIntro">Zwei Zielfarben koennen stehen bleiben, der Rest wird schwarzweiss.</p>
+              </div>
+              <div class="field-grid compact-grid" id="colorFocusFields"></div>
+              <div class="color-inline focus-color-inline">
+                <label class="field">
+                  <span data-i18n="focusColorOne">Zielfarbe 1</span>
+                  <input id="focusColorInput" type="color" value="#ff3b30" />
+                </label>
+                <label class="field">
+                  <span data-i18n="focusColorTwo">Zielfarbe 2</span>
+                  <input id="focusColor2Input" type="color" value="#ffd400" />
+                </label>
+              </div>
+              <div class="button-row focus-actions">
+                <button class="secondary" id="focusColorPickerButton" type="button" data-i18n="focusColorPickerOne">Pipette 1</button>
+                <button class="secondary" id="focusColor2PickerButton" type="button" data-i18n="focusColorPickerTwo">Pipette 2</button>
+              </div>
             </div>
             </div>
           </details>

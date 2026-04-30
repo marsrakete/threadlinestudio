@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "threadline-studio-cache";
-const CACHE_VERSION = "v49";
+const CACHE_VERSION = "v53";
 const CACHE_NAME = `${CACHE_PREFIX}-${CACHE_VERSION}`;
 const ASSETS = [
   "./",
