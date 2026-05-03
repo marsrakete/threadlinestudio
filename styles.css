@@ -152,6 +152,8 @@ h1 {
   top: 12px;
   z-index: 2;
   align-self: start;
+  display: grid;
+  gap: 16px;
 }
 
 .canvas-frame {
@@ -194,6 +196,14 @@ canvas {
 .stage {
   position: static;
   align-self: auto;
+}
+
+.desktop-stage-panel {
+  display: none;
+}
+
+.desktop-quick-actions {
+  margin-top: 12px;
 }
 
 .field-grid {
@@ -392,6 +402,16 @@ button:disabled,
 @media (max-width: 1180px) and (orientation: portrait) {
   .workspace { grid-template-columns: 1fr; }
   .canvas-wrap { top: 8px; }
+}
+
+@media (min-width: 1181px) {
+  .desktop-stage-panel {
+    display: block;
+  }
+
+  .mobile-project-panel {
+    display: none;
+  }
 }
 
 body.mobile-layout .workspace {

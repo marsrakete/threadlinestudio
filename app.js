@@ -2,9 +2,9 @@ const I18N = window.THREADLINE_STUDIO_I18N || {};
 const STORAGE_KEY = "threadline-studio-project";
 const SETTINGS_KEY = "threadline-studio-settings";
 const DEFAULT_VERSION = Object.freeze({
-  appVersion: "0.1.52",
-  cacheVersion: "v53",
-  label: "Farbwerkzeuge erweitert und neu sortiert",
+  appVersion: "0.1.58",
+  cacheVersion: "v59",
+  label: "Desktop Projektbedienung unter die Vorschau verlegt",
 });
 
 const CONTROL_GROUPS = {
@@ -14,6 +14,8 @@ const CONTROL_GROUPS = {
     { key: "saturation", min: -100, max: 100, step: 1, value: 0, label: "Saettigung" },
     { key: "blur", min: 0, max: 18, step: 0.2, value: 0, label: "Unschaerfe" },
     { key: "sharpen", min: 0, max: 4, step: 0.1, value: 0, label: "Schaerfen" },
+    { key: "focusCenter", min: 0, max: 100, step: 1, value: 0, label: "Fokus Mitte", i18nKey: "correctionFocusCenter" },
+    { key: "backgroundBlur", min: 0, max: 32, step: 1, value: 0, label: "Hintergrund weich", i18nKey: "correctionBackgroundBlur" },
   ],
   styles: [
     { key: "grayscale", min: 0, max: 100, step: 1, value: 0, label: "Graustufen" },
@@ -21,8 +23,10 @@ const CONTROL_GROUPS = {
     { key: "sepia", min: 0, max: 100, step: 1, value: 0, label: "Sepia" },
     { key: "duotone", min: 0, max: 100, step: 1, value: 0, label: "Duotone" },
     { key: "hueShift", min: -180, max: 180, step: 1, value: 0, label: "Farbton", i18nKey: "styleHueShift" },
-    { key: "colorFocus", min: 0, max: 100, step: 1, value: 0, label: "Farbfokus", i18nKey: "styleColorFocus" },
-    { key: "colorFocusTolerance", min: 0, max: 100, step: 1, value: 28, label: "Toleranz", i18nKey: "styleColorFocusTolerance" },
+    { key: "colorFocus1", min: 0, max: 100, step: 1, value: 0, label: "Farbfokus 1", i18nKey: "styleColorFocusOne" },
+    { key: "colorFocusTolerance1", min: 0, max: 100, step: 1, value: 24, label: "Toleranz 1", i18nKey: "styleColorFocusToleranceOne" },
+    { key: "colorFocus2", min: 0, max: 100, step: 1, value: 0, label: "Farbfokus 2", i18nKey: "styleColorFocusTwo" },
+    { key: "colorFocusTolerance2", min: 0, max: 100, step: 1, value: 24, label: "Toleranz 2", i18nKey: "styleColorFocusToleranceTwo" },
     { key: "colorSwap", min: 0, max: 100, step: 1, value: 0, label: "Farben tauschen", i18nKey: "styleColorSwap" },
     { key: "warmCool", min: -100, max: 100, step: 1, value: 0, label: "Warm/Kalt", i18nKey: "styleWarmCool" },
     { key: "splitTone", min: 0, max: 100, step: 1, value: 0, label: "Split Tone", i18nKey: "styleSplitTone" },
@@ -49,15 +53,8 @@ const CONTROL_GROUPS = {
     { key: "lineBlend", min: 0, max: 1000, step: 1, value: 0, label: "Bleistiftpause", i18nKey: "fxLineBlend" },
     { key: "charcoal", min: 0, max: 100, step: 1, value: 0, label: "Kohle" },
     { key: "invert", min: 0, max: 100, step: 1, value: 0, label: "Invertieren" },
-    { key: "vignette", min: 0, max: 100, step: 1, value: 0, label: "Vignette" },
-    { key: "grain", min: 0, max: 100, step: 1, value: 0, label: "Filmkorn" },
     { key: "comic", min: 0, max: 100, step: 1, value: 0, label: "Comic" },
     { key: "silhouette", min: 0, max: 100, step: 1, value: 0, label: "Silhouette" },
-    { key: "scanlines", min: 0, max: 100, step: 1, value: 0, label: "Scanlines" },
-    { key: "focusCenter", min: 0, max: 100, step: 1, value: 0, label: "Fokus Mitte" },
-    { key: "backgroundBlur", min: 0, max: 32, step: 1, value: 0, label: "Hintergrund weich" },
-    { key: "overlayOpacity", min: 0, max: 100, step: 1, value: 0, label: "Overlay" },
-    { key: "frame", min: 0, max: 100, step: 1, value: 0, label: "Rahmen" },
   ],
   morphology: [
     { key: "canny", min: 0, max: 100, step: 1, value: 0, label: "Canny" },
@@ -83,9 +80,9 @@ const CONTROL_GROUPS = {
     { key: "staffLines", min: 0, max: 100, step: 1, value: 0, label: "Notenlinien" },
     { key: "blueprintGrid", min: 0, max: 100, step: 1, value: 0, label: "Blueprint" },
     { key: "zebra", min: 0, max: 100, step: 1, value: 0, label: "Zebra" },
-    { key: "perforatedMetal", min: 0, max: 100, step: 1, value: 0, label: "Lochblech" },
-    { key: "paperTexture", min: 0, max: 100, step: 1, value: 0, label: "Papier" },
     { key: "gradientWash", min: 0, max: 100, step: 1, value: 0, label: "Verlauf" },
+    { key: "overlayOpacity", min: 0, max: 100, step: 1, value: 0, label: "Overlay", i18nKey: "patternOverlayOpacity" },
+    { key: "frame", min: 0, max: 100, step: 1, value: 0, label: "Rahmen", i18nKey: "patternFrame" },
   ],
   materials: [
     { key: "bottleGlass", min: 0, max: 1000, step: 1, value: 0, label: "Glasflasche" },
@@ -98,8 +95,10 @@ const CONTROL_GROUPS = {
     { key: "newsprint", min: 0, max: 1000, step: 1, value: 0, label: "Zeitung" },
     { key: "thermalFax", min: 0, max: 1000, step: 1, value: 0, label: "Thermopapier" },
     { key: "brushedMetal", min: 0, max: 1000, step: 1, value: 0, label: "Metall" },
+    { key: "perforatedMetal", min: 0, max: 100, step: 1, value: 0, label: "Lochblech" },
     { key: "concrete", min: 0, max: 1000, step: 1, value: 0, label: "Beton" },
     { key: "asphalt", min: 0, max: 1000, step: 1, value: 0, label: "Asphalt" },
+    { key: "paperTexture", min: 0, max: 100, step: 1, value: 0, label: "Papier" },
     { key: "linen", min: 0, max: 1000, step: 1, value: 0, label: "Leinen" },
     { key: "meshFabric", min: 0, max: 1000, step: 1, value: 0, label: "Netzstoff" },
   ],
@@ -116,6 +115,9 @@ const CONTROL_GROUPS = {
     { key: "reflections", min: 0, max: 1000, step: 1, value: 0, label: "Spiegelung" },
     { key: "moire", min: 0, max: 1000, step: 1, value: 0, label: "Moire" },
     { key: "doubleExposure", min: 0, max: 1000, step: 1, value: 0, label: "Doppelbelichtung" },
+    { key: "grain", min: 0, max: 100, step: 1, value: 0, label: "Filmkorn" },
+    { key: "vignette", min: 0, max: 100, step: 1, value: 0, label: "Vignette" },
+    { key: "scanlines", min: 0, max: 100, step: 1, value: 0, label: "Scanlines" },
   ],
   art: [
     { key: "gridDecay", min: 0, max: 1000, step: 1, value: 0, label: "Rasterzerfall", i18nKey: "artGridDecay" },
@@ -203,8 +205,10 @@ const els = {
   settingsDialog: document.getElementById("settingsDialog"),
   languageSelect: document.getElementById("languageSelect"),
   downloadBackupButton: document.getElementById("downloadBackupButton"),
+  downloadBackupButtonDesktop: document.getElementById("downloadBackupButtonDesktop"),
   backupInput: document.getElementById("backupInput"),
   clearProjectButton: document.getElementById("clearProjectButton"),
+  clearProjectButtonDesktop: document.getElementById("clearProjectButtonDesktop"),
   checkUpdateButton: document.getElementById("checkUpdateButton"),
   reloadAppButton: document.getElementById("reloadAppButton"),
   updateCheckStatus: document.getElementById("updateCheckStatus"),
@@ -219,6 +223,9 @@ const els = {
   readmeStatus: document.getElementById("readmeStatus"),
   readmeContent: document.getElementById("readmeContent"),
   openReadmeButton: document.getElementById("openReadmeButton"),
+  resetImageButtonDesktop: document.getElementById("resetImageButtonDesktop"),
+  fitButtonDesktop: document.getElementById("fitButtonDesktop"),
+  centerButtonDesktop: document.getElementById("centerButtonDesktop"),
   confirmDialog: document.getElementById("confirmDialog"),
   confirmDialogTitle: document.getElementById("confirmDialogTitle"),
   confirmDialogMessage: document.getElementById("confirmDialogMessage"),
@@ -317,8 +324,8 @@ function createDefaultProject() {
 
 function buildControlFields() {
   renderControls(els.correctionFields, CONTROL_GROUPS.corrections, "corrections");
-  renderControls(els.styleFields, CONTROL_GROUPS.styles.filter((control) => !["colorFocus", "colorFocusTolerance", "colorSwap"].includes(control.key)), "styles");
-  renderControls(els.colorFocusFields, CONTROL_GROUPS.styles.filter((control) => ["colorFocus", "colorFocusTolerance", "colorSwap"].includes(control.key)), "styles");
+  renderControls(els.styleFields, CONTROL_GROUPS.styles.filter((control) => !["colorFocus1", "colorFocusTolerance1", "colorFocus2", "colorFocusTolerance2", "colorSwap"].includes(control.key)), "styles");
+  renderControls(els.colorFocusFields, CONTROL_GROUPS.styles.filter((control) => ["colorFocus1", "colorFocusTolerance1", "colorFocus2", "colorFocusTolerance2", "colorSwap"].includes(control.key)), "styles");
   renderControls(els.fxFields, CONTROL_GROUPS.fx, "fx");
   renderControls(els.morphologyFields, CONTROL_GROUPS.morphology, "morphology");
   renderControls(els.patternFields, CONTROL_GROUPS.patterns, "patterns");
@@ -417,12 +424,19 @@ function bindEvents() {
     touchProject();
   });
   els.fitButton.addEventListener("click", fitToFrame);
+  els.fitButtonDesktop?.addEventListener("click", fitToFrame);
   els.centerButton.addEventListener("click", () => {
     state.project.transform.panX = 0;
     state.project.transform.panY = 0;
     touchProject();
   });
+  els.centerButtonDesktop?.addEventListener("click", () => {
+    state.project.transform.panX = 0;
+    state.project.transform.panY = 0;
+    touchProject();
+  });
   els.resetImageButton.addEventListener("click", resetEffects);
+  els.resetImageButtonDesktop?.addEventListener("click", resetEffects);
   els.exportButton.addEventListener("click", exportCurrentImage);
   els.shareImageButton.addEventListener("click", shareCurrentImage);
   els.settingsButton.addEventListener("click", () => {
@@ -440,6 +454,7 @@ function bindEvents() {
     saveLocalState();
   });
   els.downloadBackupButton.addEventListener("click", downloadBackup);
+  els.downloadBackupButtonDesktop?.addEventListener("click", downloadBackup);
   els.backupInput.addEventListener("change", async (event) => {
     const [file] = event.target.files || [];
     if (!file) return;
@@ -447,6 +462,7 @@ function bindEvents() {
     event.target.value = "";
   });
   els.clearProjectButton.addEventListener("click", clearProject);
+  els.clearProjectButtonDesktop?.addEventListener("click", clearProject);
   els.checkUpdateButton.addEventListener("click", () => checkForUpdates(true));
   els.reloadAppButton.addEventListener("click", () => {
     void performAppReload();
@@ -771,16 +787,19 @@ function applyEffects(canvas, ctx) {
   const lineBlendAmount = curveThousand(fx.lineBlend / 100, isMobileLayout() ? 1.45 : 1.25, 1);
   const charcoalAmount = curveAmount(fx.charcoal / 100, isMobileLayout() ? 2.25 : 1.8, 0.72);
   const comicAmount = curveAmount(fx.comic / 100, isMobileLayout() ? 2.25 : 1.85, 0.32);
-  const focusBlurAmount = curveAmount(fx.backgroundBlur / 32, isMobileLayout() ? 1.7 : 1.35, 1) * 18;
+  const focusBlurAmount = curveAmount(corrections.backgroundBlur / 32, isMobileLayout() ? 1.7 : 1.35, 1) * 18;
   let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   let data = imageData.data;
 
   applyBasicAdjustments(data, corrections, styles.hueShift || 0);
-  if (styles.colorFocus > 0) {
-    applyColorFocus(data, styles.colorFocus / 100, [colors.focusColor, colors.focusColor2], styles.colorFocusTolerance / 100);
+  if (styles.colorFocus1 > 0) {
+    applyColorFocus(data, styles.colorFocus1 / 100, colors.focusColor, styles.colorFocusTolerance1 / 100);
+  }
+  if (styles.colorFocus2 > 0) {
+    applyColorFocus(data, styles.colorFocus2 / 100, colors.focusColor2, styles.colorFocusTolerance2 / 100);
   }
   if (styles.colorSwap > 0) {
-    applyColorSwap(data, styles.colorSwap / 100, colors.focusColor, colors.focusColor2, styles.colorFocusTolerance / 100);
+    applyColorSwap(data, styles.colorSwap / 100, colors.focusColor, colors.focusColor2, styles.colorFocusTolerance1 / 100);
   }
   if (styles.warmCool !== 0) {
     applyWarmCoolFocus(data, styles.warmCool / 100);
@@ -805,7 +824,7 @@ function applyEffects(canvas, ctx) {
   ctx.putImageData(imageData, 0, 0);
 
   if (corrections.blur > 0) applyCanvasBlur(canvas, corrections.blur);
-  if (focusBlurAmount > 0.1) applyFocusBlur(canvas, fx.focusCenter / 100 || 0.65, focusBlurAmount);
+  if (focusBlurAmount > 0.1) applyFocusBlur(canvas, corrections.focusCenter / 100 || 0.65, focusBlurAmount);
   if (corrections.sharpen > 0) {
     convolveCanvas(canvas, [0, -1, 0, -1, 5 + corrections.sharpen, -1, 0, -1, 0], 0.28 * corrections.sharpen);
   }
@@ -829,12 +848,12 @@ function applyEffects(canvas, ctx) {
   imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   data = imageData.data;
 
-  if (fx.grain > 0) applyGrain(data, fx.grain / 100);
-  if (fx.vignette > 0) applyVignette(data, canvas.width, canvas.height, fx.vignette / 100);
-  if (fx.scanlines > 0) applyScanlines(data, canvas.width, canvas.height, fx.scanlines / 100);
+  if (atmosphere.grain > 0) applyGrain(data, atmosphere.grain / 100);
+  if (atmosphere.vignette > 0) applyVignette(data, canvas.width, canvas.height, atmosphere.vignette / 100);
+  if (atmosphere.scanlines > 0) applyScanlines(data, canvas.width, canvas.height, atmosphere.scanlines / 100);
   if (styles.colorSeparation > 0) applyColorSeparation(data, canvas.width, canvas.height, styles.colorSeparation / 100);
-  if (fx.overlayOpacity > 0) applyOverlay(data, colors.overlayColor, fx.overlayOpacity / 100);
-  if (fx.frame > 0) applyFrame(data, canvas.width, canvas.height, fx.frame / 100);
+  if (patterns.overlayOpacity > 0) applyOverlay(data, colors.overlayColor, patterns.overlayOpacity / 100);
+  if (patterns.frame > 0) applyFrame(data, canvas.width, canvas.height, patterns.frame / 100);
 
   ctx.putImageData(imageData, 0, 0);
 }
@@ -930,18 +949,13 @@ function applyDuotone(data, amount, darkColor, lightColor) {
   }
 }
 
-function applyColorFocus(data, amount, targetHexes, tolerance) {
-  const focusTargets = (Array.isArray(targetHexes) ? targetHexes : [targetHexes])
-    .filter(Boolean)
-    .map((hex) => {
-      const rgb = hexToRgb(hex);
-      const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b);
-      return { h, s, l };
-    });
-  if (!focusTargets.length) return;
-  const hueTolerance = 8 + tolerance * 96;
-  const satThreshold = 0.08 + tolerance * 0.18;
-  const softRange = 12 + tolerance * 48;
+function applyColorFocus(data, amount, targetHex, tolerance) {
+  if (!targetHex || amount <= 0) return;
+  const rgb = hexToRgb(targetHex);
+  const [targetHue, targetSat, targetLight] = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  const hueTolerance = 4 + tolerance * 58;
+  const satThreshold = 0.05 + tolerance * 0.14;
+  const softRange = 6 + tolerance * 24;
 
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
@@ -949,18 +963,16 @@ function applyColorFocus(data, amount, targetHexes, tolerance) {
     const b = data[i + 2];
     const gray = 0.299 * r + 0.587 * g + 0.114 * b;
     const [h, s, l] = rgbToHsl(r, g, b);
-    let focusDistance = Number.POSITIVE_INFINITY;
-    for (const target of focusTargets) {
-      const hueDistance = getHueDistance(h, target.h);
-      const satFactor = s <= satThreshold ? 1 : 1 - s * 0.55;
-      const candidateDistance = hueDistance + satFactor * 44 + Math.abs(l - target.l) * 18 + Math.abs(s - target.s) * 12;
-      if (candidateDistance < focusDistance) focusDistance = candidateDistance;
-    }
+    const hueDistance = getHueDistance(h, targetHue);
+    const satFactor = s <= satThreshold ? 1 : 1 - s * 0.55;
+    const focusDistance = hueDistance + satFactor * 44 + Math.abs(l - targetLight) * 18 + Math.abs(s - targetSat) * 12;
     const preserve = 1 - smoothstep(hueTolerance, hueTolerance + softRange, focusDistance);
-    const keepAmount = clamp(preserve * amount, 0, 1);
-    data[i] = mix(gray, r, keepAmount);
-    data[i + 1] = mix(gray, g, keepAmount);
-    data[i + 2] = mix(gray, b, keepAmount);
+    const targetR = mix(gray, r, preserve);
+    const targetG = mix(gray, g, preserve);
+    const targetB = mix(gray, b, preserve);
+    data[i] = mix(r, targetR, amount);
+    data[i + 1] = mix(g, targetG, amount);
+    data[i + 2] = mix(b, targetB, amount);
   }
 }
 
@@ -969,6 +981,7 @@ function applyColorSwap(data, amount, sourceHex, targetHex, tolerance) {
   const sourceRgb = hexToRgb(sourceHex);
   const targetRgb = hexToRgb(targetHex);
   const [sourceHue, sourceSat, sourceLight] = rgbToHsl(sourceRgb.r, sourceRgb.g, sourceRgb.b);
+  const [targetHue, targetSat, targetLight] = rgbToHsl(targetRgb.r, targetRgb.g, targetRgb.b);
   const hueTolerance = 6 + tolerance * 84;
   const softRange = 8 + tolerance * 42;
 
@@ -977,17 +990,29 @@ function applyColorSwap(data, amount, sourceHex, targetHex, tolerance) {
     const g = data[i + 1];
     const b = data[i + 2];
     const [h, s, l] = rgbToHsl(r, g, b);
-    const hueDistance = getHueDistance(h, sourceHue);
-    const matchDistance = hueDistance + Math.abs(s - sourceSat) * 30 + Math.abs(l - sourceLight) * 18;
-    const replaceMask = 1 - smoothstep(hueTolerance, hueTolerance + softRange, matchDistance);
-    const blendAmount = clamp(replaceMask * amount, 0, 1);
+    const sourceDistance = getHueDistance(h, sourceHue) + Math.abs(s - sourceSat) * 30 + Math.abs(l - sourceLight) * 18;
+    const targetDistance = getHueDistance(h, targetHue) + Math.abs(s - targetSat) * 30 + Math.abs(l - targetLight) * 18;
+    const sourceMask = 1 - smoothstep(hueTolerance, hueTolerance + softRange, sourceDistance);
+    const targetMask = 1 - smoothstep(hueTolerance, hueTolerance + softRange, targetDistance);
+    const sourceBlend = clamp(sourceMask * amount, 0, 1);
+    const targetBlend = clamp(targetMask * amount, 0, 1);
     const keepLum = 0.4 + l * 0.6;
-    const nr = clamp(targetRgb.r * keepLum, 0, 255);
-    const ng = clamp(targetRgb.g * keepLum, 0, 255);
-    const nb = clamp(targetRgb.b * keepLum, 0, 255);
-    data[i] = mix(r, nr, blendAmount);
-    data[i + 1] = mix(g, ng, blendAmount);
-    data[i + 2] = mix(b, nb, blendAmount);
+    const swapToTarget = {
+      r: clamp(targetRgb.r * keepLum, 0, 255),
+      g: clamp(targetRgb.g * keepLum, 0, 255),
+      b: clamp(targetRgb.b * keepLum, 0, 255),
+    };
+    const swapToSource = {
+      r: clamp(sourceRgb.r * keepLum, 0, 255),
+      g: clamp(sourceRgb.g * keepLum, 0, 255),
+      b: clamp(sourceRgb.b * keepLum, 0, 255),
+    };
+    const nr = sourceBlend >= targetBlend ? mix(r, swapToTarget.r, sourceBlend) : mix(r, swapToSource.r, targetBlend);
+    const ng = sourceBlend >= targetBlend ? mix(g, swapToTarget.g, sourceBlend) : mix(g, swapToSource.g, targetBlend);
+    const nb = sourceBlend >= targetBlend ? mix(b, swapToTarget.b, sourceBlend) : mix(b, swapToSource.b, targetBlend);
+    data[i] = nr;
+    data[i + 1] = ng;
+    data[i + 2] = nb;
   }
 }
 
@@ -1603,20 +1628,6 @@ function applyPatternEffects(canvas, patterns, colors) {
     ctx.restore();
   }
 
-  if (patterns.paperTexture > 0) {
-    const amount = patterns.paperTexture / 100;
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    const tint = 6 + amount * 12;
-    for (let i = 0; i < data.length; i += 4) {
-      const noise = (Math.random() - 0.5) * (10 + amount * 18);
-      data[i] = clamp(data[i] + noise + tint, 0, 255);
-      data[i + 1] = clamp(data[i + 1] + noise + tint * 0.95, 0, 255);
-      data[i + 2] = clamp(data[i + 2] + noise + tint * 0.82, 0, 255);
-    }
-    ctx.putImageData(imageData, 0, 0);
-  }
-
   if (patterns.stripes > 0) {
     const amount = patterns.stripes / 100;
     drawLinePattern(ctx, canvas, {
@@ -1720,10 +1731,6 @@ function applyPatternEffects(canvas, patterns, colors) {
     drawZebraPattern(ctx, canvas, amount);
   }
 
-  if (patterns.perforatedMetal > 0) {
-    const amount = patterns.perforatedMetal / 100;
-    drawPerforatedPattern(ctx, canvas, amount, dark);
-  }
 }
 
 function applyMaterialEffects(canvas, materials, colors) {
@@ -1742,8 +1749,22 @@ function applyMaterialEffects(canvas, materials, colors) {
   if (materials.newsprint > 0) applyNewsprint(canvas, curveThousand(materials.newsprint / 100, 1.18, 1));
   if (materials.thermalFax > 0) applyThermalFax(canvas, curveThousand(materials.thermalFax / 100, 1.32, 1));
   if (materials.brushedMetal > 0) drawBrushedMetal(ctx, canvas, curveThousand(materials.brushedMetal / 100, 1.35, 1));
+  if (materials.perforatedMetal > 0) drawPerforatedPattern(ctx, canvas, materials.perforatedMetal / 100, dark);
   if (materials.concrete > 0) tintAndNoiseCanvas(canvas, curveThousand(materials.concrete / 100, 1.28, 1), [-10, -10, -10], 28);
   if (materials.asphalt > 0) tintAndNoiseCanvas(canvas, curveThousand(materials.asphalt / 100, 1.28, 1), [-28, -24, -18], 34);
+  if (materials.paperTexture > 0) {
+    const amount = materials.paperTexture / 100;
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const tint = 6 + amount * 12;
+    for (let i = 0; i < data.length; i += 4) {
+      const noise = (Math.random() - 0.5) * (10 + amount * 18);
+      data[i] = clamp(data[i] + noise + tint, 0, 255);
+      data[i + 1] = clamp(data[i + 1] + noise + tint * 0.95, 0, 255);
+      data[i + 2] = clamp(data[i + 2] + noise + tint * 0.82, 0, 255);
+    }
+    ctx.putImageData(imageData, 0, 0);
+  }
   if (materials.linen > 0) drawLinen(ctx, canvas, curveThousand(materials.linen / 100, 1.3, 1), soft);
   if (materials.meshFabric > 0) drawFabricMesh(ctx, canvas, curveThousand(materials.meshFabric / 100, 1.35, 1), accent, dark);
 }
@@ -3648,7 +3669,9 @@ function syncUiFromState() {
   els.exportButton.disabled = !hasImage;
   els.shareImageButton.disabled = !hasImage;
   els.downloadBackupButton.disabled = !hasImage;
+  if (els.downloadBackupButtonDesktop) els.downloadBackupButtonDesktop.disabled = !hasImage;
   els.clearProjectButton.disabled = !hasImage;
+  if (els.clearProjectButtonDesktop) els.clearProjectButtonDesktop.disabled = !hasImage;
   els.exportButton.hidden = mobileLayout;
   els.shareImageButton.classList.toggle("primary", mobileLayout);
   els.shareImageButton.classList.toggle("secondary", !mobileLayout);
@@ -3692,6 +3715,45 @@ function mergeProject(base, incoming) {
   };
   if (incoming?.styles?.hueShift == null && typeof incoming?.fx?.hueShift === "number") {
     merged.styles.hueShift = incoming.fx.hueShift;
+  }
+  if (incoming?.styles?.colorFocus1 == null && typeof incoming?.styles?.colorFocus === "number") {
+    merged.styles.colorFocus1 = incoming.styles.colorFocus;
+  }
+  if (incoming?.styles?.colorFocusTolerance1 == null && typeof incoming?.styles?.colorFocusTolerance === "number") {
+    merged.styles.colorFocusTolerance1 = incoming.styles.colorFocusTolerance;
+  }
+  if (incoming?.styles?.colorFocus2 == null) {
+    merged.styles.colorFocus2 = 0;
+  }
+  if (incoming?.styles?.colorFocusTolerance2 == null) {
+    merged.styles.colorFocusTolerance2 = merged.styles.colorFocusTolerance1 ?? base.styles.colorFocusTolerance2;
+  }
+  if (incoming?.materials?.paperTexture == null && typeof incoming?.patterns?.paperTexture === "number") {
+    merged.materials.paperTexture = incoming.patterns.paperTexture;
+  }
+  if (incoming?.materials?.perforatedMetal == null && typeof incoming?.patterns?.perforatedMetal === "number") {
+    merged.materials.perforatedMetal = incoming.patterns.perforatedMetal;
+  }
+  if (incoming?.atmosphere?.grain == null && typeof incoming?.fx?.grain === "number") {
+    merged.atmosphere.grain = incoming.fx.grain;
+  }
+  if (incoming?.atmosphere?.vignette == null && typeof incoming?.fx?.vignette === "number") {
+    merged.atmosphere.vignette = incoming.fx.vignette;
+  }
+  if (incoming?.atmosphere?.scanlines == null && typeof incoming?.fx?.scanlines === "number") {
+    merged.atmosphere.scanlines = incoming.fx.scanlines;
+  }
+  if (incoming?.corrections?.focusCenter == null && typeof incoming?.fx?.focusCenter === "number") {
+    merged.corrections.focusCenter = incoming.fx.focusCenter;
+  }
+  if (incoming?.corrections?.backgroundBlur == null && typeof incoming?.fx?.backgroundBlur === "number") {
+    merged.corrections.backgroundBlur = incoming.fx.backgroundBlur;
+  }
+  if (incoming?.patterns?.overlayOpacity == null && typeof incoming?.fx?.overlayOpacity === "number") {
+    merged.patterns.overlayOpacity = incoming.fx.overlayOpacity;
+  }
+  if (incoming?.patterns?.frame == null && typeof incoming?.fx?.frame === "number") {
+    merged.patterns.frame = incoming.fx.frame;
   }
   return merged;
 }

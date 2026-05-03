@@ -57,11 +57,31 @@
                 <p id="emptyBodyText" data-i18n="emptyBody">Ziehe ein Bild in die App oder nutze den Lade-Button.</p>
               </div>
             </div>
+
+            <div class="panel desktop-stage-panel desktop-project-panel">
+              <div class="panel-head">
+                <h2 data-i18n="projectTitle">Projekt</h2>
+                <p data-i18n="projectIntro">Bild laden, Projekt sichern, laden oder den Stand zuruecksetzen.</p>
+              </div>
+              <div class="panel-body">
+                <div class="button-row project-actions">
+                  <label class="secondary faux-button" for="imageInput" data-i18n="loadImage">Bild laden</label>
+                  <button class="secondary" id="downloadBackupButtonDesktop" type="button" data-i18n="saveProject">Projekt speichern</button>
+                  <label class="secondary faux-button" for="backupInput" data-i18n="loadProject">Projekt laden</label>
+                  <button class="secondary" id="clearProjectButtonDesktop" type="button" data-i18n="clearProject">Projekt loeschen</button>
+                </div>
+                <div class="button-row desktop-quick-actions">
+                  <button class="secondary" id="resetImageButtonDesktop" type="button" data-i18n="resetImage">Bild zuruecksetzen</button>
+                  <button class="secondary" id="fitButtonDesktop" type="button" data-i18n="fitToFrame">Einpassen</button>
+                  <button class="secondary" id="centerButtonDesktop" type="button" data-i18n="centerImage">Zentrieren</button>
+                </div>
+              </div>
+            </div>
           </section>
         </div>
 
         <aside class="side-panels">
-          <details class="panel collapsible project-panel" open>
+          <details class="panel collapsible project-panel mobile-project-panel" open>
             <summary class="panel-summary">
               <div class="panel-head">
                 <h2 data-i18n="projectTitle">Projekt</h2>
