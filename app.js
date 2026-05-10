@@ -7,11 +7,13 @@ const LOCAL_SAVE_DEBOUNCE_MS = 320;
 const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
-const DEFAULT_VERSION = Object.freeze({
-  appVersion: "0.1.99",
-  cacheVersion: "v100",
-  label: "Stark-Markierung farblich klar getrennt",
+const FALLBACK_VERSION_INFO = Object.freeze({
+  appVersion: "0.2.10",
+  cacheVersion: "v111",
+  label: "Gummituch naeher an Membranlook gebracht",
 });
+const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
+const CURRENT_VERSION_INFO = DEFAULT_VERSION;
 
 const CONTROL_GROUPS = {
   corrections: [
@@ -191,6 +193,38 @@ const CONTROL_GROUPS = {
     { key: "screenprint", min: 0, max: 1000, step: 1, value: 0, label: "Siebdruck", i18nKey: "graphicScreenprint" },
     { key: "roentgen", min: 0, max: 1000, step: 1, value: 0, label: "Roentgen", i18nKey: "graphicRoentgen" },
   ],
+  wordArt: [
+    { key: "textMosaic", min: 0, max: 1000, step: 1, value: 0, label: "Textmosaik", i18nKey: "wordArtTextMosaic" },
+    { key: "asciiDeluxe", min: 0, max: 1000, step: 1, value: 0, label: "ASCII Deluxe", i18nKey: "wordArtAsciiDeluxe" },
+    { key: "keywordCloud", min: 0, max: 1000, step: 1, value: 0, label: "Schlagwortwolke", i18nKey: "wordArtKeywordCloud" },
+    { key: "contourText", min: 0, max: 1000, step: 1, value: 0, label: "Konturtext", i18nKey: "wordArtContourText" },
+    { key: "typoHalftone", min: 0, max: 1000, step: 1, value: 0, label: "Typo-Halftone", i18nKey: "wordArtTypoHalftone" },
+    { key: "typoRelief", min: 0, max: 1000, step: 1, value: 0, label: "Typo-Relief", i18nKey: "wordArtTypoRelief" },
+    { key: "linePoetry", min: 0, max: 1000, step: 1, value: 0, label: "Zeilenpoesie", i18nKey: "wordArtLinePoetry" },
+    { key: "stampText", min: 0, max: 1000, step: 1, value: 0, label: "Stempeltext", i18nKey: "wordArtStampText" },
+    { key: "magazineCollage", min: 0, max: 1000, step: 1, value: 0, label: "Magazin-Collage", i18nKey: "wordArtMagazineCollage" },
+    { key: "popSlogans", min: 0, max: 1000, step: 1, value: 0, label: "Pop-Slogans", i18nKey: "wordArtPopSlogans" },
+    { key: "matrixText", min: 0, max: 1000, step: 1, value: 0, label: "Datenraster", i18nKey: "wordArtMatrixText" },
+    { key: "wordSilhouette", min: 0, max: 1000, step: 1, value: 0, label: "Wort-Silhouette", i18nKey: "wordArtWordSilhouette" },
+  ],
+  fragment: [
+    { key: "tileSwap", min: 0, max: 1000, step: 1, value: 0, label: "Kacheln vertauschen", i18nKey: "fragmentTileSwap" },
+    { key: "stripShift", min: 0, max: 1000, step: 1, value: 0, label: "Streifen verschieben", i18nKey: "fragmentStripShift" },
+    { key: "shards", min: 0, max: 1000, step: 1, value: 0, label: "Scherben", i18nKey: "fragmentShards" },
+    { key: "patchwork", min: 0, max: 1000, step: 1, value: 0, label: "Patchwork", i18nKey: "fragmentPatchwork" },
+  ],
+  cut: [
+    { key: "punchCard", min: 0, max: 1000, step: 1, value: 0, label: "Lochkarte", i18nKey: "cutPunchCard" },
+    { key: "perforation", min: 0, max: 1000, step: 1, value: 0, label: "Perforation", i18nKey: "cutPerforation" },
+    { key: "dieCut", min: 0, max: 1000, step: 1, value: 0, label: "Stanzform", i18nKey: "cutDieCut" },
+    { key: "paperCut", min: 0, max: 1000, step: 1, value: 0, label: "Scherenschnitt", i18nKey: "cutPaperCut" },
+  ],
+  morph: [
+    { key: "swirlMorph", min: 0, max: 1000, step: 1, value: 0, label: "Wirbel", i18nKey: "morphSwirl" },
+    { key: "meltMorph", min: 0, max: 1000, step: 1, value: 0, label: "Schmelzen", i18nKey: "morphMelt" },
+    { key: "rubberSheet", min: 0, max: 1000, step: 1, value: 0, label: "Gummituch", i18nKey: "morphRubberSheet" },
+    { key: "wavePull", min: 0, max: 1000, step: 1, value: 0, label: "Wellenzug", i18nKey: "morphWavePull" },
+  ],
 };
 
 const VERY_STRONG_CONTROL_KEYS = new Set([
@@ -200,7 +234,7 @@ const VERY_STRONG_CONTROL_KEYS = new Set([
   "testPattern",
 ]);
 
-const VERY_STRONG_CONTROL_GROUPS = new Set(["art", "artists", "graphics"]);
+const VERY_STRONG_CONTROL_GROUPS = new Set(["art", "artists", "graphics", "wordArt", "fragment", "cut", "morph"]);
 
 const STRONG_CONTROL_KEYS = new Set([
   "backgroundBlur",
@@ -225,7 +259,7 @@ const STRONG_CONTROL_KEYS = new Set([
 const STRONG_CONTROL_GROUPS = new Set(["materials", "atmosphere"]);
 
 const state = {
-  versionInfo: { ...DEFAULT_VERSION },
+  versionInfo: { ...CURRENT_VERSION_INFO },
   settings: {
     languagePreference: "auto",
     themeMode: "dark",
@@ -243,6 +277,7 @@ const state = {
   scratchCanvasIndex: 0,
   readmeText: "",
   updateInProgress: false,
+  reloadInProgress: false,
 };
 
 const els = {
@@ -274,8 +309,12 @@ const els = {
   materialFields: document.getElementById("materialFields"),
   atmosphereFields: document.getElementById("atmosphereFields"),
   artFields: document.getElementById("artFields"),
+  fragmentFields: document.getElementById("fragmentFields"),
+  cutFields: document.getElementById("cutFields"),
+  morphFields: document.getElementById("morphFields"),
   artistsFields: document.getElementById("artistsFields"),
   graphicsFields: document.getElementById("graphicsFields"),
+  wordArtFields: document.getElementById("wordArtFields"),
   duotoneDarkInput: document.getElementById("duotoneDarkInput"),
   duotoneLightInput: document.getElementById("duotoneLightInput"),
   overlayColorInput: document.getElementById("overlayColorInput"),
@@ -405,6 +444,10 @@ function createDefaultProject() {
     art: Object.fromEntries(CONTROL_GROUPS.art.map((control) => [control.key, control.value])),
     artists: Object.fromEntries(CONTROL_GROUPS.artists.map((control) => [control.key, control.value])),
     graphics: Object.fromEntries(CONTROL_GROUPS.graphics.map((control) => [control.key, control.value])),
+    wordArt: Object.fromEntries(CONTROL_GROUPS.wordArt.map((control) => [control.key, control.value])),
+    fragment: Object.fromEntries(CONTROL_GROUPS.fragment.map((control) => [control.key, control.value])),
+    cut: Object.fromEntries(CONTROL_GROUPS.cut.map((control) => [control.key, control.value])),
+    morph: Object.fromEntries(CONTROL_GROUPS.morph.map((control) => [control.key, control.value])),
     colors: {
       duotoneDark: "#111111",
       duotoneLight: "#f8d48f",
@@ -430,6 +473,10 @@ function buildControlFields() {
   renderControls(els.materialFields, CONTROL_GROUPS.materials, "materials");
   renderControls(els.atmosphereFields, CONTROL_GROUPS.atmosphere, "atmosphere");
   renderControls(els.artFields, CONTROL_GROUPS.art, "art");
+  renderControls(els.wordArtFields, CONTROL_GROUPS.wordArt, "wordArt");
+  renderControls(els.fragmentFields, CONTROL_GROUPS.fragment, "fragment");
+  renderControls(els.cutFields, CONTROL_GROUPS.cut, "cut");
+  renderControls(els.morphFields, CONTROL_GROUPS.morph, "morph");
   renderControls(els.artistsFields, CONTROL_GROUPS.artists, "artists");
   renderControls(els.graphicsFields, CONTROL_GROUPS.graphics, "graphics");
 }
@@ -972,7 +1019,7 @@ function drawBaseImage(ctx, width, height) {
 
 function applyEffects(canvas, ctx) {
   resetScratchCanvases();
-  const { corrections, styles, fx, morphology, patterns, materials, atmosphere, art, artists, graphics, colors } = state.project;
+  const { corrections, styles, fx, morphology, patterns, materials, atmosphere, art, wordArt, fragment, cut, morph, artists, graphics, colors } = state.project;
   const edgeAmount = curveAmount(fx.edges / 100, isMobileLayout() ? 1.9 : 1.55, 0.34);
   const embossAmount = curveAmount(fx.emboss / 100, isMobileLayout() ? 1.95 : 1.6, 0.3);
   const pencilAmount = curveAmount(fx.pencil / 100, isMobileLayout() ? 1.55 : 1.35, 1);
@@ -1065,6 +1112,10 @@ function applyEffects(canvas, ctx) {
   applyMaterialEffects(canvas, materials, colors);
   applyAtmosphereEffects(canvas, atmosphere, colors);
   applyArtEffects(canvas, art, colors);
+  applyWordArtEffects(canvas, wordArt, colors);
+  applyFragmentEffects(canvas, fragment, colors);
+  applyCutEffects(canvas, cut, colors);
+  applyMorphEffects(canvas, morph, colors);
   applyArtistEffects(canvas, artists, colors);
   applyGraphicStyleEffects(canvas, graphics, colors);
 
@@ -2060,6 +2111,57 @@ function applyArtEffects(canvas, art, colors) {
   if (art.minecraft > 0) applyMinecraft(canvas, art.minecraft / 100);
 }
 
+function applyWordArtEffects(canvas, wordArt, colors) {
+  const accent = hexToRgb(colors.overlayColor);
+  const soft = hexToRgb(colors.duotoneLight);
+  const dark = hexToRgb(colors.duotoneDark);
+
+  if (wordArt.textMosaic > 0) applyTextMosaic(canvas, curveThousand(wordArt.textMosaic / 100, 1.12, 2.3), accent, soft, dark);
+  if (wordArt.asciiDeluxe > 0) applyAsciiDeluxe(canvas, curveThousand(wordArt.asciiDeluxe / 100, 1.14, 2.35), accent, soft, dark);
+  if (wordArt.keywordCloud > 0) applyKeywordCloud(canvas, curveThousand(wordArt.keywordCloud / 100, 1.12, 2.25), accent, soft, dark);
+  if (wordArt.contourText > 0) applyContourText(canvas, curveThousand(wordArt.contourText / 100, 1.14, 2.4), accent, dark);
+  if (wordArt.typoHalftone > 0) applyTypoHalftone(canvas, curveThousand(wordArt.typoHalftone / 100, 1.1, 2.2), accent, soft, dark);
+  if (wordArt.typoRelief > 0) applyTypoRelief(canvas, curveThousand(wordArt.typoRelief / 100, 1.14, 2.4), accent, soft, dark);
+  if (wordArt.linePoetry > 0) applyLinePoetry(canvas, curveThousand(wordArt.linePoetry / 100, 1.12, 2.25), accent, soft, dark);
+  if (wordArt.stampText > 0) applyStampText(canvas, curveThousand(wordArt.stampText / 100, 1.14, 2.35), accent, soft, dark);
+  if (wordArt.magazineCollage > 0) applyMagazineCollage(canvas, curveThousand(wordArt.magazineCollage / 100, 1.16, 2.45), accent, soft, dark);
+  if (wordArt.popSlogans > 0) applyPopSlogans(canvas, curveThousand(wordArt.popSlogans / 100, 1.14, 2.4), accent, soft, dark);
+  if (wordArt.matrixText > 0) applyMatrixText(canvas, curveThousand(wordArt.matrixText / 100, 1.16, 2.5), accent, soft, dark);
+  if (wordArt.wordSilhouette > 0) applyWordSilhouette(canvas, curveThousand(wordArt.wordSilhouette / 100, 1.14, 2.35), accent, soft, dark);
+}
+
+function applyFragmentEffects(canvas, fragment, colors) {
+  const accent = hexToRgb(colors.overlayColor);
+  const soft = hexToRgb(colors.duotoneLight);
+  const dark = hexToRgb(colors.duotoneDark);
+
+  if (fragment.tileSwap > 0) applyTileSwap(canvas, curveThousand(fragment.tileSwap / 100, 1.12, 2.55), dark);
+  if (fragment.stripShift > 0) applyStripShift(canvas, curveThousand(fragment.stripShift / 100, 1.1, 2.45), accent, dark);
+  if (fragment.shards > 0) applyShards(canvas, curveThousand(fragment.shards / 100, 1.12, 2.6), dark);
+  if (fragment.patchwork > 0) applyPatchwork(canvas, curveThousand(fragment.patchwork / 100, 1.1, 2.45), accent, soft, dark);
+}
+
+function applyCutEffects(canvas, cut, colors) {
+  const accent = hexToRgb(colors.overlayColor);
+  const soft = hexToRgb(colors.duotoneLight);
+  const dark = hexToRgb(colors.duotoneDark);
+
+  if (cut.punchCard > 0) applyPunchCard(canvas, curveThousand(cut.punchCard / 100, 1.1, 2.35), soft, dark);
+  if (cut.perforation > 0) applyPerforation(canvas, curveThousand(cut.perforation / 100, 1.12, 2.45), soft, dark);
+  if (cut.dieCut > 0) applyDieCut(canvas, curveThousand(cut.dieCut / 100, 1.12, 2.45), accent, soft, dark);
+  if (cut.paperCut > 0) applyPaperCut(canvas, curveThousand(cut.paperCut / 100, 1.1, 2.4), soft, dark);
+}
+
+function applyMorphEffects(canvas, morph, colors) {
+  const accent = hexToRgb(colors.overlayColor);
+  const soft = hexToRgb(colors.duotoneLight);
+
+  if (morph.swirlMorph > 0) applySwirlMorph(canvas, curveThousand(morph.swirlMorph / 100, 1.08, 2.9));
+  if (morph.meltMorph > 0) applyMeltMorph(canvas, curveThousand(morph.meltMorph / 100, 1.06, 3.05), accent);
+  if (morph.rubberSheet > 0) applyRubberSheet(canvas, curveThousand(morph.rubberSheet / 100, 1.08, 2.8));
+  if (morph.wavePull > 0) applyWavePull(canvas, curveThousand(morph.wavePull / 100, 1.06, 2.95), soft);
+}
+
 function applyArtistEffects(canvas, artists, colors) {
   const accent = hexToRgb(colors.overlayColor);
   const soft = hexToRgb(colors.duotoneLight);
@@ -2878,6 +2980,1255 @@ function applyRandomWords(canvas, amount, accent, soft, dark) {
     ctx.restore();
   }
   ctx.restore();
+}
+
+function applyTextMosaic(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const step = Math.max(10, Math.round(30 - strength * 10 - turbo * 5));
+  const sampleSource = createSampleSource(source, 220 + strength * 160 + turbo * 120);
+  const words = ["THREAD", "LINE", "STUDIO", "PIXEL", "TRACE", "TONE", "COLOR", "FORM"];
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${soft.r}, ${soft.g}, ${soft.b})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let y = 0; y < canvas.height; y += step) {
+    for (let x = 0; x < canvas.width; x += step) {
+      const sx = clamp(Math.round(x + step / 2), 0, canvas.width - 1);
+      const sy = clamp(Math.round(y + step / 2), 0, canvas.height - 1);
+      const index = getSampleSourceIndex(sampleSource, sx, sy);
+      const r = sampleSource.data[index];
+      const g = sampleSource.data[index + 1];
+      const b = sampleSource.data[index + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      const fontSize = Math.max(9, Math.round(step * (0.65 + darkness * 0.55 + turbo * 0.08)));
+      const word = words[Math.floor(seededNoise(x, y, 0.71) * words.length)];
+      const rotation = (seededNoise(x, y, 1.37) - 0.5) * (0.16 + strength * 0.22 + turbo * 0.08);
+      const alpha = clamp(0.32 + darkness * 0.38 + strength * 0.12, 0.24, 0.88);
+      const color = {
+        r: Math.round(mix(r, accent.r, 0.08 + darkness * 0.18)),
+        g: Math.round(mix(g, dark.g, 0.06 + darkness * 0.14)),
+        b: Math.round(mix(b, dark.b, 0.08 + darkness * 0.2)),
+      };
+      ctx.save();
+      ctx.translate(
+        x + step * 0.5 + (seededNoise(x, y, 2.1) - 0.5) * step * (0.12 + strength * 0.08),
+        y + step * 0.5 + (seededNoise(x, y, 2.9) - 0.5) * step * (0.12 + strength * 0.08)
+      );
+      ctx.rotate(rotation);
+      ctx.font = `${fontSize}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
+      ctx.fillText(word, 0, 0);
+      ctx.restore();
+    }
+  }
+}
+
+function applyAsciiDeluxe(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const step = Math.max(7, Math.round(24 - strength * 8 - turbo * 5));
+  const sampleCanvas = getScratchCanvas(
+    Math.max(1, Math.round(canvas.width / step)),
+    Math.max(1, Math.round(canvas.height / step))
+  );
+  const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+  sampleCtx.clearRect(0, 0, sampleCanvas.width, sampleCanvas.height);
+  sampleCtx.drawImage(source, 0, 0, sampleCanvas.width, sampleCanvas.height);
+  const sample = sampleCtx.getImageData(0, 0, sampleCanvas.width, sampleCanvas.height).data;
+  const chars = ["·", ".", ":", ";", "!", "1", "7", "A", "R", "T", "#", "@", "&", "%", "M", "W"];
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = rgbaString(soft, 0.98);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.textBaseline = "top";
+
+  for (let y = 0; y < sampleCanvas.height; y += 1) {
+    for (let x = 0; x < sampleCanvas.width; x += 1) {
+      const index = (y * sampleCanvas.width + x) * 4;
+      const r = sample[index];
+      const g = sample[index + 1];
+      const b = sample[index + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      const char = chars[clamp(Math.floor(darkness * (chars.length - 1)), 0, chars.length - 1)];
+      const size = Math.max(7, Math.round(step * (0.9 + darkness * 0.24 + turbo * 0.06)));
+      const color = {
+        r: Math.round(mix(r, accent.r, 0.12 + darkness * 0.22)),
+        g: Math.round(mix(g, dark.g, 0.1 + darkness * 0.18)),
+        b: Math.round(mix(b, dark.b, 0.14 + darkness * 0.24)),
+      };
+      ctx.font = `${size}px 'Consolas', 'Courier New', monospace`;
+      ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${clamp(0.34 + darkness * 0.46 + strength * 0.08, 0.28, 0.94)})`;
+      ctx.fillText(char, x * step, y * step);
+    }
+  }
+}
+
+function applyKeywordCloud(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const sampleSource = createSampleSource(source, 220 + strength * 140 + turbo * 100);
+  const words = ["image", "focus", "trace", "signal", "word", "pixel", "tone", "light", "form", "echo"];
+  const step = Math.max(18, Math.round(42 - strength * 14 - turbo * 6));
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${soft.r}, ${soft.g}, ${soft.b})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let y = step * 0.6; y < canvas.height; y += step) {
+    for (let x = step * 0.6; x < canvas.width; x += step) {
+      const index = getSampleSourceIndex(sampleSource, x, y);
+      const r = sampleSource.data[index];
+      const g = sampleSource.data[index + 1];
+      const b = sampleSource.data[index + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      const densityGate = 0.18 + (1 - darkness) * 0.54;
+      if (seededNoise(x, y, 0.61) < densityGate) continue;
+      const size = Math.max(10, Math.round(step * (0.38 + darkness * 0.64 + turbo * 0.06)));
+      const word = words[Math.floor(seededNoise(x, y, 2.33) * words.length)];
+      const color = {
+        r: Math.round(mix(r, accent.r, 0.12 + darkness * 0.12)),
+        g: Math.round(mix(g, dark.g, 0.08 + darkness * 0.08)),
+        b: Math.round(mix(b, dark.b, 0.1 + darkness * 0.1)),
+      };
+      ctx.save();
+      ctx.translate(
+        x + (seededNoise(x, y, 1.47) - 0.5) * step * 0.22,
+        y + (seededNoise(x, y, 3.1) - 0.5) * step * 0.22
+      );
+      ctx.rotate((seededNoise(x, y, 4.2) - 0.5) * (0.14 + strength * 0.12));
+      ctx.font = `${size}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${clamp(0.16 + darkness * 0.36 + strength * 0.1, 0.14, 0.68)})`;
+      ctx.fillText(word, 0, 0);
+      ctx.restore();
+    }
+  }
+}
+
+function applyContourText(canvas, amount, accent, dark) {
+  const source = cloneCanvas(canvas);
+  const edgeCanvas = cloneCanvas(canvas);
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  applyCannyLikeEdges(edgeCanvas, 0.18 + strength * 0.24 + turbo * 0.08);
+  const ctx = canvas.getContext("2d");
+  const sourceData = source.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  const edgeData = edgeCanvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  const step = Math.max(8, Math.round(26 - strength * 10 - turbo * 5));
+  const tokens = ["trace", "edge", "line", "draw", "tone"];
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, 0, 0);
+  ctx.save();
+  ctx.globalAlpha = clamp(0.18 + strength * 0.16, 0.16, 0.36);
+  ctx.fillStyle = "rgba(255,255,255,0.78)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let y = 0; y < canvas.height; y += step) {
+    for (let x = 0; x < canvas.width; x += step) {
+      const idx = getPixelIndex(clamp(x, 0, canvas.width - 1), clamp(y, 0, canvas.height - 1), canvas.width);
+      const edge = edgeData[idx] / 255;
+      if (edge < 0.18) continue;
+      const r = sourceData[idx];
+      const g = sourceData[idx + 1];
+      const b = sourceData[idx + 2];
+      const luminance = (r + g + b) / 3;
+      const word = tokens[Math.floor(seededNoise(x, y, 3.2) * tokens.length)];
+      const angle = (seededNoise(x, y, 4.7) - 0.5) * (0.45 + strength * 0.5 + turbo * 0.18);
+      const fontSize = Math.max(10, Math.round(step * (0.5 + edge * 0.9 + turbo * 0.08)));
+      const color = {
+        r: Math.round(mix(r, accent.r, 0.14 + edge * 0.38)),
+        g: Math.round(mix(g, dark.g, 0.06 + edge * 0.18)),
+        b: Math.round(mix(b, dark.b, 0.16 + edge * 0.42)),
+      };
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.font = `${fontSize}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${clamp(0.2 + edge * 0.72 + strength * 0.08, 0.24, 0.92)})`;
+      ctx.fillText(word, 0, 0);
+      if (luminance < 118) {
+        ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.12 + edge * 0.24})`;
+        ctx.lineWidth = Math.max(0.6, fontSize * 0.028);
+        ctx.strokeText(word, 0, 0);
+      }
+      ctx.restore();
+    }
+  }
+}
+
+function applyTypoHalftone(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const step = Math.max(8, Math.round(24 - strength * 10 - turbo * 4));
+  const sampleSource = createSampleSource(source, 240 + strength * 160 + turbo * 100);
+  const glyphs = ["·", ":", "o", "O", "8", "&", "#"];
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${Math.round(mix(248, soft.r, 0.06))}, ${Math.round(mix(246, soft.g, 0.06))}, ${Math.round(mix(238, soft.b, 0.06))})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let y = 0; y < canvas.height; y += step) {
+    for (let x = 0; x < canvas.width; x += step) {
+      const sx = clamp(Math.round(x + step / 2), 0, canvas.width - 1);
+      const sy = clamp(Math.round(y + step / 2), 0, canvas.height - 1);
+      const index = getSampleSourceIndex(sampleSource, sx, sy);
+      const r = sampleSource.data[index];
+      const g = sampleSource.data[index + 1];
+      const b = sampleSource.data[index + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      const glyph = glyphs[clamp(Math.floor(darkness * (glyphs.length - 1)), 0, glyphs.length - 1)];
+      const size = Math.max(8, Math.round(step * (0.42 + darkness * 1.12 + turbo * 0.08)));
+      const fill = {
+        r: Math.round(mix(dark.r, accent.r, 0.16 + darkness * 0.18)),
+        g: Math.round(mix(dark.g, g, 0.26 + darkness * 0.18)),
+        b: Math.round(mix(dark.b, b, 0.28 + darkness * 0.16)),
+      };
+      ctx.save();
+      ctx.translate(x + step / 2, y + step / 2);
+      ctx.rotate((seededNoise(x, y, 5.1) - 0.5) * (0.12 + turbo * 0.08));
+      ctx.font = `${size}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(${fill.r}, ${fill.g}, ${fill.b}, ${clamp(0.22 + darkness * 0.62 + strength * 0.1, 0.22, 0.94)})`;
+      ctx.fillText(glyph, 0, 0);
+      ctx.restore();
+    }
+  }
+}
+
+function applyTypoRelief(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const edgeCanvas = cloneCanvas(canvas);
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  applyCannyLikeEdges(edgeCanvas, 0.16 + strength * 0.22 + turbo * 0.08);
+  const ctx = canvas.getContext("2d");
+  const sourceData = source.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  const edgeData = edgeCanvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+  const step = Math.max(10, Math.round(28 - strength * 10 - turbo * 4));
+  const words = ["TYPE", "FORM", "PRESS", "RELIEF", "TRACE", "SIGN"];
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${Math.round(mix(246, soft.r, 0.06))}, ${Math.round(mix(242, soft.g, 0.08))}, ${Math.round(mix(236, soft.b, 0.06))})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.globalAlpha = clamp(0.08 + strength * 0.06, 0.08, 0.18);
+  ctx.drawImage(source, 0, 0);
+  ctx.restore();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let y = step * 0.6; y < canvas.height; y += step) {
+    for (let x = step * 0.6; x < canvas.width; x += step) {
+      const idx = getPixelIndex(clamp(x, 0, canvas.width - 1), clamp(y, 0, canvas.height - 1), canvas.width);
+      const edge = edgeData[idx] / 255;
+      const r = sourceData[idx];
+      const g = sourceData[idx + 1];
+      const b = sourceData[idx + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      if (edge < 0.12 && darkness < 0.34) continue;
+      const word = words[Math.floor(seededNoise(x, y, 6.2) * words.length)];
+      const size = Math.max(10, Math.round(step * (0.42 + darkness * 0.5 + edge * 0.42 + turbo * 0.04)));
+      const fill = {
+        r: Math.round(mix(soft.r, r, 0.18 + darkness * 0.12)),
+        g: Math.round(mix(soft.g, g, 0.18 + darkness * 0.12)),
+        b: Math.round(mix(soft.b, b, 0.18 + darkness * 0.12)),
+      };
+      const emboss = {
+        r: Math.round(mix(dark.r, accent.r, 0.1 + edge * 0.2)),
+        g: Math.round(mix(dark.g, dark.g, 0.8)),
+        b: Math.round(mix(dark.b, b, 0.06 + edge * 0.08)),
+      };
+      const dx = x + (seededNoise(x, y, 7.1) - 0.5) * step * 0.1;
+      const dy = y + (seededNoise(x, y, 7.9) - 0.5) * step * 0.1;
+      ctx.save();
+      ctx.translate(dx, dy);
+      ctx.rotate((seededNoise(x, y, 8.6) - 0.5) * (0.08 + strength * 0.08));
+      ctx.font = `700 ${size}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(255,255,255,${0.14 + edge * 0.22 + strength * 0.04})`;
+      ctx.fillText(word, 0.8, 0.8);
+      ctx.fillStyle = `rgba(${fill.r}, ${fill.g}, ${fill.b}, ${clamp(0.7 + darkness * 0.12, 0.68, 0.9)})`;
+      ctx.fillText(word, 0, 0);
+      ctx.strokeStyle = `rgba(${emboss.r}, ${emboss.g}, ${emboss.b}, ${0.12 + edge * 0.34 + strength * 0.06})`;
+      ctx.lineWidth = Math.max(0.5, size * 0.024);
+      ctx.strokeText(word, -0.6, -0.6);
+      ctx.restore();
+    }
+  }
+}
+
+function applyLinePoetry(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const lineStep = Math.max(12, Math.round(24 - strength * 7 - turbo * 4));
+  const sampleSource = createSampleSource(source, 280 + strength * 180 + turbo * 120);
+  const phrase = "threadline studio trace color tone image contour rhythm line form ";
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${soft.r}, ${soft.g}, ${soft.b})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.globalAlpha = clamp(0.08 + strength * 0.05, 0.08, 0.16);
+  ctx.drawImage(source, 0, 0);
+  ctx.restore();
+  ctx.textBaseline = "middle";
+
+  for (let y = lineStep * 0.7; y < canvas.height; y += lineStep) {
+    let cursor = 8;
+    let offset = 0;
+    while (cursor < canvas.width - 20) {
+      const sampleX = clamp(cursor, 0, canvas.width - 1);
+      const index = getSampleSourceIndex(sampleSource, sampleX, y);
+      const r = sampleSource.data[index];
+      const g = sampleSource.data[index + 1];
+      const b = sampleSource.data[index + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      const chunkLength = Math.max(6, Math.round(6 + darkness * 10 + turbo * 1.5));
+      const text = phrase.slice(offset % phrase.length, (offset % phrase.length) + chunkLength).padEnd(chunkLength, phrase);
+      const size = Math.max(9, Math.round(9 + darkness * 6 + turbo * 1.1));
+      const baselineShift = (1 - darkness) * lineStep * 0.22 + (seededNoise(cursor, y, 4.9) - 0.5) * (1 + strength * 1.8);
+      ctx.font = `${size}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(${Math.round(mix(dark.r, accent.r, 0.1 + darkness * 0.16))}, ${Math.round(mix(dark.g, g, 0.12 + darkness * 0.08))}, ${Math.round(mix(dark.b, b, 0.12 + darkness * 0.08))}, ${clamp(0.34 + darkness * 0.4 + strength * 0.08, 0.28, 0.9)})`;
+      ctx.fillText(text, cursor, y + baselineShift);
+      if (darkness > 0.58) {
+        ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.08 + darkness * 0.12})`;
+        ctx.lineWidth = Math.max(0.5, size * 0.02);
+        ctx.strokeText(text, cursor, y + baselineShift);
+      }
+      const width = ctx.measureText(text).width;
+      cursor += Math.max(12, width * (0.8 + darkness * 0.12));
+      offset += chunkLength;
+    }
+  }
+}
+
+function applyStampText(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const sampleSource = createSampleSource(source, 210 + strength * 140 + turbo * 100);
+  const words = ["STAMP", "TRACE", "PRINT", "THREAD", "FORM", "PRESS"];
+  const step = Math.max(24, Math.round(48 - strength * 14 - turbo * 7));
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, 0, 0);
+  ctx.save();
+  ctx.globalAlpha = clamp(0.12 + strength * 0.12, 0.1, 0.28);
+  ctx.fillStyle = `rgb(${soft.r}, ${soft.g}, ${soft.b})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+
+  for (let y = step * 0.65; y < canvas.height; y += step) {
+    for (let x = step * 0.65; x < canvas.width; x += step) {
+      const index = getSampleSourceIndex(sampleSource, x, y);
+      const r = sampleSource.data[index];
+      const g = sampleSource.data[index + 1];
+      const b = sampleSource.data[index + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      if (darkness < 0.22 && seededNoise(x, y, 1.21) < 0.82) continue;
+      const word = words[Math.floor(seededNoise(x, y, 3.41) * words.length)];
+      const size = Math.max(12, Math.round(step * (0.32 + darkness * 0.34 + turbo * 0.04)));
+      ctx.save();
+      ctx.translate(
+        x + (seededNoise(x, y, 2.17) - 0.5) * step * 0.16,
+        y + (seededNoise(x, y, 2.93) - 0.5) * step * 0.16
+      );
+      ctx.rotate((seededNoise(x, y, 4.23) - 0.5) * (0.14 + strength * 0.12));
+      ctx.font = `700 ${size}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(${Math.round(mix(dark.r, accent.r, 0.18 + darkness * 0.08))}, ${Math.round(mix(dark.g, g, 0.08))}, ${Math.round(mix(dark.b, b, 0.08))}, ${clamp(0.12 + darkness * 0.3 + strength * 0.08, 0.12, 0.48)})`;
+      ctx.fillText(word, 0, 0);
+      ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.08 + darkness * 0.12})`;
+      ctx.lineWidth = Math.max(0.8, size * 0.03);
+      ctx.strokeText(word, 0, 0);
+      ctx.restore();
+    }
+  }
+}
+
+function applyMagazineCollage(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const sampleSource = createSampleSource(source, 220 + strength * 150 + turbo * 100);
+  const words = ["studio", "image", "signal", "fragment", "editorial", "print", "urban", "graphic"];
+  const stepX = Math.max(26, Math.round(64 - strength * 20 - turbo * 12));
+  const stepY = Math.max(18, Math.round(40 - strength * 12 - turbo * 8));
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${Math.round(mix(248, soft.r, 0.04))}, ${Math.round(mix(246, soft.g, 0.04))}, ${Math.round(mix(240, soft.b, 0.04))})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.globalAlpha = clamp(0.06 + strength * 0.04, 0.06, 0.16);
+  ctx.drawImage(source, 0, 0);
+  ctx.restore();
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (let y = stepY * 0.7; y < canvas.height; y += stepY) {
+    for (let x = stepX * 0.7; x < canvas.width; x += stepX) {
+      const index = getSampleSourceIndex(sampleSource, x, y);
+      const r = sampleSource.data[index];
+      const g = sampleSource.data[index + 1];
+      const b = sampleSource.data[index + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      if (darkness < 0.18 && seededNoise(x, y, 0.81) < 0.7) continue;
+      const w = stepX * (0.62 + seededNoise(x, y, 2.27) * 0.52 + darkness * 0.18);
+      const h = stepY * (0.58 + seededNoise(x, y, 3.11) * 0.42 + darkness * 0.1);
+      const bg = {
+        r: Math.round(mix(soft.r, r, 0.26 + darkness * 0.16)),
+        g: Math.round(mix(soft.g, g, 0.26 + darkness * 0.16)),
+        b: Math.round(mix(soft.b, b, 0.26 + darkness * 0.16)),
+      };
+      ctx.save();
+      ctx.translate(
+        x + (seededNoise(x, y, 1.63) - 0.5) * stepX * (0.22 + strength * 0.1),
+        y + (seededNoise(x, y, 1.91) - 0.5) * stepY * (0.22 + strength * 0.1)
+      );
+      ctx.rotate((seededNoise(x, y, 4.51) - 0.5) * (0.18 + strength * 0.16 + turbo * 0.05));
+      ctx.fillStyle = `rgba(${bg.r}, ${bg.g}, ${bg.b}, ${0.82 + darkness * 0.08})`;
+      ctx.fillRect(-w / 2, -h / 2, w, h);
+      ctx.save();
+      ctx.globalAlpha = clamp(0.14 + darkness * 0.16 + strength * 0.04, 0.12, 0.34);
+      ctx.drawImage(source, x - w / 2, y - h / 2, w, h, -w / 2, -h / 2, w, h);
+      ctx.restore();
+      ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, 0.18)`;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-w / 2, -h / 2, w, h);
+      ctx.font = `700 ${Math.max(10, Math.round(h * (0.48 + darkness * 0.12)))}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(${Math.round(mix(dark.r, accent.r, 0.14 + darkness * 0.1))}, ${Math.round(mix(dark.g, dark.g, 0.8))}, ${Math.round(mix(dark.b, b, 0.08))}, 0.88)`;
+      ctx.fillText(words[Math.floor(seededNoise(x, y, 5.73) * words.length)], 0, 0);
+      ctx.restore();
+    }
+  }
+}
+
+function applyPopSlogans(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const sampleSource = createSampleSource(source, 220 + strength * 150 + turbo * 100);
+  const slogans = ["WOW", "BANG", "LOOK", "COLOR", "POP", "FLASH", "YES", "GO"];
+  const stepX = Math.max(30, Math.round(72 - strength * 18 - turbo * 10));
+  const stepY = Math.max(22, Math.round(48 - strength * 12 - turbo * 6));
+  const palette = [
+    { r: 244, g: 86, b: 58 },
+    { r: 255, g: 214, b: 51 },
+    { r: 58, g: 124, b: 255 },
+    { r: 26, g: 26, b: 26 },
+  ];
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, 0, 0);
+  ctx.save();
+  ctx.globalAlpha = clamp(0.1 + strength * 0.08, 0.1, 0.24);
+  ctx.fillStyle = `rgb(${soft.r}, ${soft.g}, ${soft.b})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let y = stepY * 0.7; y < canvas.height; y += stepY) {
+    for (let x = stepX * 0.7; x < canvas.width; x += stepX) {
+      const index = getSampleSourceIndex(sampleSource, x, y);
+      const r = sampleSource.data[index];
+      const g = sampleSource.data[index + 1];
+      const b = sampleSource.data[index + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      const saturation = getRgbSaturation(r, g, b);
+      const edgeProbe = Math.abs(
+        getSampleSourceChannel(sampleSource, x + stepX * 0.3, y, 0) -
+        getSampleSourceChannel(sampleSource, x - stepX * 0.3, y, 0)
+      ) + Math.abs(
+        getSampleSourceChannel(sampleSource, x, y + stepY * 0.3, 1) -
+        getSampleSourceChannel(sampleSource, x, y - stepY * 0.3, 1)
+      );
+      const motifSignal = darkness * 0.58 + saturation * 0.28 + clamp(edgeProbe / 255, 0, 1) * 0.34;
+      if (motifSignal < 0.2 && seededNoise(x, y, 0.91) < 0.86) continue;
+      const slogan = slogans[Math.floor(seededNoise(x, y, 1.77) * slogans.length)];
+      const paletteColor = palette[Math.floor(seededNoise(x, y, 2.6) * palette.length)];
+      const blend = clamp(0.26 + saturation * 0.34 + darkness * 0.16, 0.22, 0.72);
+      const bg = {
+        r: Math.round(mix(paletteColor.r, r, blend)),
+        g: Math.round(mix(paletteColor.g, g, blend)),
+        b: Math.round(mix(paletteColor.b, b, blend)),
+      };
+      const w = stepX * (0.7 + seededNoise(x, y, 3.21) * 0.44 + motifSignal * 0.2);
+      const h = stepY * (0.72 + seededNoise(x, y, 3.94) * 0.32 + motifSignal * 0.12);
+      const fontSize = Math.max(11, Math.round(h * (0.46 + motifSignal * 0.22 + turbo * 0.05)));
+      const tx = x + (seededNoise(x, y, 4.82) - 0.5) * stepX * 0.16;
+      const ty = y + (seededNoise(x, y, 5.47) - 0.5) * stepY * 0.16;
+      const imgAlpha = clamp(0.18 + motifSignal * 0.34 + strength * 0.06, 0.16, 0.5);
+      const boxAlpha = clamp(0.62 + motifSignal * 0.18, 0.58, 0.88);
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.rotate((seededNoise(x, y, 6.23) - 0.5) * (0.16 + strength * 0.12));
+      ctx.fillStyle = `rgba(${bg.r}, ${bg.g}, ${bg.b}, ${boxAlpha})`;
+      ctx.fillRect(-w / 2, -h / 2, w, h);
+      ctx.save();
+      ctx.globalAlpha = imgAlpha;
+      ctx.beginPath();
+      ctx.rect(-w / 2, -h / 2, w, h);
+      ctx.clip();
+      ctx.drawImage(source, x - w / 2, y - h / 2, w, h, -w / 2, -h / 2, w, h);
+      ctx.restore();
+      ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, 0.24)`;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-w / 2, -h / 2, w, h);
+      if (motifSignal > 0.42) {
+        ctx.strokeStyle = `rgba(255,255,255,${Math.min(0.18, motifSignal * 0.18)})`;
+        ctx.lineWidth = Math.max(0.8, h * 0.03);
+        ctx.beginPath();
+        ctx.moveTo(-w / 2 + 3, -h / 2 + h * 0.22);
+        ctx.lineTo(w / 2 - 3, -h / 2 + h * 0.22);
+        ctx.stroke();
+      }
+      ctx.font = `800 ${fontSize}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(${Math.round(mix(dark.r, r, 0.14 + motifSignal * 0.08))}, ${Math.round(mix(dark.g, g, 0.14 + motifSignal * 0.08))}, ${Math.round(mix(dark.b, b, 0.14 + motifSignal * 0.08))}, 0.92)`;
+      ctx.fillText(slogan, 0.8, 0.8);
+      ctx.fillStyle = `rgba(${Math.round(mix(255, soft.r, 0.08))}, ${Math.round(mix(255, soft.g, 0.08))}, ${Math.round(mix(255, soft.b, 0.08))}, 0.96)`;
+      ctx.fillText(slogan, 0, 0);
+      ctx.restore();
+    }
+  }
+}
+
+function applyMatrixText(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const cols = Math.max(12, Math.round(canvas.width / Math.max(10, 28 - amount * 1.05)));
+  const size = canvas.width / cols;
+  const rows = Math.ceil(canvas.height / size);
+  const glyphs = ["0", "1", "data", "echo", "trace", "grid", "node", "code"];
+  const sampleCanvas = getScratchCanvas(cols, rows);
+  const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+  sampleCtx.clearRect(0, 0, sampleCanvas.width, sampleCanvas.height);
+  sampleCtx.drawImage(source, 0, 0, cols, rows);
+  const sample = sampleCtx.getImageData(0, 0, cols, rows).data;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${Math.round(mix(228, soft.r, 0.18))}, ${Math.round(mix(244, soft.g, 0.12))}, ${Math.round(mix(232, soft.b, 0.12))})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.globalAlpha = clamp(0.18 + strength * 0.12, 0.16, 0.34);
+  ctx.filter = `blur(${0.3 + strength * 0.7}px) saturate(${1.02 + strength * 0.08})`;
+  ctx.drawImage(source, 0, 0);
+  ctx.restore();
+  ctx.save();
+  ctx.strokeStyle = `rgba(${Math.round(mix(110, accent.r, 0.08))}, ${Math.round(mix(188, soft.g, 0.1))}, ${Math.round(mix(136, dark.b, 0.04))}, ${0.08 + strength * 0.05})`;
+  ctx.lineWidth = Math.max(0.4, size * 0.04);
+  for (let x = 0; x <= canvas.width; x += size) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= canvas.height; y += size) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+  ctx.textBaseline = "top";
+
+  for (let col = 0; col < cols; col += 1) {
+    const head = Math.floor(seededNoise(col, amount, 0.66) * rows);
+    for (let row = 0; row < rows; row += 1) {
+      const index = (row * cols + col) * 4;
+      const luminance = (sample[index] + sample[index + 1] + sample[index + 2]) / 3;
+      const darkness = 1 - luminance / 255;
+      const distance = Math.abs(row - head);
+      const alpha = Math.max(0, 0.96 - distance * 0.11) * (0.2 + strength * 0.7) * (0.28 + darkness * 0.72);
+      if (alpha <= 0.035) continue;
+      const text = glyphs[Math.floor(seededNoise(col, row, 1.42) * glyphs.length)];
+      const sizePx = Math.max(8, Math.round(size * (0.66 + darkness * 0.26 + turbo * 0.04)));
+      ctx.font = `${sizePx}px 'Consolas', 'Courier New', monospace`;
+      const tint = distance === 0
+        ? { r: 56, g: 132, b: 88 }
+        : {
+            r: Math.round(mix(68, accent.r, 0.12 + darkness * 0.08)),
+            g: Math.round(mix(150, soft.g, 0.1 + darkness * 0.08)),
+            b: Math.round(mix(88, dark.b, 0.04 + darkness * 0.03)),
+          };
+      ctx.fillStyle = `rgba(${tint.r}, ${tint.g}, ${tint.b}, ${alpha})`;
+      const drawX = col * size + size * 0.08;
+      const drawY = row * size + size * 0.08;
+      ctx.fillText(text, drawX, drawY);
+      if (distance === 0 || darkness > 0.64) {
+        ctx.fillStyle = `rgba(255,255,255,${Math.min(0.28, alpha * 0.3)})`;
+        ctx.fillText(text, drawX + 0.5, drawY + 0.35);
+      }
+    }
+  }
+}
+
+function applyWordSilhouette(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const step = Math.max(10, Math.round(28 - strength * 9 - turbo * 5));
+  const sampleSource = createSampleSource(source, 220 + strength * 150 + turbo * 120);
+  const words = ["shape", "outline", "echo", "image", "word", "form", "silhouette"];
+  const threshold = 0.7 - strength * 0.24 - turbo * 0.08;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${soft.r}, ${soft.g}, ${soft.b})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let y = 0; y < canvas.height; y += step) {
+    for (let x = 0; x < canvas.width; x += step) {
+      const sx = clamp(Math.round(x + step / 2), 0, canvas.width - 1);
+      const sy = clamp(Math.round(y + step / 2), 0, canvas.height - 1);
+      const index = getSampleSourceIndex(sampleSource, sx, sy);
+      const r = sampleSource.data[index];
+      const g = sampleSource.data[index + 1];
+      const b = sampleSource.data[index + 2];
+      const gray = (r + g + b) / 3;
+      const darkness = 1 - gray / 255;
+      if (darkness < threshold) continue;
+      const word = words[Math.floor(seededNoise(x, y, 6.8) * words.length)];
+      const size = Math.max(9, Math.round(step * (0.46 + darkness * 0.82 + turbo * 0.06)));
+      const ink = {
+        r: Math.round(mix(dark.r, accent.r, 0.08 + darkness * 0.14)),
+        g: Math.round(mix(dark.g, g, 0.08 + darkness * 0.08)),
+        b: Math.round(mix(dark.b, b, 0.12 + darkness * 0.14)),
+      };
+      ctx.save();
+      ctx.translate(
+        x + step / 2 + (seededNoise(x, y, 7.5) - 0.5) * step * 0.08,
+        y + step / 2 + (seededNoise(x, y, 8.2) - 0.5) * step * 0.08
+      );
+      ctx.rotate((seededNoise(x, y, 9.1) - 0.5) * (0.08 + turbo * 0.06));
+      ctx.font = `${size}px 'Aptos Display', 'Segoe UI', sans-serif`;
+      ctx.fillStyle = `rgba(${ink.r}, ${ink.g}, ${ink.b}, ${clamp(0.26 + darkness * 0.62 + strength * 0.08, 0.28, 0.96)})`;
+      ctx.fillText(word, 0, 0);
+      ctx.restore();
+    }
+  }
+}
+
+function applyTileSwap(canvas, amount, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const density = Math.max(0, amount);
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const cols = Math.max(5, Math.round(7 + strength * 6 + turbo * 7));
+  const tileW = canvas.width / cols;
+  const rows = Math.max(4, Math.round(canvas.height / tileW));
+  const tileH = canvas.height / rows;
+  const cells = [];
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      cells.push({ col, row });
+    }
+  }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (const cell of cells) {
+    const swapChance = 0.18 + strength * 0.46 + turbo * 0.12;
+    const radius = 1 + Math.round(strength * 2 + turbo * 3);
+    let srcCol = cell.col;
+    let srcRow = cell.row;
+    if (seededNoise(cell.col, cell.row, 0.71) < swapChance) {
+      srcCol = clamp(cell.col + Math.round((seededNoise(cell.col, cell.row, 1.17) - 0.5) * radius * 2), 0, cols - 1);
+      srcRow = clamp(cell.row + Math.round((seededNoise(cell.col, cell.row, 1.93) - 0.5) * radius * 2), 0, rows - 1);
+    }
+    const sx = srcCol * tileW;
+    const sy = srcRow * tileH;
+    const dx = cell.col * tileW;
+    const dy = cell.row * tileH;
+    const lift = (seededNoise(cell.col, cell.row, 2.63) - 0.5) * tileW * (0.05 + strength * 0.06);
+    const drop = (seededNoise(cell.col, cell.row, 3.01) - 0.5) * tileH * (0.05 + strength * 0.06);
+    ctx.drawImage(source, sx, sy, tileW, tileH, dx + lift, dy + drop, tileW, tileH);
+  }
+  ctx.save();
+  ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.08 + strength * 0.12})`;
+  ctx.lineWidth = Math.max(0.6, tileW * 0.015);
+  for (let col = 1; col < cols; col += 1) {
+    const x = col * tileW;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let row = 1; row < rows; row += 1) {
+    const y = row * tileH;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function applyStripShift(canvas, amount, accent, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const stripH = Math.max(8, Math.round(28 - strength * 10 - turbo * 7));
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let y = 0; y < canvas.height; y += stripH) {
+    const offset = (seededNoise(y, amount, 0.83) - 0.5) * canvas.width * (0.04 + strength * 0.14 + turbo * 0.08);
+    const wobble = Math.sin((y / canvas.height) * Math.PI * (2 + turbo * 1.4)) * canvas.width * (0.01 + strength * 0.03);
+    ctx.drawImage(source, offset + wobble, y, canvas.width, stripH, 0, y, canvas.width, stripH);
+  }
+  if (amount > 0.55) {
+    const stripW = Math.max(10, Math.round(32 - strength * 10 - turbo * 8));
+    for (let x = 0; x < canvas.width; x += stripW * 3) {
+      const offsetY = (seededNoise(x, amount, 2.17) - 0.5) * canvas.height * (0.02 + strength * 0.08 + turbo * 0.05);
+      ctx.drawImage(source, x, offsetY, stripW, canvas.height, x, 0, stripW, canvas.height);
+    }
+  }
+  ctx.save();
+  ctx.strokeStyle = `rgba(${accent.r}, ${accent.g}, ${accent.b}, ${0.06 + strength * 0.12})`;
+  ctx.lineWidth = Math.max(0.6, stripH * 0.06);
+  for (let y = stripH; y < canvas.height; y += stripH) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function applyShards(canvas, amount, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const cols = Math.max(4, Math.round(6 + strength * 5 + turbo * 5));
+  const cell = canvas.width / cols;
+  const rows = Math.max(4, Math.round(canvas.height / cell));
+  const cellH = canvas.height / rows;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.globalAlpha = 0.16 + strength * 0.12;
+  ctx.drawImage(source, 0, 0);
+  ctx.restore();
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      const x = col * cell;
+      const y = row * cellH;
+      const jitterX = cell * (0.18 + strength * 0.16 + turbo * 0.06);
+      const jitterY = cellH * (0.18 + strength * 0.16 + turbo * 0.06);
+      const points = [
+        [x + (seededNoise(col, row, 0.61) - 0.5) * jitterX, y + (seededNoise(col, row, 0.93) - 0.5) * jitterY],
+        [x + cell + (seededNoise(col, row, 1.21) - 0.5) * jitterX, y + (seededNoise(col, row, 1.51) - 0.5) * jitterY],
+        [x + cell + (seededNoise(col, row, 1.87) - 0.5) * jitterX, y + cellH + (seededNoise(col, row, 2.13) - 0.5) * jitterY],
+        [x + (seededNoise(col, row, 2.43) - 0.5) * jitterX, y + cellH + (seededNoise(col, row, 2.77) - 0.5) * jitterY],
+      ];
+      const cx = points.reduce((sum, point) => sum + point[0], 0) / points.length;
+      const cy = points.reduce((sum, point) => sum + point[1], 0) / points.length;
+      const dx = (seededNoise(col, row, 3.11) - 0.5) * cell * (0.08 + strength * 0.12 + turbo * 0.05);
+      const dy = (seededNoise(col, row, 3.37) - 0.5) * cellH * (0.08 + strength * 0.12 + turbo * 0.05);
+      const angle = (seededNoise(col, row, 3.81) - 0.5) * (0.08 + strength * 0.16 + turbo * 0.06);
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(points[0][0], points[0][1]);
+      for (let i = 1; i < points.length; i += 1) ctx.lineTo(points[i][0], points[i][1]);
+      ctx.closePath();
+      ctx.clip();
+      ctx.translate(cx + dx, cy + dy);
+      ctx.rotate(angle);
+      ctx.drawImage(source, x, y, cell, cellH, -cell / 2, -cellH / 2, cell, cellH);
+      ctx.restore();
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(points[0][0], points[0][1]);
+      for (let i = 1; i < points.length; i += 1) ctx.lineTo(points[i][0], points[i][1]);
+      ctx.closePath();
+      ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.14 + strength * 0.14})`;
+      ctx.lineWidth = Math.max(0.7, cell * 0.016);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+}
+
+function applyPatchwork(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const step = Math.max(16, Math.round(52 - strength * 18 - turbo * 10));
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${Math.round(mix(246, soft.r, 0.06))}, ${Math.round(mix(240, soft.g, 0.06))}, ${Math.round(mix(232, soft.b, 0.06))})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let y = 0; y < canvas.height; y += step) {
+    for (let x = 0; x < canvas.width; x += step) {
+      const w = step * (0.88 + seededNoise(x, y, 0.71) * 0.42);
+      const h = step * (0.82 + seededNoise(x, y, 1.09) * 0.44);
+      const dx = x + (seededNoise(x, y, 1.63) - 0.5) * step * 0.14;
+      const dy = y + (seededNoise(x, y, 2.01) - 0.5) * step * 0.14;
+      const radius = Math.max(3, step * 0.08);
+      ctx.save();
+      buildRoundedRectPath(ctx, dx, dy, w, h, radius);
+      ctx.clip();
+      ctx.drawImage(source, x, y, w, h, dx, dy, w, h);
+      ctx.fillStyle = `rgba(${accent.r}, ${accent.g}, ${accent.b}, ${0.04 + strength * 0.06})`;
+      ctx.fillRect(dx, dy, w, h);
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.16 + strength * 0.12})`;
+      ctx.lineWidth = Math.max(0.8, step * 0.03);
+      ctx.setLineDash([Math.max(2, step * 0.08), Math.max(2, step * 0.06)]);
+      buildRoundedRectPath(ctx, dx, dy, w, h, radius);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+}
+
+function applyPunchCard(canvas, amount, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const sampleSource = createSampleSource(source, 220 + strength * 150 + turbo * 120);
+  const step = Math.max(14, Math.round(34 - strength * 10 - turbo * 8));
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${Math.round(mix(248, soft.r, 0.1))}, ${Math.round(mix(244, soft.g, 0.08))}, ${Math.round(mix(232, soft.b, 0.08))})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let y = step * 0.7; y < canvas.height; y += step) {
+    for (let x = step * 0.7; x < canvas.width; x += step) {
+      const idx = getSampleSourceIndex(sampleSource, x, y);
+      const gray = (sampleSource.data[idx] + sampleSource.data[idx + 1] + sampleSource.data[idx + 2]) / 3;
+      const darkness = 1 - gray / 255;
+      if (darkness < 0.14 && seededNoise(x, y, 0.91) < 0.9) continue;
+      const radius = Math.max(2, step * (0.14 + darkness * 0.22 + turbo * 0.04));
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x + 1.2, y + 1.2, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.12 + darkness * 0.14})`;
+      ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(source, 0, 0);
+      ctx.restore();
+    }
+  }
+}
+
+function applyPerforation(canvas, amount, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, 0, 0);
+  const bands = Math.max(2, Math.round(3 + strength * 3 + turbo * 3));
+  for (let band = 0; band < bands; band += 1) {
+    const horizontal = seededNoise(band, amount, 0.63) > 0.35;
+    if (horizontal) {
+      const y = canvas.height * (0.12 + (band / Math.max(1, bands - 1)) * 0.76);
+      const h = Math.max(12, canvas.height * (0.02 + strength * 0.015 + turbo * 0.01));
+      ctx.fillStyle = `rgba(${soft.r}, ${soft.g}, ${soft.b}, ${0.26 + strength * 0.12})`;
+      ctx.fillRect(0, y - h / 2, canvas.width, h);
+      const holeStep = Math.max(9, Math.round(18 - strength * 4 - turbo * 4));
+      for (let x = 0; x < canvas.width; x += holeStep) {
+        const r = Math.max(2, h * (0.18 + strength * 0.08));
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x + holeStep * 0.5, y, r, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(source, 0, 0);
+        ctx.restore();
+      }
+      ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.1 + strength * 0.08})`;
+      ctx.setLineDash([Math.max(2, h * 0.2), Math.max(2, h * 0.16)]);
+      ctx.lineWidth = Math.max(0.8, h * 0.06);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      const x = canvas.width * (0.12 + (band / Math.max(1, bands - 1)) * 0.76);
+      const w = Math.max(12, canvas.width * (0.02 + strength * 0.015 + turbo * 0.01));
+      ctx.fillStyle = `rgba(${soft.r}, ${soft.g}, ${soft.b}, ${0.24 + strength * 0.12})`;
+      ctx.fillRect(x - w / 2, 0, w, canvas.height);
+      const holeStep = Math.max(9, Math.round(18 - strength * 4 - turbo * 4));
+      for (let y = 0; y < canvas.height; y += holeStep) {
+        const r = Math.max(2, w * (0.18 + strength * 0.08));
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y + holeStep * 0.5, r, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(source, 0, 0);
+        ctx.restore();
+      }
+    }
+  }
+}
+
+function applyDieCut(canvas, amount, accent, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const sampleSource = createSampleSource(source, 220 + strength * 150 + turbo * 120);
+  const step = Math.max(28, Math.round(62 - strength * 18 - turbo * 12));
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${Math.round(mix(248, soft.r, 0.08))}, ${Math.round(mix(246, soft.g, 0.08))}, ${Math.round(mix(236, soft.b, 0.08))})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let y = step * 0.7; y < canvas.height; y += step) {
+    for (let x = step * 0.7; x < canvas.width; x += step) {
+      const idx = getSampleSourceIndex(sampleSource, x, y);
+      const gray = (sampleSource.data[idx] + sampleSource.data[idx + 1] + sampleSource.data[idx + 2]) / 3;
+      const darkness = 1 - gray / 255;
+      if (darkness < 0.2 && seededNoise(x, y, 0.93) < 0.8) continue;
+      const w = step * (0.6 + darkness * 0.34 + turbo * 0.04);
+      const h = step * (0.54 + darkness * 0.3 + turbo * 0.03);
+      const shape = Math.floor(seededNoise(x, y, 1.29) * 3);
+      ctx.save();
+      buildDieCutPath(ctx, x, y, w, h, shape);
+      ctx.clip();
+      ctx.drawImage(source, 0, 0);
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.14 + strength * 0.1})`;
+      ctx.lineWidth = Math.max(0.8, step * 0.03);
+      buildDieCutPath(ctx, x, y, w, h, shape);
+      ctx.stroke();
+      ctx.restore();
+      if (darkness > 0.44) {
+        ctx.fillStyle = `rgba(${accent.r}, ${accent.g}, ${accent.b}, ${0.04 + darkness * 0.06})`;
+        buildDieCutPath(ctx, x, y, w, h, shape);
+        ctx.fill();
+      }
+    }
+  }
+}
+
+function applyPaperCut(canvas, amount, soft, dark) {
+  const source = cloneCanvas(canvas);
+  const ctx = canvas.getContext("2d");
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const sampleSource = createSampleSource(source, 200 + strength * 140 + turbo * 120);
+  const step = Math.max(14, Math.round(30 - strength * 8 - turbo * 6));
+  const layers = [
+    { tint: { r: soft.r, g: soft.g, b: soft.b }, alpha: 1, threshold: 0.18, offset: 0 },
+    { tint: { r: Math.round(mix(soft.r, 255, 0.12)), g: Math.round(mix(soft.g, 255, 0.12)), b: Math.round(mix(soft.b, 255, 0.12)) }, alpha: 0.92, threshold: 0.34, offset: step * 0.12 },
+    { tint: { r: Math.round(mix(soft.r, dark.r, 0.08)), g: Math.round(mix(soft.g, dark.g, 0.08)), b: Math.round(mix(soft.b, dark.b, 0.08)) }, alpha: 0.88, threshold: 0.5, offset: step * 0.24 },
+  ];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = `rgb(${Math.round(mix(252, soft.r, 0.04))}, ${Math.round(mix(250, soft.g, 0.04))}, ${Math.round(mix(244, soft.b, 0.04))})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (const layer of layers) {
+    ctx.save();
+    ctx.fillStyle = `rgba(${layer.tint.r}, ${layer.tint.g}, ${layer.tint.b}, ${layer.alpha})`;
+    for (let y = 0; y < canvas.height; y += step) {
+      for (let x = 0; x < canvas.width; x += step) {
+        const idx = getSampleSourceIndex(sampleSource, x, y);
+        const gray = (sampleSource.data[idx] + sampleSource.data[idx + 1] + sampleSource.data[idx + 2]) / 3;
+        const darkness = 1 - gray / 255;
+        if (darkness < layer.threshold) continue;
+        const w = step * (1.18 + darkness * 0.42);
+        const h = step * (1.02 + darkness * 0.34);
+        buildRoundedRectPath(ctx, x + layer.offset, y + layer.offset, w, h, Math.max(3, step * 0.16));
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+  ctx.save();
+  ctx.globalAlpha = clamp(0.18 + strength * 0.12, 0.18, 0.34);
+  ctx.drawImage(source, 0, 0);
+  ctx.restore();
+}
+
+function applySwirlMorph(canvas, amount) {
+  const centers = [
+    { x: canvas.width * 0.3, y: canvas.height * 0.34, radius: Math.min(canvas.width, canvas.height) * (0.24 + amount * 0.06) },
+    { x: canvas.width * 0.72, y: canvas.height * 0.62, radius: Math.min(canvas.width, canvas.height) * (0.2 + amount * 0.08) },
+  ];
+  warpCanvas(canvas, (x, y) => {
+    let sx = x;
+    let sy = y;
+    for (const center of centers) {
+      const dx = sx - center.x;
+      const dy = sy - center.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > center.radius || dist < 0.001) continue;
+      const t = 1 - dist / center.radius;
+      const angle = t * t * (0.55 + amount * 0.9);
+      const cos = Math.cos(-angle);
+      const sin = Math.sin(-angle);
+      sx = center.x + dx * cos - dy * sin;
+      sy = center.y + dx * sin + dy * cos;
+    }
+    return [sx, sy];
+  });
+}
+
+function applyMeltMorph(canvas, amount, accent) {
+  const width = canvas.width;
+  const height = canvas.height;
+  warpCanvas(canvas, (x, y) => {
+    const progress = y / Math.max(1, height - 1);
+    const drift = Math.sin((x / width) * Math.PI * (3 + amount * 2.6) + progress * (4 + amount * 2.8)) * (6 + amount * 18);
+    const sag = progress * progress * (8 + amount * 26) * (0.35 + seededNoise(x * 0.02, y * 0.02, 0.77));
+    const pull = Math.max(0, progress - 0.24) * (8 + amount * 32);
+    return [x + drift * 0.25, y - sag - pull * 0.16];
+  });
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  ctx.fillStyle = `rgba(${accent.r}, ${accent.g}, ${accent.b}, ${0.03 + clamp(amount, 0, 1) * 0.05})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
+function applyRubberSheet(canvas, amount) {
+  const source = cloneCanvas(canvas);
+  const srcCtx = source.getContext("2d", { willReadFrequently: true });
+  const { data, width, height } = srcCtx.getImageData(0, 0, source.width, source.height);
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const sampleSource = createSampleSource(source, 120 + strength * 80 + turbo * 70);
+  const anchors = [];
+  const cols = 4;
+  const rows = 4;
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      const px = canvas.width * (0.14 + (col / Math.max(1, cols - 1)) * 0.72);
+      const py = canvas.height * (0.14 + (row / Math.max(1, rows - 1)) * 0.72);
+      const idx = getSampleSourceIndex(sampleSource, px, py);
+      const luma = (
+        sampleSource.data[idx]
+        + sampleSource.data[idx + 1]
+        + sampleSource.data[idx + 2]
+      ) / 3;
+      const darkness = 1 - luma / 255;
+      if (darkness < 0.22 && seededNoise(col, row, 0.71) < 0.55) continue;
+      anchors.push({
+        x: px + (seededNoise(col, row, 1.13) - 0.5) * canvas.width * 0.08,
+        y: py + (seededNoise(col, row, 1.47) - 0.5) * canvas.height * 0.08,
+        radius: Math.min(canvas.width, canvas.height) * (0.14 + darkness * 0.16 + strength * 0.06 + turbo * 0.03),
+        pull: (0.18 + darkness * 0.42 + strength * 0.28 + turbo * 0.12) * Math.min(canvas.width, canvas.height) * 0.055,
+        pinch: seededNoise(col, row, 2.03) > 0.42 ? 1 : -1,
+      });
+    }
+  }
+
+  if (anchors.length === 0) {
+    anchors.push({
+      x: canvas.width * 0.5,
+      y: canvas.height * 0.5,
+      radius: Math.min(canvas.width, canvas.height) * 0.24,
+      pull: Math.min(canvas.width, canvas.height) * 0.05 * (0.5 + strength),
+      pinch: 1,
+    });
+  }
+
+  warpCanvas(canvas, (x, y) => {
+    let sx = x;
+    let sy = y;
+
+    for (const anchor of anchors) {
+      const dx = sx - anchor.x;
+      const dy = sy - anchor.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+      if (dist > anchor.radius) continue;
+      const t = 1 - dist / anchor.radius;
+      const membrane = t * t * (1.22 - t * 0.35);
+      const bend = anchor.pull * membrane * anchor.pinch;
+      sx -= (dx / dist) * bend;
+      sy -= (dy / dist) * bend;
+      const tangent = membrane * (0.08 + strength * 0.1 + turbo * 0.04) * anchor.radius;
+      sx += (-dy / dist) * tangent * 0.16;
+      sy += (dx / dist) * tangent * 0.12;
+    }
+
+    const luma = sampleImageLuma(data, width, height, sx, sy);
+    const localDepth = (1 - luma / 255) * (0.8 + strength * 1.6 + turbo * 0.6);
+    const reboundX = Math.sin((y / height) * Math.PI * (2.4 + strength * 1.6) + x * 0.006) * localDepth * 1.8;
+    const reboundY = Math.cos((x / width) * Math.PI * (2 + strength * 1.4) + y * 0.007) * localDepth * 1.3;
+    return [sx + reboundX, sy + reboundY];
+  });
+
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  ctx.globalAlpha = clamp(0.03 + strength * 0.04, 0.03, 0.08);
+  ctx.strokeStyle = "rgba(255,255,255,0.75)";
+  ctx.lineWidth = Math.max(0.6, canvas.width * 0.0018);
+  const grid = Math.max(32, Math.round(56 - strength * 10 - turbo * 8));
+  for (let y = grid; y < canvas.height; y += grid) {
+    ctx.beginPath();
+    for (let x = 0; x <= canvas.width; x += 12) {
+      const yy = y + Math.sin(x * 0.014 + y * 0.008) * (1.2 + strength * 2.4);
+      if (x === 0) ctx.moveTo(x, yy);
+      else ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+  }
+  for (let x = grid; x < canvas.width; x += grid) {
+    ctx.beginPath();
+    for (let y = 0; y <= canvas.height; y += 12) {
+      const xx = x + Math.cos(y * 0.013 + x * 0.007) * (1.2 + strength * 2.1);
+      if (y === 0) ctx.moveTo(xx, y);
+      else ctx.lineTo(xx, y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function applyWavePull(canvas, amount, soft) {
+  const width = canvas.width;
+  const height = canvas.height;
+  warpCanvas(canvas, (x, y) => {
+    const waveX = Math.sin((y / height) * Math.PI * (3.2 + amount * 2.8) + x * 0.008) * (8 + amount * 22);
+    const waveY = Math.cos((x / width) * Math.PI * (2.8 + amount * 2.4) + y * 0.01) * (5 + amount * 16);
+    return [x + waveX, y + waveY];
+  });
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  ctx.strokeStyle = `rgba(${soft.r}, ${soft.g}, ${soft.b}, ${0.04 + clamp(amount, 0, 1) * 0.06})`;
+  ctx.lineWidth = Math.max(0.6, canvas.width * 0.002);
+  const lines = Math.max(4, Math.round(4 + clamp(amount, 0, 1) * 7));
+  for (let i = 0; i < lines; i += 1) {
+    const y = (canvas.height / (lines + 1)) * (i + 1);
+    ctx.beginPath();
+    for (let x = 0; x <= canvas.width; x += 12) {
+      const yy = y + Math.sin(x * 0.015 + i * 0.8 + amount * 2) * (2 + amount * 5);
+      if (x === 0) ctx.moveTo(x, yy);
+      else ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function warpCanvas(canvas, mapper) {
+  const source = cloneCanvas(canvas);
+  const srcCtx = source.getContext("2d", { willReadFrequently: true });
+  const dstCtx = canvas.getContext("2d");
+  const srcImage = srcCtx.getImageData(0, 0, source.width, source.height);
+  const src = srcImage.data;
+  const width = srcImage.width;
+  const height = srcImage.height;
+  const dest = dstCtx.createImageData(width, height);
+  const out = dest.data;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const [sx, sy] = mapper(x, y, width, height);
+      sampleImageDataBilinear(src, width, height, sx, sy, out, (y * width + x) * 4);
+    }
+  }
+  dstCtx.putImageData(dest, 0, 0);
+}
+
+function sampleImageDataBilinear(src, width, height, x, y, out, outIndex) {
+  const clampedX = clamp(x, 0, width - 1);
+  const clampedY = clamp(y, 0, height - 1);
+  const x0 = Math.floor(clampedX);
+  const y0 = Math.floor(clampedY);
+  const x1 = Math.min(width - 1, x0 + 1);
+  const y1 = Math.min(height - 1, y0 + 1);
+  const tx = clampedX - x0;
+  const ty = clampedY - y0;
+  const i00 = (y0 * width + x0) * 4;
+  const i10 = (y0 * width + x1) * 4;
+  const i01 = (y1 * width + x0) * 4;
+  const i11 = (y1 * width + x1) * 4;
+  for (let c = 0; c < 4; c += 1) {
+    const top = src[i00 + c] * (1 - tx) + src[i10 + c] * tx;
+    const bottom = src[i01 + c] * (1 - tx) + src[i11 + c] * tx;
+    out[outIndex + c] = top * (1 - ty) + bottom * ty;
+  }
+}
+
+function sampleImageLuma(src, width, height, x, y) {
+  const ix = clamp(Math.round(x), 0, width - 1);
+  const iy = clamp(Math.round(y), 0, height - 1);
+  const index = (iy * width + ix) * 4;
+  return 0.299 * src[index] + 0.587 * src[index + 1] + 0.114 * src[index + 2];
+}
+
+function buildRoundedRectPath(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function buildDieCutPath(ctx, cx, cy, width, height, shape) {
+  ctx.beginPath();
+  if (shape === 0) {
+    ctx.ellipse(cx, cy, width * 0.5, height * 0.5, 0, 0, Math.PI * 2);
+  } else if (shape === 1) {
+    const r = Math.min(width, height) * 0.48;
+    for (let i = 0; i < 6; i += 1) {
+      const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 6;
+      const x = cx + Math.cos(angle) * r;
+      const y = cy + Math.sin(angle) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  } else {
+    const notch = Math.min(width, height) * 0.18;
+    ctx.moveTo(cx - width * 0.5 + notch, cy - height * 0.5);
+    ctx.lineTo(cx + width * 0.5 - notch, cy - height * 0.5);
+    ctx.quadraticCurveTo(cx + width * 0.5, cy - height * 0.5, cx + width * 0.5, cy - height * 0.5 + notch);
+    ctx.lineTo(cx + width * 0.5, cy + height * 0.5 - notch);
+    ctx.quadraticCurveTo(cx + width * 0.5, cy + height * 0.5, cx + width * 0.5 - notch, cy + height * 0.5);
+    ctx.lineTo(cx - width * 0.5 + notch, cy + height * 0.5);
+    ctx.quadraticCurveTo(cx - width * 0.5, cy + height * 0.5, cx - width * 0.5, cy + height * 0.5 - notch);
+    ctx.lineTo(cx - width * 0.5, cy - height * 0.5 + notch);
+    ctx.quadraticCurveTo(cx - width * 0.5, cy - height * 0.5, cx - width * 0.5 + notch, cy - height * 0.5);
+    ctx.closePath();
+  }
 }
 
 function applyMinecraft(canvas, amount) {
@@ -6544,6 +7895,10 @@ function mergeProject(base, incoming) {
     materials: { ...base.materials, ...incoming?.materials },
     atmosphere: { ...base.atmosphere, ...incoming?.atmosphere },
     art: { ...base.art, ...incoming?.art },
+    wordArt: { ...base.wordArt, ...incoming?.wordArt },
+    fragment: { ...base.fragment, ...incoming?.fragment },
+    cut: { ...base.cut, ...incoming?.cut },
+    morph: { ...base.morph, ...incoming?.morph },
     artists: { ...base.artists, ...incoming?.artists },
     graphics: { ...base.graphics, ...incoming?.graphics },
     colors: { ...base.colors, ...incoming?.colors },
@@ -6643,15 +7998,8 @@ function t(key, params = {}) {
 }
 
 async function loadVersionInfo() {
-  try {
-    const response = await fetch("./version.json", { cache: "no-store" });
-    if (!response.ok) return;
-    const data = await response.json();
-    state.versionInfo = { ...DEFAULT_VERSION, ...data };
-    syncUiFromState();
-  } catch (error) {
-    console.error(error);
-  }
+  state.versionInfo = { ...CURRENT_VERSION_INFO };
+  syncUiFromState();
 }
 
 function checkForUpdates(showAlert = false) {
@@ -6659,13 +8007,9 @@ function checkForUpdates(showAlert = false) {
   state.updateInProgress = true;
   els.checkUpdateButton.disabled = true;
   setUpdateStatus(t("updateChecking"), true, false);
-  fetch("./version.json", { cache: "no-store" })
-    .then((response) => response.json())
-    .then(async (data) => {
-      const remote = { ...DEFAULT_VERSION, ...data };
-      if (String(remote.appVersion) !== String(state.versionInfo.appVersion) || String(remote.cacheVersion) !== String(state.versionInfo.cacheVersion)) {
-        state.versionInfo = remote;
-        syncUiFromState();
+  fetchVersionInfo()
+    .then(async (remote) => {
+      if (versionSignature(remote) !== versionSignature(CURRENT_VERSION_INFO)) {
         setUpdateStatus(t("updateAvailable", { version: remote.appVersion }), false, false);
         const shouldReload = await showConfirmDialog({
           title: t("updateConfirmTitle"),
@@ -6678,6 +8022,7 @@ function checkForUpdates(showAlert = false) {
           await performAppReload();
           return;
         }
+        setUpdateStatus(t("updateAvailable", { version: remote.appVersion }), false, true);
         return;
       }
       setUpdateStatus(t("updateCurrent"), false, false);
@@ -6712,21 +8057,70 @@ function setUpdateStatus(message, loading = false, showReload = false) {
   els.updateCheckStatus.textContent = message;
   els.updateCheckStatus.hidden = !message;
   els.updateCheckStatus.classList.toggle("loading", loading);
-  els.reloadAppButton.hidden = !showReload;
+  els.reloadAppButton.disabled = Boolean(loading || state.reloadInProgress);
+  els.reloadAppButton.classList.toggle("primary", Boolean(showReload));
+  els.reloadAppButton.classList.toggle("secondary", !showReload);
 }
 
 async function performAppReload() {
-  await navigator.serviceWorker?.getRegistration?.().then((registration) => registration?.update()).catch(() => {});
-  window.location.reload();
+  if (state.reloadInProgress) return;
+  state.reloadInProgress = true;
+  els.reloadAppButton.disabled = true;
+  setUpdateStatus(t("updateApplying"), false, true);
+  try {
+    const registration = await navigator.serviceWorker?.getRegistration?.();
+    await registration?.update?.().catch(() => {});
+    registration?.waiting?.postMessage?.({ type: "SKIP_WAITING" });
+  } catch (error) {
+    console.error(error);
+  }
+  window.setTimeout(() => {
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set("reload", String(Date.now()));
+    window.location.replace(nextUrl.toString());
+  }, 120);
 }
 
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set("reload", String(Date.now()));
+    window.location.replace(nextUrl.toString());
+  });
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js").catch((error) => {
       console.error(error);
     });
   });
+}
+
+async function fetchVersionInfo() {
+  const response = await fetch("./version.js", { cache: "no-cache" });
+  if (!response.ok) {
+    throw new Error("Version file unavailable");
+  }
+  const source = await response.text();
+  return normalizeVersionInfo({
+    appVersion: source.match(/appVersion:\s*"([^"]+)"/)?.[1] || "",
+    cacheVersion: source.match(/cacheVersion:\s*"([^"]+)"/)?.[1] || "",
+    label: source.match(/label:\s*"([^"]*)"/)?.[1] || "",
+  });
+}
+
+function normalizeVersionInfo(info = {}) {
+  return {
+    appVersion: String(info.appVersion || FALLBACK_VERSION_INFO.appVersion),
+    cacheVersion: String(info.cacheVersion || FALLBACK_VERSION_INFO.cacheVersion),
+    label: String(info.label || FALLBACK_VERSION_INFO.label || ""),
+  };
+}
+
+function versionSignature(info = {}) {
+  return `${String(info.appVersion || "")}::${String(info.cacheVersion || "")}::${String(info.label || "")}`;
 }
 
 function formatControlValue(control, value) {

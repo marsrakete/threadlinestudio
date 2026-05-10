@@ -1,15 +1,17 @@
+importScripts("./version.js");
+
 const CACHE_PREFIX = "threadline-studio-cache";
-const CACHE_VERSION = "v100";
+const CACHE_VERSION = globalThis.APP_VERSION_INFO?.cacheVersion || "v0";
 const CACHE_NAME = `${CACHE_PREFIX}-${CACHE_VERSION}`;
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./version.js",
   "./config/i18n.config.js",
   "./manifest.webmanifest",
   "./service-worker.js",
-  "./version.json",
   "./README.md",
   "./LICENSE",
   "./icon.svg",
@@ -37,10 +39,16 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
-  const isFreshAsset = url.pathname.endsWith("/version.json") || url.pathname.endsWith("/README.md");
+  const isFreshAsset = url.pathname.endsWith("/version.js") || url.pathname.endsWith("/README.md");
 
   if (isFreshAsset) {
     event.respondWith(
@@ -50,7 +58,10 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html")))
+        .catch(() => {
+          const fallback = url.pathname.endsWith("/version.js") ? "./version.js" : "./README.md";
+          return caches.match(event.request).then((cached) => cached || caches.match(fallback));
+        })
     );
     return;
   }

@@ -293,6 +293,54 @@
           <details class="panel collapsible" open>
             <summary class="panel-summary">
               <div class="panel-head">
+                <h2 data-i18n="wordArtTitle">Word-Art</h2>
+                <p data-i18n="wordArtIntro">Textbasierte Looks, bei denen Worte und Zeichen das Bild nachbauen oder konturieren.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="wordArtFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="fragmentTitle">Fragment</h2>
+                <p data-i18n="fragmentIntro">Bildteile werden zerlegt, verschoben, getauscht oder als Patchwork neu zusammengesetzt.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="fragmentFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="cutTitle">Cut</h2>
+                <p data-i18n="cutIntro">Lochen, stanzen, perforieren und ausschneiden mit bildbezogenen Masken und Kanten.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="cutFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="morphGroupTitle">Morph</h2>
+                <p data-i18n="morphGroupIntro">Bildbereiche werden gewellt, geschmolzen, verdreht oder wie Gummi lokal verzogen.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="morphFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
                 <h2 data-i18n="artistsTitle">Kuenstler</h2>
                 <p data-i18n="artistsIntro">Bildnahe Stilmodi nach einzelnen Kuenstlern, von geometrisch bis malerisch.</p>
               </div>
@@ -397,9 +445,9 @@
             <p id="versionText"></p>
             <div class="button-row">
               <button class="secondary" id="checkUpdateButton" type="button" data-i18n="checkUpdates">Auf Updates pruefen</button>
+              <button class="secondary" id="reloadAppButton" type="button" data-i18n="reloadApp">Neu laden</button>
             </div>
             <p id="updateCheckStatus" class="dialog-status" hidden></p>
-            <button class="primary" id="reloadAppButton" type="button" hidden data-i18n="reloadApp">Neu laden</button>
           </div>
 
           <div class="settings-group">
@@ -469,6 +517,7 @@
       </form>
     </dialog>
 
+    <script src="./version.js"></script>
     <script src="./config/i18n.config.js"></script>
     <script src="./app.js"></script>
   </body>

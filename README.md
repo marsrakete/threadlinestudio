@@ -125,7 +125,7 @@ Dann im Browser oeffnen:
 
 Es gibt zwei Ebenen:
 
-- `appVersion` in `version.json` fuer App-Updates und Cache-Wechsel
+- `appVersion` und `cacheVersion` in `version.js` fuer App-Updates und Cache-Wechsel
 - `revision` im Projekt fuer jeden Bearbeitungsschritt
 
 ## English
