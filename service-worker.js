@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "threadline-studio-cache";
-const CACHE_VERSION = "v59";
+const CACHE_VERSION = "v100";
 const CACHE_NAME = `${CACHE_PREFIX}-${CACHE_VERSION}`;
 const ASSETS = [
   "./",
@@ -15,7 +15,8 @@ const ASSETS = [
   "./icon.svg",
   "./icon-192.png",
   "./icon-512.png",
-  "./assets/kofi-button.svg"
+  "./assets/kofi-button.svg",
+  "./assets/threadline-studio-share-qr.svg"
 ];
 
 self.addEventListener("install", (event) => {

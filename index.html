@@ -10,10 +10,12 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Threadline Studio" />
+    <meta property="og:url" content="https://marsrakete.github.io/threadlinestudio/" />
     <meta
       property="og:description"
       content="Lade Bilder, kombiniere Effekte, speichere Projekte lokal und exportiere alles direkt im Browser."
     />
+    <link rel="canonical" href="https://marsrakete.github.io/threadlinestudio/" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="icon" href="./icon-192.png" sizes="192x192" type="image/png" />
@@ -99,6 +101,20 @@
             </div>
           </details>
 
+          <div class="filter-legend" aria-label="Filter-Legende">
+            <p class="filter-legend-title" data-i18n="filterLegendTitle">Filter-Markierung</p>
+            <div class="filter-legend-items">
+              <div class="filter-legend-item">
+                <span class="filter-legend-swatch filter-legend-swatch-strong" aria-hidden="true"></span>
+                <span data-i18n="filterLegendStrong">Stark</span>
+              </div>
+              <div class="filter-legend-item">
+                <span class="filter-legend-swatch filter-legend-swatch-very-strong" aria-hidden="true"></span>
+                <span data-i18n="filterLegendVeryStrong">Sehr stark</span>
+              </div>
+            </div>
+          </div>
+
           <details class="panel collapsible" open>
             <summary class="panel-summary">
               <div class="panel-head">
@@ -181,7 +197,7 @@
             <div class="focus-block">
               <div class="focus-block-head">
                 <h3 data-i18n="styleColorFocusTitle">Farbfokus</h3>
-                <p data-i18n="styleColorFocusIntro">Zwei Zielfarben koennen stehen bleiben, der Rest wird schwarzweiss.</p>
+                <p data-i18n="styleColorFocusIntro">Jede Zielfarbe hat ihre eigene Staerke und Toleranz. Alles andere wird schwarzweiss. Zuerst beide Zielfarben aussuchen, danach mit den Reglern arbeiten.</p>
               </div>
               <div class="field-grid compact-grid" id="colorFocusFields"></div>
               <div class="color-inline focus-color-inline">
@@ -274,6 +290,30 @@
             </div>
           </details>
 
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="artistsTitle">Kuenstler</h2>
+                <p data-i18n="artistsIntro">Bildnahe Stilmodi nach einzelnen Kuenstlern, von geometrisch bis malerisch.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="artistsFields"></div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="graphicsTitle">Fotografie &amp; Grafik</h2>
+                <p data-i18n="graphicsIntro">Grafische Druck-, Poster- und Fotolooks zwischen Moderne, Farbe und Reprostruktur.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="field-grid" id="graphicsFields"></div>
+            </div>
+          </details>
+
           <details class="panel collapsible export-panel" open>
             <summary class="panel-summary">
               <div class="panel-head">
@@ -363,12 +403,34 @@
           </div>
 
           <div class="settings-group">
-            <strong>Ko-Fi</strong>
+            <strong data-i18n="recommendTitle">Weiterempfehlen</strong>
+            <p data-i18n="recommendDescription">Teile den Link zu Threadline Studio direkt aus der App.</p>
+            <div class="button-row">
+              <button class="primary" id="shareAppButton" type="button" data-i18n="recommendButton">App teilen</button>
+            </div>
+            <p id="shareAppStatus" class="dialog-status" hidden></p>
+            <div class="share-card">
+              <img
+                id="shareAppQr"
+                class="share-qr-image"
+                src="./assets/threadline-studio-share-qr.svg"
+                alt="QR-Code zu Threadline Studio"
+              />
+              <div class="share-card-copy">
+                <p class="dialog-status" data-i18n="recommendScanHint">Oder mit dem Smartphone scannen:</p>
+                <code id="shareAppUrl" class="share-url">https://marsrakete.github.io/threadlinestudio/</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <strong data-i18n="supportTitle">Support</strong>
+            <p class="dialog-status" data-i18n="supportIntro">Wenn dir die App hilft, kannst du das Projekt auf Ko-Fi unterstuetzen.</p>
             <a
               class="kofi-link settings-kofi-link"
-              href="https://ko-fi.com/"
+              href="https://ko-fi.com/U7U01OC260"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               aria-label="Ko-Fi"
             >
               <img src="./assets/kofi-button.svg" alt="Ko-Fi" />
