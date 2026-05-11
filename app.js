@@ -8,9 +8,9 @@ const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.10",
-  cacheVersion: "v111",
-  label: "Gummituch naeher an Membranlook gebracht",
+  appVersion: "0.2.16",
+  cacheVersion: "v117",
+  label: "Speicherfreigabe und Reload-Cache fuer PWA gehaertet",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
 const CURRENT_VERSION_INFO = DEFAULT_VERSION;
@@ -224,6 +224,10 @@ const CONTROL_GROUPS = {
     { key: "meltMorph", min: 0, max: 1000, step: 1, value: 0, label: "Schmelzen", i18nKey: "morphMelt" },
     { key: "rubberSheet", min: 0, max: 1000, step: 1, value: 0, label: "Gummituch", i18nKey: "morphRubberSheet" },
     { key: "wavePull", min: 0, max: 1000, step: 1, value: 0, label: "Wellenzug", i18nKey: "morphWavePull" },
+    { key: "pinchMorph", min: 0, max: 1000, step: 1, value: 0, label: "Sog", i18nKey: "morphPinch" },
+    { key: "bulgeMorph", min: 0, max: 1000, step: 1, value: 0, label: "Blase", i18nKey: "morphBulge" },
+    { key: "creasePull", min: 0, max: 1000, step: 1, value: 0, label: "Faltenzug", i18nKey: "morphCreasePull" },
+    { key: "crumpleMorph", min: 0, max: 1000, step: 1, value: 0, label: "Knautschen", i18nKey: "morphCrumple" },
   ],
 };
 
@@ -663,10 +667,12 @@ function bindEvents() {
 
   window.addEventListener("pagehide", () => {
     flushLocalStateSave(true);
+    releaseRenderBuffers();
   });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
       flushLocalStateSave(true);
+      releaseRenderBuffers();
     }
   });
 
@@ -752,6 +758,8 @@ function bindCanvasGestures() {
 }
 
 async function loadImageFile(file) {
+  releaseSourceImage();
+  releaseRenderBuffers();
   const dataUrl = await readFileAsDataUrl(file);
   state.project.source = {
     dataUrl,
@@ -765,11 +773,13 @@ async function loadImageFile(file) {
 
 async function restoreSourceImage() {
   if (!state.project.source.dataUrl) {
-    state.sourceImage = null;
+    releaseSourceImage();
+    releaseRenderBuffers();
     syncUiFromState();
     render();
     return;
   }
+  releaseSourceImage();
   const image = await loadImage(state.project.source.dataUrl);
   state.sourceImage = image;
   syncUiFromState();
@@ -897,6 +907,30 @@ function getReusableCanvas(stateKey, width, height) {
   if (canvas.width !== width) canvas.width = width;
   if (canvas.height !== height) canvas.height = height;
   return canvas;
+}
+
+function releaseCanvas(canvas) {
+  if (!canvas) return;
+  canvas.width = 0;
+  canvas.height = 0;
+}
+
+function releaseRenderBuffers() {
+  releaseCanvas(state.previewWorkingCanvas);
+  state.previewWorkingCanvas = null;
+  for (const canvas of state.scratchCanvases) {
+    releaseCanvas(canvas);
+  }
+  state.scratchCanvases.length = 0;
+  state.scratchCanvasIndex = 0;
+}
+
+function releaseSourceImage() {
+  if (!state.sourceImage) return;
+  try {
+    state.sourceImage.src = "";
+  } catch {}
+  state.sourceImage = null;
 }
 
 function resetScratchCanvases() {
@@ -2160,6 +2194,10 @@ function applyMorphEffects(canvas, morph, colors) {
   if (morph.meltMorph > 0) applyMeltMorph(canvas, curveThousand(morph.meltMorph / 100, 1.06, 3.05), accent);
   if (morph.rubberSheet > 0) applyRubberSheet(canvas, curveThousand(morph.rubberSheet / 100, 1.08, 2.8));
   if (morph.wavePull > 0) applyWavePull(canvas, curveThousand(morph.wavePull / 100, 1.06, 2.95), soft);
+  if (morph.pinchMorph > 0) applyPinchMorph(canvas, curveThousand(morph.pinchMorph / 100, 1.06, 2.9));
+  if (morph.bulgeMorph > 0) applyBulgeMorph(canvas, curveThousand(morph.bulgeMorph / 100, 1.06, 2.9));
+  if (morph.creasePull > 0) applyCreasePull(canvas, curveThousand(morph.creasePull / 100, 1.08, 2.85), soft);
+  if (morph.crumpleMorph > 0) applyCrumpleMorph(canvas, curveThousand(morph.crumpleMorph / 100, 1.08, 2.95), soft);
 }
 
 function applyArtistEffects(canvas, artists, colors) {
@@ -4141,6 +4179,174 @@ function applyWavePull(canvas, amount, soft) {
   ctx.restore();
 }
 
+function applyPinchMorph(canvas, amount) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const centerX = width * 0.5;
+  const centerY = height * 0.5;
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const phaseOne = Math.min(1, amount * 1.4);
+  const phaseTwo = Math.min(1, Math.max(0, amount - 0.28) * 1.25);
+  const phaseThree = Math.min(1, Math.max(0, amount - 0.62) * 1.6);
+  const radius = Math.min(width, height) * (0.28 + strength * 0.1 + turbo * 0.08 + phaseThree * 0.04);
+  warpCanvas(canvas, (x, y) => {
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+    if (dist > radius) return [x, y];
+    const t = 1 - dist / radius;
+    const pull = t * t * (12 + phaseOne * 18 + phaseTwo * 22 + phaseThree * 34 + turbo * 28);
+    const spiral = t * (phaseTwo * 2.2 + phaseThree * 4.6 + turbo * 3.2);
+    return [
+      x + (dx / dist) * pull - (dy / dist) * spiral,
+      y + (dy / dist) * pull + (dx / dist) * spiral,
+    ];
+  });
+}
+
+function applyBulgeMorph(canvas, amount) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const centerX = width * 0.5;
+  const centerY = height * 0.5;
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const phaseOne = Math.min(1, amount * 1.35);
+  const phaseTwo = Math.min(1, Math.max(0, amount - 0.25) * 1.35);
+  const phaseThree = Math.min(1, Math.max(0, amount - 0.58) * 1.75);
+  const radius = Math.min(width, height) * (0.3 + strength * 0.12 + turbo * 0.08 + phaseThree * 0.05);
+  warpCanvas(canvas, (x, y) => {
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+    if (dist > radius) return [x, y];
+    const t = 1 - dist / radius;
+    const push = t * (0.9 + t * 1.15) * (10 + phaseOne * 18 + phaseTwo * 24 + phaseThree * 30 + turbo * 26);
+    const lens = t * t * (phaseTwo * 2 + phaseThree * 4.2 + turbo * 3);
+    return [
+      x - (dx / dist) * push + (dy / dist) * lens,
+      y - (dy / dist) * push - (dx / dist) * lens,
+    ];
+  });
+}
+
+function applyCreasePull(canvas, amount, soft) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const phaseTwo = Math.min(1, Math.max(0, amount - 0.24) * 1.45);
+  const phaseThree = Math.min(1, Math.max(0, amount - 0.58) * 1.8);
+  const lines = [];
+  const count = Math.max(3, Math.round(3 + strength * 4 + phaseTwo * 3 + turbo * 3));
+  for (let i = 0; i < count; i += 1) {
+    const vertical = seededNoise(i, amount, 0.71) > 0.45;
+    lines.push({
+      vertical,
+      pos: vertical ? width * (0.12 + seededNoise(i, amount, 1.13) * 0.76) : height * (0.12 + seededNoise(i, amount, 1.47) * 0.76),
+      tilt: (seededNoise(i, amount, 1.91) - 0.5) * (0.28 + phaseTwo * 0.18 + turbo * 0.1),
+      radius: (vertical ? width : height) * (0.05 + strength * 0.045 + phaseTwo * 0.03 + turbo * 0.03),
+      pull: 5 + strength * 12 + phaseTwo * 18 + phaseThree * 22 + turbo * 20,
+    });
+  }
+  warpCanvas(canvas, (x, y) => {
+    let sx = x;
+    let sy = y;
+    for (const line of lines) {
+      const base = line.vertical ? x - (line.pos + (y - height * 0.5) * line.tilt) : y - (line.pos + (x - width * 0.5) * line.tilt);
+      const absBase = Math.abs(base);
+      if (absBase > line.radius) continue;
+      const t = 1 - absBase / line.radius;
+      const fold = t * t * line.pull;
+      const cross = t * (phaseTwo * 1.4 + phaseThree * 3.1 + turbo * 2.4);
+      if (line.vertical) {
+        sx += Math.sign(base || 1) * fold;
+        sy += Math.sin((y / height) * Math.PI * (2 + phaseThree)) * cross;
+      } else {
+        sy += Math.sign(base || 1) * fold;
+        sx += Math.sin((x / width) * Math.PI * (2 + phaseThree)) * cross;
+      }
+    }
+    return [sx, sy];
+  });
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  for (const line of lines) {
+    ctx.strokeStyle = `rgba(255,255,255,${0.04 + strength * 0.04})`;
+    ctx.lineWidth = Math.max(0.6, (line.vertical ? width : height) * 0.002);
+    ctx.beginPath();
+    if (line.vertical) {
+      ctx.moveTo(line.pos - 1, 0);
+      ctx.lineTo(line.pos + height * line.tilt - 1, height);
+      ctx.stroke();
+      ctx.strokeStyle = `rgba(${soft.r}, ${soft.g}, ${soft.b}, ${0.03 + strength * 0.05})`;
+      ctx.beginPath();
+      ctx.moveTo(line.pos + 1, 0);
+      ctx.lineTo(line.pos + height * line.tilt + 1, height);
+      ctx.stroke();
+    } else {
+      ctx.moveTo(0, line.pos - 1);
+      ctx.lineTo(width, line.pos + width * line.tilt - 1);
+      ctx.stroke();
+      ctx.strokeStyle = `rgba(${soft.r}, ${soft.g}, ${soft.b}, ${0.03 + strength * 0.05})`;
+      ctx.beginPath();
+      ctx.moveTo(0, line.pos + 1);
+      ctx.lineTo(width, line.pos + width * line.tilt + 1);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function applyCrumpleMorph(canvas, amount, soft) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const strength = clamp(amount, 0, 1);
+  const turbo = Math.max(0, amount - 1);
+  const phaseTwo = Math.min(1, Math.max(0, amount - 0.2) * 1.5);
+  const phaseThree = Math.min(1, Math.max(0, amount - 0.55) * 1.9);
+  const nodes = [];
+  const count = Math.max(6, Math.round(6 + strength * 6 + phaseTwo * 5 + turbo * 5));
+  for (let i = 0; i < count; i += 1) {
+    nodes.push({
+      x: width * (0.08 + seededNoise(i, amount, 0.63) * 0.84),
+      y: height * (0.08 + seededNoise(i, amount, 1.11) * 0.84),
+      radius: Math.min(width, height) * (0.07 + seededNoise(i, amount, 1.57) * 0.08 + strength * 0.035 + phaseThree * 0.02),
+      force: (seededNoise(i, amount, 2.03) - 0.5) * (14 + strength * 14 + phaseTwo * 16 + phaseThree * 22 + turbo * 18),
+    });
+  }
+  warpCanvas(canvas, (x, y) => {
+    let sx = x;
+    let sy = y;
+    for (const node of nodes) {
+      const dx = sx - node.x;
+      const dy = sy - node.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+      if (dist > node.radius) continue;
+      const t = 1 - dist / node.radius;
+      const bend = t * t * node.force;
+      sx -= (dx / dist) * bend * 0.45;
+      sy -= (dy / dist) * bend * 0.45;
+      sx += (-dy / dist) * bend * (0.08 + phaseTwo * 0.05);
+      sy += (dx / dist) * bend * (0.08 + phaseTwo * 0.05);
+    }
+    const ripple = Math.sin((x + y) * 0.022 + amount * 1.8) * (1 + strength * 3.2 + phaseThree * 2.2 + turbo * 1.6);
+    return [sx + ripple * (0.28 + phaseThree * 0.14), sy - ripple * (0.24 + phaseThree * 0.12)];
+  });
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  ctx.strokeStyle = `rgba(${soft.r}, ${soft.g}, ${soft.b}, ${0.03 + strength * 0.05})`;
+  ctx.lineWidth = Math.max(0.5, width * 0.0016);
+  for (const node of nodes) {
+    ctx.beginPath();
+    ctx.moveTo(node.x - node.radius * 0.4, node.y - node.radius * 0.4);
+    ctx.lineTo(node.x + node.radius * 0.4, node.y + node.radius * 0.4);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function warpCanvas(canvas, mapper) {
   const source = cloneCanvas(canvas);
   const srcCtx = source.getContext("2d", { willReadFrequently: true });
@@ -5742,12 +5948,11 @@ function applyMonet(canvas, amount, soft) {
 function applyPicasso(canvas, amount, accent, soft, dark) {
   const ctx = canvas.getContext("2d");
   const source = cloneCanvas(canvas);
-  const sourceCtx = source.getContext("2d", { willReadFrequently: true });
-  const sample = sourceCtx.getImageData(0, 0, canvas.width, canvas.height).data;
   const strength = clamp(amount, 0, 1);
   const turbo = Math.max(0, amount - 1);
-  const cols = Math.max(4, Math.round(7 + strength * 4 - turbo * 2));
-  const rows = Math.max(4, Math.round(7 + strength * 4 - turbo * 2));
+  const sampleSource = createSampleSource(source, 320 + strength * 160 + turbo * 120);
+  const cols = Math.max(3, Math.round(5 + strength * 3 - turbo * 1.2));
+  const rows = Math.max(3, Math.round(5 + strength * 3 - turbo * 1.2));
   const cellW = canvas.width / cols;
   const cellH = canvas.height / rows;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -5757,47 +5962,90 @@ function applyPicasso(canvas, amount, accent, soft, dark) {
   ctx.globalAlpha = clamp(0.12 + strength * 0.08 - turbo * 0.02, 0.06, 0.2);
   ctx.drawImage(source, 0, 0);
   ctx.restore();
+  const points = [];
+  for (let row = 0; row <= rows; row += 1) {
+    points[row] = [];
+    for (let col = 0; col <= cols; col += 1) {
+      const edgeX = col === 0 || col === cols;
+      const edgeY = row === 0 || row === rows;
+      const jitterX = edgeX ? 0 : (seededNoise(col, row, 1.1) - 0.5) * cellW * (0.9 + strength * 0.7 + turbo * 0.24);
+      const jitterY = edgeY ? 0 : (seededNoise(col, row, 2.3) - 0.5) * cellH * (0.9 + strength * 0.7 + turbo * 0.24);
+      points[row][col] = {
+        x: clamp(col * cellW + jitterX, 0, canvas.width),
+        y: clamp(row * cellH + jitterY, 0, canvas.height),
+      };
+    }
+  }
+
+  const drawFacet = (vertices, row, col, variant = 0) => {
+    let cx = 0;
+    let cy = 0;
+    for (const point of vertices) {
+      cx += point.x;
+      cy += point.y;
+    }
+    cx /= vertices.length;
+    cy /= vertices.length;
+    const r = getSampleSourceChannel(sampleSource, cx, cy, 0);
+    const g = getSampleSourceChannel(sampleSource, cx, cy, 1);
+    const b = getSampleSourceChannel(sampleSource, cx, cy, 2);
+    const warmTarget =
+      seededNoise(col + variant * 0.4, row + variant * 0.3, 2.8) > 0.52
+        ? { r: accent.r, g: soft.g, b: soft.b }
+        : seededNoise(col + variant * 0.2, row + variant * 0.3, 5.6) > 0.56
+          ? { r: 224, g: 204, b: 168 }
+          : { r: 186, g: 164, b: 138 };
+    const blend = clamp(0.26 + strength * 0.18 + turbo * 0.08 + variant * 0.03, 0, 0.9);
+    ctx.fillStyle = `rgba(${Math.round(mix(r, warmTarget.r, blend))}, ${Math.round(mix(g, warmTarget.g, blend))}, ${Math.round(mix(b, warmTarget.b, blend))}, ${0.3 + strength * 0.16 + turbo * 0.05})`;
+    ctx.beginPath();
+    ctx.moveTo(vertices[0].x, vertices[0].y);
+    for (let i = 1; i < vertices.length; i += 1) ctx.lineTo(vertices[i].x, vertices[i].y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.12 + strength * 0.08 + turbo * 0.04})`;
+    ctx.lineWidth = Math.max(0.75, Math.min(cellW, cellH) * (0.026 + turbo * 0.01));
+    ctx.stroke();
+  };
+
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
-      const x = col * cellW;
-      const y = row * cellH;
-      const sx = clamp(Math.round(x + cellW * 0.5), 0, canvas.width - 1);
-      const sy = clamp(Math.round(y + cellH * 0.5), 0, canvas.height - 1);
-      const index = (sy * canvas.width + sx) * 4;
-      const r = sample[index];
-      const g = sample[index + 1];
-      const b = sample[index + 2];
-      const target = seededNoise(col, row, 2.8) > 0.6 ? { r: accent.r, g: soft.g, b: soft.b } : { r: 224, g: 204, b: 168 };
-      ctx.save();
-      ctx.translate(x + cellW / 2, y + cellH / 2);
-      const rotation = (seededNoise(col, row, 4.1) - 0.5) * (0.4 + strength * 0.28 + turbo * 0.12);
-      ctx.rotate(rotation);
-      const blend = clamp(0.34 + strength * 0.2 + turbo * 0.06, 0, 0.86);
-      ctx.fillStyle = `rgba(${Math.round(mix(r, target.r, blend))}, ${Math.round(mix(g, target.g, blend))}, ${Math.round(mix(b, target.b, blend))}, ${0.34 + strength * 0.16 + turbo * 0.04})`;
-      ctx.beginPath();
-      ctx.moveTo(-cellW * (0.46 + turbo * 0.03), -cellH * 0.18);
-      ctx.lineTo(cellW * 0.14, -cellH * (0.46 + turbo * 0.05));
-      ctx.lineTo(cellW * (0.44 + turbo * 0.02), cellH * 0.08);
-      ctx.lineTo(-cellW * 0.12, cellH * (0.4 + turbo * 0.04));
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.1 + strength * 0.08 + turbo * 0.04})`;
-      ctx.lineWidth = Math.max(0.8, Math.min(cellW, cellH) * (0.03 + turbo * 0.008));
-      ctx.stroke();
-      if (turbo > 0.08) {
-        const facets = 1 + Math.min(4, Math.floor(turbo * 2.8));
-        for (let i = 0; i < facets; i += 1) {
+      const p00 = points[row][col];
+      const p10 = points[row][col + 1];
+      const p01 = points[row + 1][col];
+      const p11 = points[row + 1][col + 1];
+      const mx = (p00.x + p10.x + p01.x + p11.x) * 0.25 + (seededNoise(col, row, 7.7) - 0.5) * cellW * 0.16;
+      const my = (p00.y + p10.y + p01.y + p11.y) * 0.25 + (seededNoise(col, row, 8.8) - 0.5) * cellH * 0.16;
+      const mid = { x: mx, y: my };
+      const mode = seededNoise(col, row, 4.1);
+      if (mode > 0.66) {
+        drawFacet([p00, p10, mid], row, col, 0);
+        drawFacet([p00, mid, p01], row, col, 1);
+        drawFacet([p10, p11, mid], row, col, 2);
+        drawFacet([p01, mid, p11], row, col, 3);
+      } else if (mode > 0.33) {
+        drawFacet([p00, p10, p11, mid], row, col, 0);
+        drawFacet([p00, mid, p01], row, col, 1);
+      } else {
+        drawFacet([p00, p10, mid], row, col, 0);
+        drawFacet([p00, mid, p01, p11], row, col, 1);
+      }
+
+      if (strength > 0.22) {
+        const innerLines = 1 + Math.min(5, Math.floor(strength * 3 + turbo * 2.5));
+        ctx.strokeStyle = `rgba(${dark.r}, ${dark.g}, ${dark.b}, ${0.08 + strength * 0.07 + turbo * 0.04})`;
+        ctx.lineWidth = Math.max(0.45, Math.min(cellW, cellH) * (0.01 + turbo * 0.004));
+        for (let i = 0; i < innerLines; i += 1) {
+          const t = (i + 1) / (innerLines + 1);
+          const ax = mix(p00.x, p11.x, t) + (seededNoise(col + i, row, 11.1) - 0.5) * cellW * 0.14;
+          const ay = mix(p00.y, p11.y, t) + (seededNoise(col, row + i, 12.2) - 0.5) * cellH * 0.14;
+          const bx = mix(p10.x, p01.x, t) + (seededNoise(col + i, row, 13.3) - 0.5) * cellW * 0.14;
+          const by = mix(p10.y, p01.y, t) + (seededNoise(col, row + i, 14.4) - 0.5) * cellH * 0.14;
           ctx.beginPath();
-          const ax = -cellW * (0.36 + seededNoise(col, row + i, 6.2) * 0.5);
-          const ay = -cellH * (0.32 + seededNoise(col + i, row, 7.3) * 0.46);
-          const bx = cellW * (0.14 + seededNoise(col, row + i, 8.4) * 0.36);
-          const by = cellH * (-0.18 + seededNoise(col + i, row, 9.1) * 0.62);
           ctx.moveTo(ax, ay);
           ctx.lineTo(bx, by);
           ctx.stroke();
         }
       }
-      ctx.restore();
     }
   }
 }
@@ -7729,7 +7977,8 @@ function importBackup(text) {
 
 function clearProject() {
   state.project = createDefaultProject();
-  state.sourceImage = null;
+  releaseSourceImage();
+  releaseRenderBuffers();
   markProjectSourceDirty();
   syncUiFromState();
   saveLocalState(true);
@@ -8067,6 +8316,8 @@ async function performAppReload() {
   state.reloadInProgress = true;
   els.reloadAppButton.disabled = true;
   setUpdateStatus(t("updateApplying"), false, true);
+  flushLocalStateSave(true);
+  releaseRenderBuffers();
   try {
     const registration = await navigator.serviceWorker?.getRegistration?.();
     await registration?.update?.().catch(() => {});
@@ -8244,6 +8495,13 @@ function rgbToHsl(r, g, b) {
     h *= 60;
   }
   return [h, s, l];
+}
+
+function getRgbSaturation(r, g, b) {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  if (max <= 0) return 0;
+  return (max - min) / max;
 }
 
 function hslToRgb(h, s, l) {

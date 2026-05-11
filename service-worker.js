@@ -48,6 +48,7 @@ self.addEventListener("message", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
+  const isReloadRequest = url.searchParams.has("reload");
   const isFreshAsset = url.pathname.endsWith("/version.js") || url.pathname.endsWith("/README.md");
 
   if (isFreshAsset) {
@@ -62,6 +63,13 @@ self.addEventListener("fetch", (event) => {
           const fallback = url.pathname.endsWith("/version.js") ? "./version.js" : "./README.md";
           return caches.match(event.request).then((cached) => cached || caches.match(fallback));
         })
+    );
+    return;
+  }
+
+  if (isReloadRequest) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" }).catch(() => caches.match("./index.html"))
     );
     return;
   }
