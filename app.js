@@ -8,8 +8,8 @@ const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.16",
-  cacheVersion: "v117",
+  appVersion: "0.2.17",
+  cacheVersion: "v118",
   label: "Speicherfreigabe und Reload-Cache fuer PWA gehaertet",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));

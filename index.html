@@ -83,13 +83,11 @@
         </div>
 
         <aside class="side-panels">
-          <details class="panel collapsible project-panel mobile-project-panel" open>
-            <summary class="panel-summary">
-              <div class="panel-head">
-                <h2 data-i18n="projectTitle">Projekt</h2>
-                <p data-i18n="projectIntro">Bild laden, Projekt sichern, laden oder den Stand zuruecksetzen.</p>
-              </div>
-            </summary>
+          <section class="panel project-panel mobile-project-panel" aria-label="Projekt">
+            <div class="panel-head">
+              <h2 data-i18n="projectTitle">Projekt</h2>
+              <p data-i18n="projectIntro">Bild laden, Projekt sichern, laden oder den Stand zuruecksetzen.</p>
+            </div>
             <div class="panel-body">
               <div class="button-row project-actions">
                 <label class="secondary faux-button" for="imageInput" data-i18n="loadImage">Bild laden</label>
@@ -99,7 +97,7 @@
               </div>
               <input id="backupInput" type="file" accept="application/json,.json" hidden />
             </div>
-          </details>
+          </section>
 
           <div class="filter-legend" aria-label="Filter-Legende">
             <p class="filter-legend-title" data-i18n="filterLegendTitle">Filter-Markierung</p>

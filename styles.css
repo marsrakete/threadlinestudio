@@ -480,6 +480,15 @@ input[type="color"] { inline-size: 100%; block-size: 44px; border: 0; border-rad
   text-align: center;
 }
 
+.mobile-project-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.mobile-project-panel .panel-body {
+  padding: 0;
+}
+
 .settings-kofi-link {
   display: inline-flex;
   width: fit-content;
