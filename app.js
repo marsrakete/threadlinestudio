@@ -8,9 +8,9 @@ const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.19",
-  cacheVersion: "v120",
-  label: "Pride-Streifen und Schnurrbartposition",
+  appVersion: "0.2.20",
+  cacheVersion: "v121",
+  label: "Open-Graph-Bild aus SVG",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
 const CURRENT_VERSION_INFO = DEFAULT_VERSION;
@@ -19,15 +19,15 @@ const CONTROL_GROUPS = {
   corrections: [
     { key: "brightness", min: -100, max: 100, step: 1, value: 0, label: "Helligkeit" },
     { key: "contrast", min: -100, max: 100, step: 1, value: 0, label: "Kontrast" },
-    { key: "saturation", min: -100, max: 100, step: 1, value: 0, label: "Saettigung" },
-    { key: "blur", min: 0, max: 18, step: 0.2, value: 0, label: "Unschaerfe" },
-    { key: "sharpen", min: 0, max: 4, step: 0.1, value: 0, label: "Schaerfen" },
+    { key: "saturation", min: -100, max: 100, step: 1, value: 0, label: "Sättigung" },
+    { key: "blur", min: 0, max: 18, step: 0.2, value: 0, label: "Unschärfe" },
+    { key: "sharpen", min: 0, max: 4, step: 0.1, value: 0, label: "Schärfen" },
     { key: "focusCenter", min: 0, max: 100, step: 1, value: 0, label: "Fokus Mitte", i18nKey: "correctionFocusCenter" },
     { key: "backgroundBlur", min: 0, max: 32, step: 1, value: 0, label: "Hintergrund weich", i18nKey: "correctionBackgroundBlur" },
   ],
   styles: [
     { key: "grayscale", min: 0, max: 100, step: 1, value: 0, label: "Graustufen" },
-    { key: "blackwhite", min: 0, max: 255, step: 1, value: 0, label: "Schwarzweiss" },
+    { key: "blackwhite", min: 0, max: 255, step: 1, value: 0, label: "Schwarzweiß" },
     { key: "sepia", min: 0, max: 100, step: 1, value: 0, label: "Sepia" },
     { key: "duotone", min: 0, max: 100, step: 1, value: 0, label: "Duotone" },
     { key: "hueShift", min: -180, max: 180, step: 1, value: 0, label: "Farbton", i18nKey: "styleHueShift" },
@@ -38,16 +38,16 @@ const CONTROL_GROUPS = {
     { key: "colorSwap", min: 0, max: 100, step: 1, value: 0, label: "Farben tauschen", i18nKey: "styleColorSwap" },
     { key: "warmCool", min: -100, max: 100, step: 1, value: 0, label: "Warm/Kalt", i18nKey: "styleWarmCool" },
     { key: "splitTone", min: 0, max: 100, step: 1, value: 0, label: "Split Tone", i18nKey: "styleSplitTone" },
-    { key: "saturationMask", min: 0, max: 100, step: 1, value: 0, label: "Saettigungsmaske", i18nKey: "styleSaturationMask" },
+    { key: "saturationMask", min: 0, max: 100, step: 1, value: 0, label: "Sättigungsmaske", i18nKey: "styleSaturationMask" },
     { key: "gradientMap", min: 0, max: 100, step: 1, value: 0, label: "Gradient Map", i18nKey: "styleGradientMap" },
     { key: "falseColor", min: 0, max: 100, step: 1, value: 0, label: "False Color", i18nKey: "styleFalseColor" },
     { key: "crossProcess", min: 0, max: 100, step: 1, value: 0, label: "Cross Process", i18nKey: "styleCrossProcess" },
     { key: "heatmap", min: 0, max: 100, step: 1, value: 0, label: "Heatmap", i18nKey: "styleHeatmap" },
-    { key: "posterBlocks", min: 0, max: 100, step: 1, value: 0, label: "Poster-Farbflaechen", i18nKey: "stylePosterBlocks" },
+    { key: "posterBlocks", min: 0, max: 100, step: 1, value: 0, label: "Poster-Farbflächen", i18nKey: "stylePosterBlocks" },
     { key: "colorSeparation", min: 0, max: 100, step: 1, value: 0, label: "Farbtrennung", i18nKey: "styleColorSeparation" },
     { key: "luminanceColor", min: -100, max: 100, step: 1, value: 0, label: "Luminanz-Farbe", i18nKey: "styleLuminanceColor" },
     { key: "vintage", min: 0, max: 100, step: 1, value: 0, label: "Vintage" },
-    { key: "oilPaint", min: 0, max: 100, step: 1, value: 0, label: "Oelfarbe" },
+    { key: "oilPaint", min: 0, max: 100, step: 1, value: 0, label: "Ölfarbe" },
     { key: "popArt", min: 0, max: 100, step: 1, value: 0, label: "Pop Art" },
     { key: "posterize", min: 0, max: 12, step: 1, value: 0, label: "Posterize" },
     { key: "halftone", min: 0, max: 18, step: 1, value: 0, label: "Halftone" },
@@ -128,7 +128,7 @@ const CONTROL_GROUPS = {
     { key: "crtDrift", min: 0, max: 1000, step: 1, value: 0, label: "CRT Drift" },
     { key: "jpegArtifacts", min: 0, max: 1000, step: 1, value: 0, label: "JPEG Artefakte" },
     { key: "printMisregister", min: 0, max: 1000, step: 1, value: 0, label: "Druckversatz" },
-    { key: "overexposure", min: 0, max: 1000, step: 1, value: 0, label: "Ueberbelichtung" },
+    { key: "overexposure", min: 0, max: 1000, step: 1, value: 0, label: "Überbelichtung" },
     { key: "lightLeak", min: 0, max: 1000, step: 1, value: 0, label: "Lichtleck" },
     { key: "dustScratches", min: 0, max: 1000, step: 1, value: 0, label: "Staub & Kratzer" },
     { key: "haze", min: 0, max: 1000, step: 1, value: 0, label: "Nebel" },
@@ -159,7 +159,7 @@ const CONTROL_GROUPS = {
     { key: "pointillism", min: 0, max: 1000, step: 1, value: 0, label: "Pointillistisch", i18nKey: "artPointillism" },
     { key: "ballpointPen", min: 0, max: 1000, step: 1, value: 0, label: "Kugelschreiber", i18nKey: "artBallpointPen" },
     { key: "squashStretch", min: 0, max: 1000, step: 1, value: 0, label: "Stauchen & Dehnen", i18nKey: "artSquashStretch" },
-    { key: "randomWords", min: 0, max: 1000, step: 1, value: 0, label: "Zufallswoerter", i18nKey: "artRandomWords" },
+    { key: "randomWords", min: 0, max: 1000, step: 1, value: 0, label: "Zufallswörter", i18nKey: "artRandomWords" },
     { key: "minecraft", min: 0, max: 1000, step: 1, value: 0, label: "Minecraft", i18nKey: "artMinecraft" },
   ],
   artists: [
@@ -204,7 +204,7 @@ const CONTROL_GROUPS = {
     { key: "daguerreotype", min: 0, max: 1000, step: 1, value: 0, label: "Daguerreotypie", i18nKey: "graphicDaguerreotype" },
     { key: "risograph", min: 0, max: 1000, step: 1, value: 0, label: "Risograph", i18nKey: "graphicRisograph" },
     { key: "screenprint", min: 0, max: 1000, step: 1, value: 0, label: "Siebdruck", i18nKey: "graphicScreenprint" },
-    { key: "roentgen", min: 0, max: 1000, step: 1, value: 0, label: "Roentgen", i18nKey: "graphicRoentgen" },
+    { key: "roentgen", min: 0, max: 1000, step: 1, value: 0, label: "Röntgen", i18nKey: "graphicRoentgen" },
   ],
   wordArt: [
     { key: "textMosaic", min: 0, max: 1000, step: 1, value: 0, label: "Textmosaik", i18nKey: "wordArtTextMosaic" },

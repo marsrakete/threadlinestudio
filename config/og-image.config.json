@@ -1,0 +1,13 @@
+{
+  "source": "assets/threadline-studio-og.svg",
+  "render": {
+    "width": 1200,
+    "height": 630,
+    "loadSystemFonts": true,
+    "background": "#090b10"
+  },
+  "outputs": [
+    { "format": "png", "path": "assets/threadline-studio-og.png" },
+    { "format": "jpeg", "path": "assets/threadline-studio-og.jpg", "quality": 92 }
+  ]
+}

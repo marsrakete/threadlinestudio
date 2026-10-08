@@ -18,7 +18,10 @@ const ASSETS = [
   "./icon-192.png",
   "./icon-512.png",
   "./assets/kofi-button.svg",
-  "./assets/threadline-studio-share-qr.svg"
+  "./assets/threadline-studio-share-qr.svg",
+  "./assets/threadline-studio-og.svg",
+  "./assets/threadline-studio-og.png",
+  "./assets/threadline-studio-og.jpg"
 ];
 
 self.addEventListener("install", (event) => {

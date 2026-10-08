@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#131313" />
     <meta
       name="description"
-      content="Threadline Studio ist ein mehrsprachiger PWA-Bildeditor fuer den Browser mit Canvas-Effekten, Projekt-Backup, Export und mobiler Bedienung."
+      content="Threadline Studio ist ein mehrsprachiger PWA-Bildeditor für den Browser mit Canvas-Effekten, Projekt-Backup, Export und mobiler Bedienung."
     />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Threadline Studio" />
@@ -15,6 +15,18 @@
       property="og:description"
       content="Lade Bilder, kombiniere Effekte, speichere Projekte lokal und exportiere alles direkt im Browser."
     />
+    <meta property="og:site_name" content="Threadline Studio" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:image" content="https://marsrakete.github.io/threadlinestudio/assets/threadline-studio-og.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Threadline Studio: ein abstraktes Porträt mit lebendigen Regenbogenfarben neben Reglern für kreative Bildbearbeitung." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Threadline Studio" />
+    <meta name="twitter:description" content="Browserbasierte Bildbearbeitung ohne KI. Effekte, Farben und kreative Looks direkt im Canvas." />
+    <meta name="twitter:image" content="https://marsrakete.github.io/threadlinestudio/assets/threadline-studio-og.jpg" />
+    <meta name="twitter:image:alt" content="Threadline Studio: ein abstraktes Porträt mit lebendigen Regenbogenfarben neben Reglern für kreative Bildbearbeitung." />
     <link rel="canonical" href="https://marsrakete.github.io/threadlinestudio/" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
@@ -63,17 +75,17 @@
             <div class="panel desktop-stage-panel desktop-project-panel">
               <div class="panel-head">
                 <h2 data-i18n="projectTitle">Projekt</h2>
-                <p data-i18n="projectIntro">Bild laden, Projekt sichern, laden oder den Stand zuruecksetzen.</p>
+                <p data-i18n="projectIntro">Bild laden, Projekt sichern, laden oder den Stand zurücksetzen.</p>
               </div>
               <div class="panel-body">
                 <div class="button-row project-actions">
                   <label class="secondary faux-button" for="imageInput" data-i18n="loadImage">Bild laden</label>
                   <button class="secondary" id="downloadBackupButtonDesktop" type="button" data-i18n="saveProject">Projekt speichern</button>
                   <label class="secondary faux-button" for="backupInput" data-i18n="loadProject">Projekt laden</label>
-                  <button class="secondary" id="clearProjectButtonDesktop" type="button" data-i18n="clearProject">Projekt loeschen</button>
+                  <button class="secondary" id="clearProjectButtonDesktop" type="button" data-i18n="clearProject">Projekt löschen</button>
                 </div>
                 <div class="button-row desktop-quick-actions">
-                  <button class="secondary" id="resetImageButtonDesktop" type="button" data-i18n="resetImage">Bild zuruecksetzen</button>
+                  <button class="secondary" id="resetImageButtonDesktop" type="button" data-i18n="resetImage">Bild zurücksetzen</button>
                   <button class="secondary" id="fitButtonDesktop" type="button" data-i18n="fitToFrame">Einpassen</button>
                   <button class="secondary" id="centerButtonDesktop" type="button" data-i18n="centerImage">Zentrieren</button>
                 </div>
@@ -86,14 +98,14 @@
           <section class="panel project-panel mobile-project-panel" aria-label="Projekt">
             <div class="panel-head">
               <h2 data-i18n="projectTitle">Projekt</h2>
-              <p data-i18n="projectIntro">Bild laden, Projekt sichern, laden oder den Stand zuruecksetzen.</p>
+              <p data-i18n="projectIntro">Bild laden, Projekt sichern, laden oder den Stand zurücksetzen.</p>
             </div>
             <div class="panel-body">
               <div class="button-row project-actions">
                 <label class="secondary faux-button" for="imageInput" data-i18n="loadImage">Bild laden</label>
                 <button class="secondary" id="downloadBackupButton" type="button" data-i18n="saveProject">Projekt speichern</button>
                 <label class="secondary faux-button" for="backupInput" data-i18n="loadProject">Projekt laden</label>
-                <button class="secondary" id="clearProjectButton" type="button" data-i18n="clearProject">Projekt loeschen</button>
+                <button class="secondary" id="clearProjectButton" type="button" data-i18n="clearProject">Projekt löschen</button>
               </div>
               <input id="backupInput" type="file" accept="application/json,.json" hidden />
             </div>
@@ -150,7 +162,7 @@
               <button class="secondary" id="flipYButton" type="button" data-i18n="flipVertical">Vertikal spiegeln</button>
             </div>
             <div class="button-row">
-              <button class="secondary" id="resetImageButton" type="button" data-i18n="resetImage">Bild zuruecksetzen</button>
+              <button class="secondary" id="resetImageButton" type="button" data-i18n="resetImage">Bild zurücksetzen</button>
               <button class="secondary" id="fitButton" type="button" data-i18n="fitToFrame">Einpassen</button>
               <button class="secondary" id="centerButton" type="button" data-i18n="centerImage">Zentrieren</button>
             </div>
@@ -161,7 +173,7 @@
             <summary class="panel-summary">
               <div class="panel-head">
                 <h2 data-i18n="correctionTitle">Korrektur</h2>
-                <p data-i18n="correctionIntro">Basiswerte fuer Licht, Farbe und Schaerfe.</p>
+                <p data-i18n="correctionIntro">Basiswerte für Licht, Farbe und Schärfe.</p>
               </div>
             </summary>
             <div class="panel-body">
@@ -173,7 +185,7 @@
             <summary class="panel-summary">
               <div class="panel-head">
                 <h2 data-i18n="styleTitle">Stil</h2>
-                <p data-i18n="styleIntro">Looks fuer Graustufen, Vintage, Duotone und Raster.</p>
+                <p data-i18n="styleIntro">Looks für Graustufen, Vintage, Duotone und Raster.</p>
               </div>
             </summary>
             <div class="panel-body">
@@ -195,7 +207,7 @@
             <div class="focus-block">
               <div class="focus-block-head">
                 <h3 data-i18n="styleColorFocusTitle">Farbfokus</h3>
-                <p data-i18n="styleColorFocusIntro">Jede Zielfarbe hat ihre eigene Staerke und Toleranz. Alles andere wird schwarzweiss. Zuerst beide Zielfarben aussuchen, danach mit den Reglern arbeiten.</p>
+                <p data-i18n="styleColorFocusIntro">Jede Zielfarbe hat ihre eigene Stärke und Toleranz. Alles andere wird schwarzweiß. Zuerst beide Zielfarben aussuchen, danach mit den Reglern arbeiten.</p>
               </div>
               <div class="field-grid compact-grid" id="colorFocusFields"></div>
               <div class="color-inline focus-color-inline">
@@ -220,7 +232,7 @@
             <summary class="panel-summary">
               <div class="panel-head">
                 <h2 data-i18n="campaignsTitle">Aktionen</h2>
-                <p data-i18n="campaignsIntro">Awareness-Looks und Solidaritaetszeichen fuer dein Profilbild.</p>
+                <p data-i18n="campaignsIntro">Awareness-Looks und Solidaritätszeichen für dein Profilbild.</p>
               </div>
             </summary>
             <div class="panel-body">
@@ -289,7 +301,7 @@
             <summary class="panel-summary">
               <div class="panel-head">
                 <h2 data-i18n="materialTitle">Material</h2>
-                <p data-i18n="materialIntro">Glas, Papier, Metall, Stoff und andere Oberflaechen-Looks.</p>
+                <p data-i18n="materialIntro">Glas, Papier, Metall, Stoff und andere Oberflächen-Looks.</p>
               </div>
             </summary>
             <div class="panel-body">
@@ -300,8 +312,8 @@
           <details class="panel collapsible" open>
             <summary class="panel-summary">
               <div class="panel-head">
-                <h2 data-i18n="atmosphereTitle">Stoerung</h2>
-                <p data-i18n="atmosphereIntro">Signalfehler, Licht, Staub, Nebel und Atmosphaere.</p>
+                <h2 data-i18n="atmosphereTitle">Störung</h2>
+                <p data-i18n="atmosphereIntro">Signalfehler, Licht, Staub, Nebel und Atmosphäre.</p>
               </div>
             </summary>
             <div class="panel-body">
@@ -313,7 +325,7 @@
             <summary class="panel-summary">
               <div class="panel-head">
                 <h2 data-i18n="artTitle">Kunst</h2>
-                <p data-i18n="artIntro">Rasterzerfall, Collage, Facetten und traumartige Bildbrueche.</p>
+                <p data-i18n="artIntro">Rasterzerfall, Collage, Facetten und traumartige Bildbrüche.</p>
               </div>
             </summary>
             <div class="panel-body">
@@ -325,7 +337,7 @@
             <summary class="panel-summary">
               <div class="panel-head">
                 <h2 data-i18n="wordArtTitle">Word-Art</h2>
-                <p data-i18n="wordArtIntro">Textbasierte Looks, bei denen Worte und Zeichen das Bild nachbauen oder konturieren.</p>
+                <p data-i18n="wordArtIntro">Textbasierte Looks, bei denen Wörter und Zeichen das Bild nachbauen oder konturieren.</p>
               </div>
             </summary>
             <div class="panel-body">
@@ -372,8 +384,8 @@
           <details class="panel collapsible" open>
             <summary class="panel-summary">
               <div class="panel-head">
-                <h2 data-i18n="artistsTitle">Kuenstler</h2>
-                <p data-i18n="artistsIntro">Bildnahe Stilmodi nach einzelnen Kuenstlern, von geometrisch bis malerisch.</p>
+                <h2 data-i18n="artistsTitle">Künstler</h2>
+                <p data-i18n="artistsIntro">Bildnahe Stilmodi nach einzelnen Künstlern, von geometrisch bis malerisch.</p>
               </div>
             </summary>
             <div class="panel-body">
@@ -421,7 +433,7 @@
                 </select>
               </label>
               <label class="field">
-                <span data-i18n="quality">Qualitaet</span>
+                <span data-i18n="quality">Qualität</span>
                 <input id="qualityInput" type="range" min="0.4" max="1" step="0.01" value="0.92" />
                 <strong id="qualityValue">92%</strong>
               </label>
@@ -454,7 +466,7 @@
               <option value="auto">Automatisch</option>
               <option value="de">Deutsch</option>
               <option value="en">English</option>
-              <option value="fr">Francais</option>
+              <option value="fr">Français</option>
             </select>
           </label>
 
@@ -475,7 +487,7 @@
             <strong data-i18n="versioning">Versionierung</strong>
             <p id="versionText"></p>
             <div class="button-row">
-              <button class="secondary" id="checkUpdateButton" type="button" data-i18n="checkUpdates">Auf Updates pruefen</button>
+              <button class="secondary" id="checkUpdateButton" type="button" data-i18n="checkUpdates">Auf Updates prüfen</button>
               <button class="secondary" id="reloadAppButton" type="button" data-i18n="reloadApp">Neu laden</button>
             </div>
             <p id="updateCheckStatus" class="dialog-status" hidden></p>
@@ -504,7 +516,7 @@
 
           <div class="settings-group">
             <strong data-i18n="supportTitle">Support</strong>
-            <p class="dialog-status" data-i18n="supportIntro">Wenn dir die App hilft, kannst du das Projekt auf Ko-Fi unterstuetzen.</p>
+            <p class="dialog-status" data-i18n="supportIntro">Wenn dir die App hilft, kannst du das Projekt auf Ko-Fi unterstützen.</p>
             <a
               class="kofi-link settings-kofi-link"
               href="https://ko-fi.com/U7U01OC260"
@@ -536,14 +548,14 @@
       <form method="dialog" class="dialog-card confirm-dialog-card">
         <div class="dialog-head">
           <div>
-            <h2 id="confirmDialogTitle">Bitte bestaetigen</h2>
+            <h2 id="confirmDialogTitle">Bitte bestätigen</h2>
             <p id="confirmDialogMessage" class="dialog-status"></p>
           </div>
           <button class="icon-button" value="cancel" aria-label="Close">×</button>
         </div>
         <div class="button-row">
           <button class="secondary" id="confirmCancelButton" value="cancel" type="submit">Abbrechen</button>
-          <button class="primary" id="confirmAcceptButton" value="confirm" type="submit">Bestaetigen</button>
+          <button class="primary" id="confirmAcceptButton" value="confirm" type="submit">Bestätigen</button>
         </div>
       </form>
     </dialog>
