@@ -8,9 +8,9 @@ const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.17",
-  cacheVersion: "v118",
-  label: "Speicherfreigabe und Reload-Cache fuer PWA gehaertet",
+  appVersion: "0.2.19",
+  cacheVersion: "v120",
+  label: "Pride-Streifen und Schnurrbartposition",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
 const CURRENT_VERSION_INFO = DEFAULT_VERSION;
@@ -51,6 +51,19 @@ const CONTROL_GROUPS = {
     { key: "popArt", min: 0, max: 100, step: 1, value: 0, label: "Pop Art" },
     { key: "posterize", min: 0, max: 12, step: 1, value: 0, label: "Posterize" },
     { key: "halftone", min: 0, max: 18, step: 1, value: 0, label: "Halftone" },
+  ],
+  campaigns: [
+    { key: "pinktober", min: 0, max: 100, step: 1, value: 0, label: "Pink October", i18nKey: "campaignPinktober" },
+    { key: "prideWidth", min: 0, max: 100, step: 1, value: 50, label: "Pride stripe width", i18nKey: "campaignPrideWidth" },
+    { key: "prideIntensity", min: 0, max: 100, step: 1, value: 0, label: "Pride stripe intensity", i18nKey: "campaignPrideIntensity" },
+    { key: "earthDay", min: 0, max: 100, step: 1, value: 0, label: "Earth Day", i18nKey: "campaignEarthDay" },
+    { key: "orangeDay", min: 0, max: 100, step: 1, value: 0, label: "Orange Day", i18nKey: "campaignOrangeDay" },
+    { key: "movemberSize", min: 0, max: 100, step: 1, value: 0, label: "Movember moustache size", i18nKey: "campaignMovemberSize" },
+    { key: "movemberShape", min: 0, max: 100, step: 1, value: 50, label: "Movember moustache shape", i18nKey: "campaignMovemberShape" },
+    { key: "movemberPositionX", min: -100, max: 100, step: 1, value: 0, label: "Movember moustache horizontal position", i18nKey: "campaignMovemberPositionX" },
+    { key: "movemberPositionY", min: -100, max: 100, step: 1, value: 0, label: "Movember moustache vertical position", i18nKey: "campaignMovemberPositionY" },
+    { key: "ribbonSize", min: 0, max: 100, step: 1, value: 0, label: "Awareness ribbon size", i18nKey: "campaignRibbonSize" },
+    { key: "ribbonShape", min: 0, max: 100, step: 1, value: 50, label: "Awareness ribbon shape", i18nKey: "campaignRibbonShape" },
   ],
   fx: [
     { key: "pixelate", min: 0, max: 60, step: 1, value: 0, label: "Pixelate" },
@@ -307,6 +320,11 @@ const els = {
   correctionFields: document.getElementById("correctionFields"),
   styleFields: document.getElementById("styleFields"),
   colorFocusFields: document.getElementById("colorFocusFields"),
+  campaignPinkFields: document.getElementById("campaignPinkFields"),
+  campaignPrideFields: document.getElementById("campaignPrideFields"),
+  campaignColorFields: document.getElementById("campaignColorFields"),
+  campaignMovemberFields: document.getElementById("campaignMovemberFields"),
+  campaignRibbonFields: document.getElementById("campaignRibbonFields"),
   fxFields: document.getElementById("fxFields"),
   morphologyFields: document.getElementById("morphologyFields"),
   patternFields: document.getElementById("patternFields"),
@@ -418,6 +436,7 @@ function isMobileLandscape() {
   return window.innerWidth <= 1180 && window.innerWidth > window.innerHeight;
 }
 
+/** Creates the initial project state and defaults for each control group. Expects no parameters and returns a project object. */
 function createDefaultProject() {
   return {
     meta: {
@@ -440,6 +459,7 @@ function createDefaultProject() {
     },
     corrections: Object.fromEntries(CONTROL_GROUPS.corrections.map((control) => [control.key, control.value])),
     styles: Object.fromEntries(CONTROL_GROUPS.styles.map((control) => [control.key, control.value])),
+    campaigns: Object.fromEntries(CONTROL_GROUPS.campaigns.map((control) => [control.key, control.value])),
     fx: Object.fromEntries(CONTROL_GROUPS.fx.map((control) => [control.key, control.value])),
     morphology: Object.fromEntries(CONTROL_GROUPS.morphology.map((control) => [control.key, control.value])),
     patterns: Object.fromEntries(CONTROL_GROUPS.patterns.map((control) => [control.key, control.value])),
@@ -471,6 +491,11 @@ function buildControlFields() {
   renderControls(els.correctionFields, CONTROL_GROUPS.corrections, "corrections");
   renderControls(els.styleFields, CONTROL_GROUPS.styles.filter((control) => !["colorFocus1", "colorFocusTolerance1", "colorFocus2", "colorFocusTolerance2", "colorSwap"].includes(control.key)), "styles");
   renderControls(els.colorFocusFields, CONTROL_GROUPS.styles.filter((control) => ["colorFocus1", "colorFocusTolerance1", "colorFocus2", "colorFocusTolerance2", "colorSwap"].includes(control.key)), "styles");
+  renderControls(els.campaignPinkFields, CONTROL_GROUPS.campaigns.filter((control) => control.key === "pinktober"), "campaigns");
+  renderControls(els.campaignPrideFields, CONTROL_GROUPS.campaigns.filter((control) => control.key.startsWith("pride")), "campaigns");
+  renderControls(els.campaignColorFields, CONTROL_GROUPS.campaigns.filter((control) => ["earthDay", "orangeDay"].includes(control.key)), "campaigns");
+  renderControls(els.campaignMovemberFields, CONTROL_GROUPS.campaigns.filter((control) => control.key.startsWith("movember")), "campaigns");
+  renderControls(els.campaignRibbonFields, CONTROL_GROUPS.campaigns.filter((control) => control.key.startsWith("ribbon")), "campaigns");
   renderControls(els.fxFields, CONTROL_GROUPS.fx, "fx");
   renderControls(els.morphologyFields, CONTROL_GROUPS.morphology, "morphology");
   renderControls(els.patternFields, CONTROL_GROUPS.patterns, "patterns");
@@ -485,34 +510,34 @@ function buildControlFields() {
   renderControls(els.graphicsFields, CONTROL_GROUPS.graphics, "graphics");
 }
 
+/** Renders controls from the shared HTML template. Expects a container, control definitions, and group key; returns nothing. */
 function renderControls(container, controls, groupKey) {
   container.innerHTML = "";
+  const template = document.getElementById("rangeControlTemplate");
   for (const control of controls) {
-    const label = document.createElement("label");
-    label.className = "field";
+    const fragment = template.content.cloneNode(true);
+    const label = fragment.querySelector("label");
     const intensityClass = getControlIntensityClass(groupKey, control.key);
     if (intensityClass) {
       label.classList.add(intensityClass);
     } else if (isStrongControl(groupKey, control.key)) {
       label.classList.add("field-strong");
     }
-    const title = document.createElement("span");
+    const title = label.querySelector("span");
     title.dataset.controlI18n = control.i18nKey || "";
     title.dataset.controlFallback = control.label;
     title.textContent = control.i18nKey ? t(control.i18nKey) : control.label;
-    const input = document.createElement("input");
-    input.type = "range";
+    const input = label.querySelector("input");
     input.min = String(control.min);
     input.max = String(control.max);
     input.step = String(control.step);
     input.value = String(control.value);
     input.dataset.group = groupKey;
     input.dataset.key = control.key;
-    const output = document.createElement("strong");
+    const output = label.querySelector("strong");
     output.id = `${groupKey}-${control.key}-value`;
     output.textContent = formatControlValue(control, control.value);
-    label.append(title, input, output);
-    container.append(label);
+    container.append(fragment);
   }
 }
 
@@ -1008,7 +1033,7 @@ function getFrameAspectRatio() {
 }
 
 function hasHeavyPreviewEffects() {
-  const { styles, fx, corrections } = state.project;
+  const { styles, campaigns, fx, corrections } = state.project;
   return (
     fx.pencil > 0
     || fx.charcoal > 0
@@ -1016,6 +1041,8 @@ function hasHeavyPreviewEffects() {
     || fx.edges > 0
     || fx.emboss > 0
     || styles.halftone > 0
+    || campaigns.pinktober > 0
+    || hasCampaignOverlays(campaigns)
     || fx.backgroundBlur > 0
     || corrections.blur > 0
     || corrections.sharpen > 0
@@ -1053,7 +1080,7 @@ function drawBaseImage(ctx, width, height) {
 
 function applyEffects(canvas, ctx) {
   resetScratchCanvases();
-  const { corrections, styles, fx, morphology, patterns, materials, atmosphere, art, wordArt, fragment, cut, morph, artists, graphics, colors } = state.project;
+  const { corrections, styles, campaigns, fx, morphology, patterns, materials, atmosphere, art, wordArt, fragment, cut, morph, artists, graphics, colors } = state.project;
   const edgeAmount = curveAmount(fx.edges / 100, isMobileLayout() ? 1.9 : 1.55, 0.34);
   const embossAmount = curveAmount(fx.emboss / 100, isMobileLayout() ? 1.95 : 1.6, 0.3);
   const pencilAmount = curveAmount(fx.pencil / 100, isMobileLayout() ? 1.55 : 1.35, 1);
@@ -1076,6 +1103,10 @@ function applyEffects(canvas, ctx) {
     || styles.posterize > 0
     || styles.vintage > 0
     || styles.duotone > 0
+    || campaigns.pinktober > 0
+    || campaigns.prideIntensity > 0
+    || campaigns.earthDay > 0
+    || campaigns.orangeDay > 0
     || styles.splitTone > 0
     || styles.saturationMask > 0
     || styles.gradientMap > 0
@@ -1111,6 +1142,12 @@ function applyEffects(canvas, ctx) {
     if (styles.posterize > 0) applyPosterize(data, styles.posterize);
     if (styles.vintage > 0) applyVintage(data, styles.vintage / 100);
     if (styles.duotone > 0) applyDuotone(data, styles.duotone / 100, colors.duotoneDark, colors.duotoneLight);
+    if (campaigns.pinktober > 0) applyDuotone(data, campaigns.pinktober / 100, "#46152f", "#ff8fbd");
+    if (campaigns.prideIntensity > 0) {
+      applyCampaignRainbow(data, canvas.width, canvas.height, campaigns.prideWidth / 100, campaigns.prideIntensity / 100);
+    }
+    if (campaigns.earthDay > 0) applyDuotone(data, campaigns.earthDay / 100, "#123d50", "#7ecb78");
+    if (campaigns.orangeDay > 0) applyDuotone(data, campaigns.orangeDay / 100, "#4a2418", "#ff9b32");
     if (styles.splitTone > 0) applySplitTone(data, styles.splitTone / 100, colors.duotoneDark, colors.duotoneLight);
     if (styles.saturationMask > 0) applySaturationMask(data, styles.saturationMask / 100);
     if (styles.gradientMap > 0) applyGradientMap(data, styles.gradientMap / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
@@ -1138,6 +1175,17 @@ function applyEffects(canvas, ctx) {
   if (comicAmount > 0.001) applyComic(canvas, comicAmount);
   if (styles.oilPaint > 0) applyOilPaint(canvas, styles.oilPaint / 100);
   if (styles.popArt > 0) applyPopArt(canvas, styles.popArt / 100, colors.overlayColor);
+
+  if (campaigns.movemberSize > 0) {
+    applyCampaignMoustache(
+      canvas,
+      campaigns.movemberSize / 100,
+      campaigns.movemberShape / 100,
+      campaigns.movemberPositionX / 100,
+      campaigns.movemberPositionY / 100,
+    );
+  }
+  if (campaigns.ribbonSize > 0) applyCampaignRibbon(canvas, campaigns.ribbonSize / 100, campaigns.ribbonShape / 100);
   if (styles.halftone > 0) applyHalftone(canvas, styles.halftone);
   if (fx.pixelate > 0) applyPixelate(canvas, fx.pixelate);
   if (fx.glitch > 0) applyGlitch(canvas, fx.glitch / 100);
@@ -1266,6 +1314,114 @@ function applyDuotone(data, amount, darkColor, lightColor) {
     data[i + 1] = mix(data[i + 1], ng, amount);
     data[i + 2] = mix(data[i + 2], nb, amount);
   }
+}
+
+/** Draws a scalable moustache overlay at an adjustable avatar position. Expects a canvas, normalized size, shape, and X/Y offsets; returns nothing. */
+function applyCampaignMoustache(canvas, size, shape, offsetX, offsetY) {
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width * (0.13 + size * 0.24);
+  const height = width * (0.2 + shape * 0.34);
+  const centerX = canvas.width * (0.5 + offsetX * 0.45);
+  const centerY = canvas.height * (0.59 + offsetY * 0.45);
+  const lobe = width * (0.5 - shape * 0.08);
+  const tipY = height * (0.18 + shape * 0.48);
+
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.fillStyle = "#211714";
+  ctx.strokeStyle = "rgba(255,255,255,0.42)";
+  ctx.lineWidth = Math.max(1, canvas.width * 0.002);
+  ctx.beginPath();
+  ctx.moveTo(0, height * 0.1);
+  ctx.bezierCurveTo(-width * 0.14, -height * 0.48, -lobe * 0.56, -height * 0.25, -lobe, -height * 0.02);
+  ctx.bezierCurveTo(-width * 0.93, height * 0.48, -width * 0.48, height * 0.4, -width * 0.08, tipY);
+  ctx.bezierCurveTo(-width * 0.04, height * 0.12, -width * 0.02, height * 0.04, 0, height * 0.1);
+  ctx.bezierCurveTo(width * 0.14, -height * 0.48, lobe * 0.56, -height * 0.25, lobe, -height * 0.02);
+  ctx.bezierCurveTo(width * 0.93, height * 0.48, width * 0.48, height * 0.4, width * 0.08, tipY);
+  ctx.bezierCurveTo(width * 0.04, height * 0.12, width * 0.02, height * 0.04, 0, height * 0.1);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Blends repeating rainbow bands into image luminance so photo detail remains visible. Expects pixel data, canvas dimensions, normalized band width, and normalized intensity; returns nothing. */
+function applyCampaignRainbow(data, width, height, bandWidth, intensity) {
+  const colors = [
+    [230, 55, 75],
+    [246, 139, 52],
+    [248, 218, 69],
+    [63, 171, 98],
+    [55, 120, 213],
+    [133, 76, 184],
+  ];
+  const stripeWidth = Math.max(2, Math.round(Math.min(width, height) * (0.018 + bandWidth * 0.14)));
+  const blend = intensity * 0.62;
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const stripeIndex = Math.floor(x / stripeWidth) % colors.length;
+      const color = colors[stripeIndex];
+      const pixelIndex = (y * width + x) * 4;
+      const luminance = 0.299 * data[pixelIndex] + 0.587 * data[pixelIndex + 1] + 0.114 * data[pixelIndex + 2];
+      const shade = 0.28 + (luminance / 255) * 0.72;
+      data[pixelIndex] = mix(data[pixelIndex], color[0] * shade, blend);
+      data[pixelIndex + 1] = mix(data[pixelIndex + 1], color[1] * shade, blend);
+      data[pixelIndex + 2] = mix(data[pixelIndex + 2], color[2] * shade, blend);
+    }
+  }
+}
+
+/** Draws a scalable awareness ribbon overlay. Expects a canvas, normalized size, and normalized ribbon style; returns nothing. */
+function applyCampaignRibbon(canvas, size, shape) {
+  const ctx = canvas.getContext("2d");
+  const scale = 0.52 + size * 0.9;
+  const centerX = canvas.width * 0.82;
+  const centerY = canvas.height * 0.2;
+  const bandWidth = canvas.width * 0.022 * scale;
+  const loopWidth = canvas.width * (0.045 + shape * 0.035) * scale;
+  const loopHeight = canvas.height * (0.075 + shape * 0.045) * scale;
+  let color = "#ed5a9a";
+  if (shape >= 0.5) {
+    color = "#d92e3f";
+  }
+
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.rotate(-0.22);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "rgba(24,12,18,0.62)";
+  ctx.lineWidth = bandWidth + Math.max(2, canvas.width * 0.006);
+  ctx.beginPath();
+  ctx.moveTo(0, loopHeight * 0.22);
+  ctx.bezierCurveTo(-loopWidth * 1.8, -loopHeight * 1.4, -loopWidth * 0.2, -loopHeight * 1.55, 0, 0);
+  ctx.moveTo(0, loopHeight * 0.22);
+  ctx.bezierCurveTo(loopWidth * 1.8, -loopHeight * 1.4, loopWidth * 0.2, -loopHeight * 1.55, 0, 0);
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-loopWidth * 0.62, loopHeight * 1.5);
+  ctx.moveTo(0, 0);
+  ctx.lineTo(loopWidth * 0.76, loopHeight * 1.38);
+  ctx.stroke();
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = bandWidth;
+  ctx.beginPath();
+  ctx.moveTo(0, loopHeight * 0.22);
+  ctx.bezierCurveTo(-loopWidth * 1.8, -loopHeight * 1.4, -loopWidth * 0.2, -loopHeight * 1.55, 0, 0);
+  ctx.moveTo(0, loopHeight * 0.22);
+  ctx.bezierCurveTo(loopWidth * 1.8, -loopHeight * 1.4, loopWidth * 0.2, -loopHeight * 1.55, 0, 0);
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-loopWidth * 0.62, loopHeight * 1.5);
+  ctx.moveTo(0, 0);
+  ctx.lineTo(loopWidth * 0.76, loopHeight * 1.38);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Checks whether an awareness overlay is active. Expects campaign slider values and returns a boolean. */
+function hasCampaignOverlays(campaigns) {
+  return campaigns.movemberSize > 0 || campaigns.ribbonSize > 0;
 }
 
 function applyColorFocus(data, amount, targetHex, tolerance) {
@@ -8129,6 +8285,7 @@ function saveLocalState(forceSource = false) {
   }
 }
 
+/** Merges saved data over defaults. Expects a default project and saved project and returns the merged project. */
 function mergeProject(base, incoming) {
   const merged = {
     ...base,
@@ -8138,6 +8295,7 @@ function mergeProject(base, incoming) {
     transform: { ...base.transform, ...incoming?.transform },
     corrections: { ...base.corrections, ...incoming?.corrections },
     styles: { ...base.styles, ...incoming?.styles },
+    campaigns: { ...base.campaigns, ...incoming?.campaigns },
     fx: { ...base.fx, ...incoming?.fx },
     morphology: { ...base.morphology, ...incoming?.morphology },
     patterns: { ...base.patterns, ...incoming?.patterns },
@@ -8374,7 +8532,13 @@ function versionSignature(info = {}) {
   return `${String(info.appVersion || "")}::${String(info.cacheVersion || "")}::${String(info.label || "")}`;
 }
 
+/** Formats a slider value for display. Expects a control definition and numeric value; returns localized text with a unit. */
 function formatControlValue(control, value) {
+  if (control.key === "movemberShape" || control.key === "ribbonShape") {
+    if (value < 34) return t("campaignShapeSoft");
+    if (value > 66) return t("campaignShapeBold");
+    return t("campaignShapeClassic");
+  }
   if (control.max <= 12 || control.key === "blur" || control.key === "sharpen") {
     return `${Number(value).toFixed(control.step < 1 ? 1 : 0)}`;
   }

@@ -214,6 +214,27 @@ canvas {
 
 .field-grid.compact-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
+.campaign-groups {
+  display: grid;
+  gap: 14px;
+}
+
+.campaign-group {
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.campaign-group legend {
+  padding: 0 8px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
 .field, .upload-tile {
   display: grid;
   gap: 8px;

@@ -219,6 +219,39 @@
           <details class="panel collapsible" open>
             <summary class="panel-summary">
               <div class="panel-head">
+                <h2 data-i18n="campaignsTitle">Aktionen</h2>
+                <p data-i18n="campaignsIntro">Awareness-Looks und Solidaritaetszeichen fuer dein Profilbild.</p>
+              </div>
+            </summary>
+            <div class="panel-body">
+              <div class="campaign-groups">
+                <fieldset class="campaign-group">
+                  <legend data-i18n="campaignGroupPinktober">Pinktober</legend>
+                  <div class="field-grid" id="campaignPinkFields"></div>
+                </fieldset>
+                <fieldset class="campaign-group">
+                  <legend data-i18n="campaignGroupPride">Pride</legend>
+                  <div class="field-grid" id="campaignPrideFields"></div>
+                </fieldset>
+                <fieldset class="campaign-group">
+                  <legend data-i18n="campaignGroupColor">Weitere Farbaktionen</legend>
+                  <div class="field-grid" id="campaignColorFields"></div>
+                </fieldset>
+                <fieldset class="campaign-group">
+                  <legend data-i18n="campaignGroupMovember">Movember</legend>
+                  <div class="field-grid" id="campaignMovemberFields"></div>
+                </fieldset>
+                <fieldset class="campaign-group">
+                  <legend data-i18n="campaignGroupRibbon">Awareness-Schleife</legend>
+                  <div class="field-grid" id="campaignRibbonFields"></div>
+                </fieldset>
+              </div>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
                 <h2 data-i18n="fxTitle">Verfremdung</h2>
                 <p data-i18n="fxIntro">Pixelate, Glitch, Relief, Konturen und Zeichnungslooks.</p>
               </div>
@@ -514,6 +547,14 @@
         </div>
       </form>
     </dialog>
+
+    <template id="rangeControlTemplate">
+      <label class="field">
+        <span></span>
+        <input type="range" />
+        <strong></strong>
+      </label>
+    </template>
 
     <script src="./version.js"></script>
     <script src="./config/i18n.config.js"></script>
