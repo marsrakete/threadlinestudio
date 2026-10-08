@@ -1,96 +1,89 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
-  <title id="title">Threadline Studio</title>
-  <desc id="description">Abstract portrait and color controls for browser-based image editing.</desc>
+  <title id="title">Threadline Studio - Bilder kreativ bearbeiten</title>
+  <desc id="description">Künstlerische Illustration eines Einfamilienhauses mit Baum. Threadline Studio: Bilder direkt im Browser kreativ bearbeiten.</desc>
   <defs>
-    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#171a20" />
-      <stop offset="1" stop-color="#090b10" />
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6eddb" />
+      <stop offset="1" stop-color="#d5e2d0" />
     </linearGradient>
-    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#28343b" />
-      <stop offset="1" stop-color="#15191f" />
+    <linearGradient id="sky" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#a9d1c4" />
+      <stop offset="1" stop-color="#e8c995" />
     </linearGradient>
-    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f4c29e" />
-      <stop offset="0.52" stop-color="#dc8d77" />
-      <stop offset="1" stop-color="#895475" />
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f1d9a9" />
+      <stop offset="1" stop-color="#d98f68" />
     </linearGradient>
-    <linearGradient id="coat" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#21343b" />
-      <stop offset="1" stop-color="#6b526f" />
+    <linearGradient id="roof" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ba6551" />
+      <stop offset="1" stop-color="#743f43" />
     </linearGradient>
-    <clipPath id="portraitClip">
-      <rect x="63" y="62" width="654" height="506" rx="22" />
-    </clipPath>
-    <clipPath id="faceClip">
-      <path d="M373 168c-68 0-112 48-112 119v56c0 92 54 151 129 151s129-59 129-151v-56c0-71-47-119-119-119z" />
+    <linearGradient id="faviconGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff9d6b" />
+      <stop offset="1" stop-color="#ff5f36" />
+    </linearGradient>
+    <clipPath id="sceneClip">
+      <rect x="52" y="48" width="526" height="534" rx="24" />
     </clipPath>
   </defs>
 
-  <rect width="1200" height="630" fill="url(#background)" />
-  <circle cx="1016" cy="88" r="258" fill="#e24c67" opacity="0.08" />
-  <circle cx="1080" cy="610" r="320" fill="#4f78dd" opacity="0.08" />
+  <rect width="1200" height="630" fill="url(#paper)" />
+  <circle cx="1100" cy="40" r="250" fill="#e7b36e" opacity="0.18" />
+  <circle cx="25" cy="625" r="290" fill="#76a58e" opacity="0.17" />
+  <path d="M630 0h570v630H630c92-95 136-199 136-315S722 95 630 0z" fill="#faf6eb" opacity="0.84" />
 
-  <g clip-path="url(#portraitClip)">
-    <rect x="63" y="62" width="654" height="506" fill="url(#canvas)" />
-    <path d="M76 568V62h92v506z" fill="#e74c61" opacity="0.8" />
-    <path d="M168 568V62h92v506z" fill="#f29447" opacity="0.78" />
-    <path d="M260 568V62h92v506z" fill="#ebd45d" opacity="0.74" />
-    <path d="M352 568V62h92v506z" fill="#55a877" opacity="0.72" />
-    <path d="M444 568V62h92v506z" fill="#4f8ec8" opacity="0.72" />
-    <path d="M536 568V62h92v506z" fill="#8060ae" opacity="0.76" />
-    <path d="M628 568V62h89v506z" fill="#d35c9a" opacity="0.72" />
-    <path d="M63 62h654v506H63z" fill="#10131a" opacity="0.18" />
+  <g clip-path="url(#sceneClip)">
+    <rect x="52" y="48" width="526" height="534" fill="url(#sky)" />
+    <path d="M52 394c94-44 164-40 245-5 91 40 171 31 281-17v210H52z" fill="#a8b984" />
+    <path d="M52 454c112-45 202-23 291 9 84 30 160 20 235-11v130H52z" fill="#829f75" />
+    <path d="M90 459c98-32 169-20 237 11 57 25 119 24 185 5" fill="none" stroke="#d2bd82" stroke-width="24" stroke-linecap="round" opacity="0.75" />
 
-    <path d="M183 568c12-104 75-160 156-175l54 31 51-31c83 16 143 76 155 175z" fill="url(#coat)" />
-    <path d="m335 393 59 54 61-54-19-54h-82z" fill="#e7b092" />
-    <path d="M261 287c0-71 44-119 112-119h27c72 0 119 48 119 119v25c-20-26-44-44-74-52-46-12-80 8-120 3-25-3-48-13-64-30z" fill="#25212a" />
-    <path d="M373 168c-68 0-112 48-112 119v56c0 92 54 151 129 151s129-59 129-151v-56c0-71-47-119-119-119z" fill="url(#skin)" />
-    <g clip-path="url(#faceClip)" opacity="0.22">
-      <path d="M262 150h54v360h-54z" fill="#ff6682" />
-      <path d="M316 150h54v360h-54z" fill="#ffbd5e" />
-      <path d="M370 150h54v360h-54z" fill="#ffe77a" />
-      <path d="M424 150h54v360h-54z" fill="#8ddd91" />
-      <path d="M478 150h54v360h-54z" fill="#85aaff" />
+    <path d="M349 398c5-71 7-142 2-216" fill="none" stroke="#75503e" stroke-width="27" stroke-linecap="round" />
+    <path d="M351 311c-33-35-64-51-95-63M349 285c31-42 63-65 101-77M350 350c37-16 69-19 105-15" fill="none" stroke="#75503e" stroke-width="13" stroke-linecap="round" />
+    <path d="M206 227c-3-46 33-80 78-74 15-51 75-62 107-29 43-36 105-7 103 45 43 11 55 67 24 94-4 45-66 62-95 29-39 35-92 21-105-12-47 28-108-3-112-53z" fill="#56836a" />
+    <path d="M222 207c11-32 39-45 67-35M302 143c15-28 48-33 67-14M390 169c24-22 56-16 69 6M264 269c20 18 43 19 61 5M382 251c22-20 47-20 67-5" fill="none" stroke="#a4b77b" stroke-width="12" stroke-linecap="round" />
+    <path d="M240 164c-8-17-5-30 8-39M452 215c20-6 31-1 40 12M321 265c-4-17 0-29 11-39" fill="none" stroke="#d8c57f" stroke-width="7" stroke-linecap="round" />
+
+    <path d="M111 357 269 226l171 131-9 21H117z" fill="#8d5148" />
+    <path d="m105 353 164-143 177 143-18 24-159-126-147 126z" fill="url(#roof)" />
+    <path d="M147 359h247v144H147z" fill="url(#wall)" />
+    <path d="M147 359h247v18H147z" fill="#f6e5be" opacity="0.75" />
+    <path d="M164 390h57v70h-57zM320 390h57v70h-57z" fill="#92b7b2" />
+    <path d="M190 390v70M164 424h57M348 390v70M320 424h57" stroke="#f9eed6" stroke-width="7" />
+    <path d="M245 424h54v79h-54z" fill="#88534a" />
+    <circle cx="286" cy="466" r="3.5" fill="#efcf87" />
+    <path d="M129 504h282" stroke="#fff0d2" stroke-width="9" stroke-linecap="round" />
+    <path d="M119 355 266 229M142 355l126-110M165 355l103-91M293 246l143 109M317 267l119 88" fill="none" stroke="#d78d6b" stroke-width="6" stroke-linecap="round" opacity="0.85" />
+    <path d="M83 110c84-31 153-26 215-3M89 126c52-17 92-18 133-9M406 107c47-8 91-3 133 12M449 124c29-2 53 2 76 12" fill="none" stroke="#fff2d7" stroke-width="9" stroke-linecap="round" opacity="0.65" />
+    <path d="M71 534c63-8 106-6 144 4M434 543c40-10 82-10 128-3" fill="none" stroke="#efe0b7" stroke-width="8" stroke-linecap="round" opacity="0.8" />
+    <g fill="#d77c68">
+      <circle cx="104" cy="464" r="7" /><circle cx="119" cy="479" r="6" /><circle cx="465" cy="465" r="7" /><circle cx="485" cy="480" r="5" />
     </g>
-    <path d="M261 288c18 15 39 24 64 27 40 5 74-15 120-3 30 8 54 26 74 52v-77c0-71-47-119-119-119h-27c-68 0-112 48-112 119z" fill="#29232d" />
-    <path d="M313 327c13-9 29-10 42-3" fill="none" stroke="#543f42" stroke-width="7" stroke-linecap="round" />
-    <path d="M416 324c13-8 29-7 41 2" fill="none" stroke="#543f42" stroke-width="7" stroke-linecap="round" />
-    <ellipse cx="338" cy="349" rx="6" ry="4" fill="#30282c" />
-    <ellipse cx="438" cy="349" rx="6" ry="4" fill="#30282c" />
-    <path d="M389 353c-2 17-8 30-13 39 7 6 17 8 26 4" fill="none" stroke="#a86763" stroke-width="5" stroke-linecap="round" />
-    <path d="M356 414c20 15 47 15 68-1" fill="none" stroke="#7f3d50" stroke-width="6" stroke-linecap="round" />
-    <path d="M330 444c34 25 80 27 119 0" fill="none" stroke="#f0b59a" stroke-width="9" stroke-linecap="round" opacity="0.68" />
-    <rect x="81" y="80" width="137" height="30" rx="15" fill="#0b0e13" opacity="0.72" />
-    <circle cx="99" cy="95" r="5" fill="#ef775f" />
-    <text x="113" y="100" fill="#f4efe6" font-family="Segoe UI, Arial, sans-serif" font-size="12" letter-spacing="1.6">LIVE COLOR</text>
+    <g fill="#f2d280">
+      <circle cx="132" cy="469" r="5" /><circle cx="446" cy="486" r="6" /><circle cx="508" cy="458" r="5" />
+    </g>
   </g>
 
-  <rect x="63" y="62" width="654" height="506" rx="22" fill="none" stroke="#ffffff" stroke-opacity="0.13" stroke-width="2" />
+  <rect x="52" y="48" width="526" height="534" rx="24" fill="none" stroke="#fffaf0" stroke-width="4" />
 
-  <g font-family="Segoe UI, Arial, sans-serif">
-    <path d="M787 103h34" stroke="#f17660" stroke-width="4" stroke-linecap="round" />
-    <text x="787" y="137" fill="#f3aa88" font-size="14" font-weight="700" letter-spacing="4">BROWSER IMAGE STUDIO</text>
-    <text x="782" y="222" fill="#f7f2e9" font-size="64" font-weight="700" letter-spacing="-2">Threadline</text>
-    <text x="782" y="291" fill="#f7f2e9" font-size="64" font-weight="700" letter-spacing="-2">Studio</text>
-    <text x="787" y="337" fill="#b6b1aa" font-size="19">Bild. Farbe. Ausdruck.</text>
+  <g font-family="Georgia, 'Times New Roman', serif">
+    <text x="674" y="153" fill="#6c8062" font-family="Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="4">THREADLINE STUDIO</text>
+    <path d="M674 181h58" stroke="#c57655" stroke-width="5" stroke-linecap="round" />
+    <text x="667" y="267" fill="#3f5145" font-size="66" font-weight="700" letter-spacing="-2">Dein Bild.</text>
+    <text x="667" y="336" fill="#3f5145" font-size="66" font-weight="700" letter-spacing="-2">Dein Stil.</text>
+    <text x="674" y="386" fill="#a15d4e" font-family="Arial, sans-serif" font-size="19" font-weight="700" letter-spacing="1">VOLLER MÖGLICHKEITEN UND FUNKTIONEN</text>
+    <text x="674" y="422" fill="#596b59" font-family="Arial, sans-serif" font-size="20">Kreative Filter und Künstler-Looks.</text>
+    <text x="674" y="450" fill="#596b59" font-family="Arial, sans-serif" font-size="20">Verwandle Bilder in deinen Stil.</text>
+  </g>
 
-    <g transform="translate(787 390)">
-      <text x="0" y="0" fill="#e8e2d9" font-size="13" letter-spacing="1.2">KREATIVE REGLER</text>
-      <text x="0" y="34" fill="#a9a5a0" font-size="13">Color</text>
-      <rect x="88" y="23" width="253" height="7" rx="3.5" fill="#34383f" />
-      <rect x="88" y="23" width="166" height="7" rx="3.5" fill="#eb7a62" />
-      <circle cx="254" cy="26.5" r="9" fill="#f6eee4" />
-      <text x="0" y="75" fill="#a9a5a0" font-size="13">Texture</text>
-      <rect x="88" y="64" width="253" height="7" rx="3.5" fill="#34383f" />
-      <rect x="88" y="64" width="112" height="7" rx="3.5" fill="#7a92c8" />
-      <circle cx="200" cy="67.5" r="9" fill="#f6eee4" />
-      <text x="0" y="116" fill="#a9a5a0" font-size="13">Light</text>
-      <rect x="88" y="105" width="253" height="7" rx="3.5" fill="#34383f" />
-      <rect x="88" y="105" width="204" height="7" rx="3.5" fill="#e7bd67" />
-      <circle cx="292" cy="108.5" r="9" fill="#f6eee4" />
+  <g transform="translate(678 488)">
+    <rect width="48" height="48" rx="11" fill="#151618" />
+    <rect x="5.25" y="5.25" width="37.5" height="37.5" rx="8.25" fill="url(#faviconGradient)" />
+    <g transform="scale(0.09375)">
+      <path d="M128 140h256v46H280v186h-48V186H128z" fill="#160f09" />
+      <path d="M158 250h198v44H158z" fill="#fff1e5" opacity=".74" />
     </g>
-
-    <text x="787" y="582" fill="#777b83" font-size="12" letter-spacing="1.8">NO AI · YOUR IMAGE, YOUR LOOK</text>
+    <text x="65" y="21" fill="#526d59" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5">THREADLINE STUDIO</text>
+    <text x="65" y="43" fill="#84907a" font-family="Arial, sans-serif" font-size="14">Ohne KI · Direkt im Browser</text>
   </g>
 </svg>

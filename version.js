@@ -1,5 +1,5 @@
 globalThis.APP_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.21",
-  cacheVersion: "v122",
-  label: "Französische UI-Akzente",
+  appVersion: "0.2.27",
+  cacheVersion: "v128",
+  label: "OG-Favicon und Funktionshinweis",
 });
