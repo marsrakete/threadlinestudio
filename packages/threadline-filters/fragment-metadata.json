@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "groupId": "fragment",
+  "labelKey": "filters.groups.fragment",
+  "descriptionKey": "filters.groups.fragment.description",
+  "filters": [
+    { "id": "tile-swap", "labelKey": "filters.fragment.tileSwap", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "tileSwap", "labelKey": "filters.fragment.tileSwap", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "strip-shift", "labelKey": "filters.fragment.stripShift", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "stripShift", "labelKey": "filters.fragment.stripShift", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "shards", "labelKey": "filters.fragment.shards", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "shards", "labelKey": "filters.fragment.shards", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "patchwork", "labelKey": "filters.fragment.patchwork", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "patchwork", "labelKey": "filters.fragment.patchwork", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "groupId": "materials",
+  "labelKey": "filters.groups.materials",
+  "descriptionKey": "filters.groups.materials.description",
+  "filters": [
+    { "id": "bottle-glass", "performance": "strong", "labelKey": "filters.materials.bottleGlass", "controls": [{ "id": "strength", "stateKey": "bottleGlass", "labelKey": "filters.materials.bottleGlass", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "frosted-glass", "performance": "strong", "labelKey": "filters.materials.frostedGlass", "controls": [{ "id": "strength", "stateKey": "frostedGlass", "labelKey": "filters.materials.frostedGlass", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "raindrops", "performance": "strong", "labelKey": "filters.materials.raindrops", "controls": [{ "id": "strength", "stateKey": "raindrops", "labelKey": "filters.materials.raindrops", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "scratches", "performance": "strong", "labelKey": "filters.materials.scratches", "controls": [{ "id": "strength", "stateKey": "scratches", "labelKey": "filters.materials.scratches", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "plastic-wrap", "performance": "strong", "labelKey": "filters.materials.plasticWrap", "controls": [{ "id": "strength", "stateKey": "plasticWrap", "labelKey": "filters.materials.plasticWrap", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "paper-fiber", "performance": "strong", "labelKey": "filters.materials.paperFiber", "controls": [{ "id": "strength", "stateKey": "paperFiber", "labelKey": "filters.materials.paperFiber", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "cardboard", "performance": "strong", "labelKey": "filters.materials.cardboard", "controls": [{ "id": "strength", "stateKey": "cardboard", "labelKey": "filters.materials.cardboard", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "newsprint", "performance": "strong", "labelKey": "filters.materials.newsprint", "controls": [{ "id": "strength", "stateKey": "newsprint", "labelKey": "filters.materials.newsprint", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "thermal-fax", "performance": "strong", "labelKey": "filters.materials.thermalFax", "controls": [{ "id": "strength", "stateKey": "thermalFax", "labelKey": "filters.materials.thermalFax", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "brushed-metal", "performance": "strong", "labelKey": "filters.materials.brushedMetal", "controls": [{ "id": "strength", "stateKey": "brushedMetal", "labelKey": "filters.materials.brushedMetal", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "perforated-metal", "performance": "strong", "labelKey": "filters.materials.perforatedMetal", "controls": [{ "id": "strength", "stateKey": "perforatedMetal", "labelKey": "filters.materials.perforatedMetal", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "concrete", "performance": "strong", "labelKey": "filters.materials.concrete", "controls": [{ "id": "strength", "stateKey": "concrete", "labelKey": "filters.materials.concrete", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "asphalt", "performance": "strong", "labelKey": "filters.materials.asphalt", "controls": [{ "id": "strength", "stateKey": "asphalt", "labelKey": "filters.materials.asphalt", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "paper-texture", "performance": "strong", "labelKey": "filters.materials.paperTexture", "controls": [{ "id": "strength", "stateKey": "paperTexture", "labelKey": "filters.materials.paperTexture", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "linen", "performance": "strong", "labelKey": "filters.materials.linen", "controls": [{ "id": "strength", "stateKey": "linen", "labelKey": "filters.materials.linen", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "mesh-fabric", "performance": "strong", "labelKey": "filters.materials.meshFabric", "controls": [{ "id": "strength", "stateKey": "meshFabric", "labelKey": "filters.materials.meshFabric", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] }
+  ]
+}

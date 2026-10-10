@@ -1,0 +1,114 @@
+[
+  {
+    "id": "neutral",
+    "groups": {}
+  },
+  {
+    "id": "corrections",
+    "groups": {
+      "corrections": { "brightness": 18, "contrast": 22, "saturation": 30, "sharpen": 1.2 }
+    }
+  },
+  {
+    "id": "color-and-style",
+    "groups": {
+      "styles": { "duotone": 62, "splitTone": 34, "posterBlocks": 22, "saturationMask": 38 }
+    }
+  },
+  {
+    "id": "color-focus",
+    "groups": {
+      "styles": { "colorFocus1": 72, "colorFocusTolerance1": 36, "colorFocus2": 34, "colorFocusTolerance2": 28 }
+    }
+  },
+  {
+    "id": "campaign-pinktober",
+    "groups": {
+      "campaigns": { "pinktober": 72 }
+    }
+  },
+  {
+    "id": "campaign-pride",
+    "groups": {
+      "campaigns": { "prideWidth": 34, "prideIntensity": 68 }
+    }
+  },
+  {
+    "id": "campaign-overlays",
+    "groups": {
+      "campaigns": { "movemberSize": 62, "movemberShape": 58, "movemberPositionY": 6, "ribbonSize": 44, "ribbonShape": 63 }
+    }
+  },
+  {
+    "id": "basic-effects",
+    "groups": {
+      "fx": { "pixelate": 18, "glitch": 28, "edges": 24, "emboss": 18, "pencil": 22, "charcoal": 12, "comic": 20 }
+    }
+  },
+  {
+    "id": "morphology",
+    "groups": {
+      "morphology": { "canny": 35, "dilation": 28, "erosion": 18, "opening": 15 }
+    }
+  },
+  {
+    "id": "patterns",
+    "groups": {
+      "patterns": { "stripes": 32, "waves": 24, "overlayOpacity": 14, "frame": 35 }
+    }
+  },
+  {
+    "id": "materials",
+    "groups": {
+      "materials": { "frostedGlass": 280, "raindrops": 240, "paperFiber": 260 }
+    }
+  },
+  {
+    "id": "atmosphere",
+    "groups": {
+      "atmosphere": { "grain": 32, "vignette": 28, "scanlines": 25, "lightLeak": 220, "dustScratches": 180 }
+    }
+  },
+  {
+    "id": "art",
+    "groups": {
+      "art": { "mosaic": 420, "gridDecay": 380, "neonLines": 220 }
+    }
+  },
+  {
+    "id": "word-art",
+    "groups": {
+      "wordArt": { "textMosaic": 380, "contourText": 340 }
+    }
+  },
+  {
+    "id": "fragments",
+    "groups": {
+      "fragment": { "tileSwap": 400, "shards": 330 }
+    }
+  },
+  {
+    "id": "cut-effects",
+    "groups": {
+      "cut": { "perforation": 300, "paperCut": 320 }
+    }
+  },
+  {
+    "id": "morph-effects",
+    "groups": {
+      "morph": { "swirlMorph": 300, "bulgeMorph": 240 }
+    }
+  },
+  {
+    "id": "artist-filters",
+    "groups": {
+      "artists": { "vanGogh": 420 }
+    }
+  },
+  {
+    "id": "graphic-filters",
+    "groups": {
+      "graphics": { "risograph": 430 }
+    }
+  }
+]

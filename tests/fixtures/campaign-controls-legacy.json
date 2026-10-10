@@ -1,0 +1,13 @@
+[
+  { "key": "pinktober", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "prideWidth", "min": 0, "max": 100, "step": 1, "value": 50 },
+  { "key": "prideIntensity", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "earthDay", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "orangeDay", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "movemberSize", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "movemberShape", "min": 0, "max": 100, "step": 1, "value": 50 },
+  { "key": "movemberPositionX", "min": -100, "max": 100, "step": 1, "value": 0 },
+  { "key": "movemberPositionY", "min": -100, "max": 100, "step": 1, "value": 0 },
+  { "key": "ribbonSize", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "ribbonShape", "min": 0, "max": 100, "step": 1, "value": 50 }
+]

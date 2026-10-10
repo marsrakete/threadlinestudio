@@ -1,0 +1,9 @@
+[
+  { "key": "canny", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "dilation", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "erosion", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "opening", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "closing", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "topHat", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "blackHat", "min": 0, "max": 100, "step": 1, "value": 0 }
+]

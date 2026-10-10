@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "groupId": "word-art",
+  "labelKey": "filters.groups.wordArt",
+  "descriptionKey": "filters.groups.wordArt.description",
+  "filters": [
+    { "id": "text-mosaic", "labelKey": "filters.wordArt.textMosaic", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "textMosaic", "labelKey": "filters.wordArt.textMosaic", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "ascii-deluxe", "labelKey": "filters.wordArt.asciiDeluxe", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "asciiDeluxe", "labelKey": "filters.wordArt.asciiDeluxe", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "keyword-cloud", "labelKey": "filters.wordArt.keywordCloud", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "keywordCloud", "labelKey": "filters.wordArt.keywordCloud", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "contour-text", "labelKey": "filters.wordArt.contourText", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "contourText", "labelKey": "filters.wordArt.contourText", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "typo-halftone", "labelKey": "filters.wordArt.typoHalftone", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "typoHalftone", "labelKey": "filters.wordArt.typoHalftone", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "typo-relief", "labelKey": "filters.wordArt.typoRelief", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "typoRelief", "labelKey": "filters.wordArt.typoRelief", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "line-poetry", "labelKey": "filters.wordArt.linePoetry", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "linePoetry", "labelKey": "filters.wordArt.linePoetry", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "stamp-text", "labelKey": "filters.wordArt.stampText", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "stampText", "labelKey": "filters.wordArt.stampText", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "magazine-collage", "labelKey": "filters.wordArt.magazineCollage", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "magazineCollage", "labelKey": "filters.wordArt.magazineCollage", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "pop-slogans", "labelKey": "filters.wordArt.popSlogans", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "popSlogans", "labelKey": "filters.wordArt.popSlogans", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "matrix-text", "labelKey": "filters.wordArt.matrixText", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "matrixText", "labelKey": "filters.wordArt.matrixText", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "word-silhouette", "labelKey": "filters.wordArt.wordSilhouette", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "wordSilhouette", "labelKey": "filters.wordArt.wordSilhouette", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] }
+  ]
+}

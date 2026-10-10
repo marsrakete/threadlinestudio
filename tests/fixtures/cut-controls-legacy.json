@@ -1,0 +1,6 @@
+[
+  { "key": "punchCard", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "perforation", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "dieCut", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "paperCut", "min": 0, "max": 1000, "step": 1, "value": 0 }
+]

@@ -1,0 +1,10 @@
+[
+  { "key": "bauhaus", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "brutalism", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "swissPoster", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "kodachrome", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "daguerreotype", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "risograph", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "screenprint", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "roentgen", "min": 0, "max": 1000, "step": 1, "value": 0 }
+]

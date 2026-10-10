@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "groupId": "atmosphere",
+  "labelKey": "filters.groups.atmosphere",
+  "descriptionKey": "filters.groups.atmosphere.description",
+  "filters": [
+    { "id": "tv-noise", "performance": "strong", "labelKey": "filters.atmosphere.tvNoise", "controls": [{ "id": "strength", "stateKey": "tvNoise", "labelKey": "filters.atmosphere.tvNoise", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "crt-drift", "performance": "strong", "labelKey": "filters.atmosphere.crtDrift", "controls": [{ "id": "strength", "stateKey": "crtDrift", "labelKey": "filters.atmosphere.crtDrift", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "jpeg-artifacts", "performance": "strong", "labelKey": "filters.atmosphere.jpegArtifacts", "controls": [{ "id": "strength", "stateKey": "jpegArtifacts", "labelKey": "filters.atmosphere.jpegArtifacts", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "print-misregister", "performance": "strong", "labelKey": "filters.atmosphere.printMisregister", "controls": [{ "id": "strength", "stateKey": "printMisregister", "labelKey": "filters.atmosphere.printMisregister", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "overexposure", "performance": "strong", "labelKey": "filters.atmosphere.overexposure", "controls": [{ "id": "strength", "stateKey": "overexposure", "labelKey": "filters.atmosphere.overexposure", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "light-leak", "performance": "strong", "labelKey": "filters.atmosphere.lightLeak", "controls": [{ "id": "strength", "stateKey": "lightLeak", "labelKey": "filters.atmosphere.lightLeak", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "dust-scratches", "performance": "strong", "labelKey": "filters.atmosphere.dustScratches", "controls": [{ "id": "strength", "stateKey": "dustScratches", "labelKey": "filters.atmosphere.dustScratches", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "haze", "performance": "strong", "labelKey": "filters.atmosphere.haze", "controls": [{ "id": "strength", "stateKey": "haze", "labelKey": "filters.atmosphere.haze", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "shadow-cast", "performance": "strong", "labelKey": "filters.atmosphere.shadowCast", "controls": [{ "id": "strength", "stateKey": "shadowCast", "labelKey": "filters.atmosphere.shadowCast", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "reflections", "performance": "strong", "labelKey": "filters.atmosphere.reflections", "controls": [{ "id": "strength", "stateKey": "reflections", "labelKey": "filters.atmosphere.reflections", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "moire", "performance": "strong", "labelKey": "filters.atmosphere.moire", "controls": [{ "id": "strength", "stateKey": "moire", "labelKey": "filters.atmosphere.moire", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "double-exposure", "performance": "strong", "labelKey": "filters.atmosphere.doubleExposure", "controls": [{ "id": "strength", "stateKey": "doubleExposure", "labelKey": "filters.atmosphere.doubleExposure", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "grain", "performance": "strong", "labelKey": "filters.atmosphere.grain", "controls": [{ "id": "strength", "stateKey": "grain", "labelKey": "filters.atmosphere.grain", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "vignette", "performance": "strong", "labelKey": "filters.atmosphere.vignette", "controls": [{ "id": "strength", "stateKey": "vignette", "labelKey": "filters.atmosphere.vignette", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "scanlines", "performance": "strong", "labelKey": "filters.atmosphere.scanlines", "controls": [{ "id": "strength", "stateKey": "scanlines", "labelKey": "filters.atmosphere.scanlines", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] }
+  ]
+}

@@ -1,0 +1,18 @@
+[
+  { "key": "bottleGlass", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "frostedGlass", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "raindrops", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "scratches", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "plasticWrap", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "paperFiber", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "cardboard", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "newsprint", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "thermalFax", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "brushedMetal", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "perforatedMetal", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "concrete", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "asphalt", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "paperTexture", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "linen", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "meshFabric", "min": 0, "max": 1000, "step": 1, "value": 0 }
+]

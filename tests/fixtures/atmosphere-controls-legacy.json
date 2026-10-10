@@ -1,0 +1,17 @@
+[
+  { "key": "tvNoise", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "crtDrift", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "jpegArtifacts", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "printMisregister", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "overexposure", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "lightLeak", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "dustScratches", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "haze", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "shadowCast", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "reflections", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "moire", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "doubleExposure", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "grain", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "vignette", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "scanlines", "min": 0, "max": 100, "step": 1, "value": 0 }
+]

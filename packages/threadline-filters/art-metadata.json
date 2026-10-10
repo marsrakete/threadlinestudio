@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "groupId": "art",
+  "labelKey": "filters.groups.art",
+  "descriptionKey": "filters.groups.art.description",
+  "filters": [
+    { "id": "grid-decay", "labelKey": "filters.art.gridDecay", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "gridDecay", "labelKey": "filters.art.gridDecay", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "dada-collage", "labelKey": "filters.art.dadaCollage", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "dadaCollage", "labelKey": "filters.art.dadaCollage", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "cubist-facets", "labelKey": "filters.art.cubistFacets", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "cubistFacets", "labelKey": "filters.art.cubistFacets", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "dream-look", "labelKey": "filters.art.dreamLook", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "dreamLook", "labelKey": "filters.art.dreamLook", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "ascii-text", "labelKey": "filters.art.asciiText", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "asciiText", "labelKey": "filters.art.asciiText", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "carpet", "labelKey": "filters.art.carpet", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "carpet", "labelKey": "filters.art.carpet", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "mosaic", "labelKey": "filters.art.mosaic", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "mosaic", "labelKey": "filters.art.mosaic", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "matrix-rain", "labelKey": "filters.art.matrixRain", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "matrixRain", "labelKey": "filters.art.matrixRain", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "candy", "labelKey": "filters.art.candy", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "candy", "labelKey": "filters.art.candy", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "neon-lines", "labelKey": "filters.art.neonLines", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "neonLines", "labelKey": "filters.art.neonLines", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "icehouse", "labelKey": "filters.art.icehouse", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "icehouse", "labelKey": "filters.art.icehouse", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "sandstorm", "labelKey": "filters.art.sandstorm", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "sandstorm", "labelKey": "filters.art.sandstorm", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "abstracted", "labelKey": "filters.art.abstracted", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "abstracted", "labelKey": "filters.art.abstracted", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "felt-marker", "labelKey": "filters.art.feltMarker", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "feltMarker", "labelKey": "filters.art.feltMarker", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "lino-cut", "labelKey": "filters.art.linoCut", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "linoCut", "labelKey": "filters.art.linoCut", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "pointillism", "labelKey": "filters.art.pointillism", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "pointillism", "labelKey": "filters.art.pointillism", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "ballpoint-pen", "labelKey": "filters.art.ballpointPen", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "ballpointPen", "labelKey": "filters.art.ballpointPen", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "squash-stretch", "labelKey": "filters.art.squashStretch", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "squashStretch", "labelKey": "filters.art.squashStretch", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "random-words", "labelKey": "filters.art.randomWords", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "randomWords", "labelKey": "filters.art.randomWords", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "minecraft", "labelKey": "filters.art.minecraft", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "minecraft", "labelKey": "filters.art.minecraft", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] }
+  ]
+}

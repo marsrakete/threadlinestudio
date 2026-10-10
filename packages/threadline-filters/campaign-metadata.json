@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "groupId": "campaigns",
+  "labelKey": "filters.groups.campaigns",
+  "descriptionKey": "filters.groups.campaigns.description",
+  "filters": [
+    {
+      "id": "pinktober",
+      "labelKey": "filters.campaigns.pinktober.name",
+      "controls": [
+        {
+          "id": "strength",
+          "stateKey": "pinktober",
+          "labelKey": "filters.campaigns.pinktober.strength",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "id": "pride",
+      "labelKey": "filters.campaigns.pride.name",
+      "controls": [
+        {
+          "id": "stripe-width",
+          "stateKey": "prideWidth",
+          "labelKey": "filters.campaigns.pride.width",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 50
+        },
+        {
+          "id": "stripe-intensity",
+          "stateKey": "prideIntensity",
+          "labelKey": "filters.campaigns.pride.intensity",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "id": "earth-day",
+      "labelKey": "filters.campaigns.earthDay.name",
+      "controls": [
+        {
+          "id": "strength",
+          "stateKey": "earthDay",
+          "labelKey": "filters.campaigns.earthDay.strength",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "id": "orange-day",
+      "labelKey": "filters.campaigns.orangeDay.name",
+      "controls": [
+        {
+          "id": "strength",
+          "stateKey": "orangeDay",
+          "labelKey": "filters.campaigns.orangeDay.strength",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "id": "movember",
+      "labelKey": "filters.campaigns.movember.name",
+      "controls": [
+        {
+          "id": "size",
+          "stateKey": "movemberSize",
+          "labelKey": "filters.campaigns.movember.size",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 0
+        },
+        {
+          "id": "shape",
+          "stateKey": "movemberShape",
+          "labelKey": "filters.campaigns.movember.shape",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 50
+        },
+        {
+          "id": "position-x",
+          "stateKey": "movemberPositionX",
+          "labelKey": "filters.campaigns.movember.positionX",
+          "type": "range",
+          "min": -100,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 0
+        },
+        {
+          "id": "position-y",
+          "stateKey": "movemberPositionY",
+          "labelKey": "filters.campaigns.movember.positionY",
+          "type": "range",
+          "min": -100,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 0
+        }
+      ]
+    },
+    {
+      "id": "awareness-ribbon",
+      "labelKey": "filters.campaigns.ribbon.name",
+      "controls": [
+        {
+          "id": "size",
+          "stateKey": "ribbonSize",
+          "labelKey": "filters.campaigns.ribbon.size",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 0
+        },
+        {
+          "id": "shape",
+          "stateKey": "ribbonShape",
+          "labelKey": "filters.campaigns.ribbon.shape",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 50
+        }
+      ]
+    }
+  ]
+}

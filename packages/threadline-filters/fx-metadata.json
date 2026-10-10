@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "groupId": "fx",
+  "labelKey": "filters.groups.fx",
+  "descriptionKey": "filters.groups.fx.description",
+  "filters": [
+    { "id": "pixelate", "labelKey": "filters.fx.pixelate", "controls": [{ "id": "amount", "stateKey": "pixelate", "labelKey": "filters.fx.pixelate", "type": "range", "min": 0, "max": 60, "step": 1, "defaultValue": 0 }] },
+    { "id": "glitch", "performance": "strong", "labelKey": "filters.fx.glitch", "controls": [{ "id": "amount", "stateKey": "glitch", "labelKey": "filters.fx.glitch", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "edges", "performance": "strong", "labelKey": "filters.fx.edges", "controls": [{ "id": "amount", "stateKey": "edges", "labelKey": "filters.fx.edges", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "emboss", "performance": "strong", "labelKey": "filters.fx.emboss", "controls": [{ "id": "amount", "stateKey": "emboss", "labelKey": "filters.fx.emboss", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "pencil", "performance": "strong", "labelKey": "filters.fx.pencil", "controls": [{ "id": "amount", "stateKey": "pencil", "labelKey": "filters.fx.pencil", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "line-blend", "performance": "veryStrong", "labelKey": "filters.fx.lineBlend", "controls": [{ "id": "amount", "stateKey": "lineBlend", "labelKey": "filters.fx.lineBlend", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "charcoal", "performance": "strong", "labelKey": "filters.fx.charcoal", "controls": [{ "id": "amount", "stateKey": "charcoal", "labelKey": "filters.fx.charcoal", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "invert", "labelKey": "filters.fx.invert", "controls": [{ "id": "amount", "stateKey": "invert", "labelKey": "filters.fx.invert", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "comic", "performance": "strong", "labelKey": "filters.fx.comic", "controls": [{ "id": "amount", "stateKey": "comic", "labelKey": "filters.fx.comic", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "silhouette", "performance": "strong", "labelKey": "filters.fx.silhouette", "controls": [{ "id": "amount", "stateKey": "silhouette", "labelKey": "filters.fx.silhouette", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] }
+  ]
+}

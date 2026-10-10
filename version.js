@@ -1,5 +1,5 @@
 globalThis.APP_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.27",
-  cacheVersion: "v128",
-  label: "OG-Favicon und Funktionshinweis",
+  appVersion: "0.2.73",
+  cacheVersion: "v176",
+  label: "Filterlibrary bleibt im Repository",
 });

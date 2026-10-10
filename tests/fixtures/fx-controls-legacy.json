@@ -1,0 +1,12 @@
+[
+  { "key": "pixelate", "min": 0, "max": 60, "step": 1, "value": 0 },
+  { "key": "glitch", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "edges", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "emboss", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "pencil", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "lineBlend", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "charcoal", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "invert", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "comic", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "silhouette", "min": 0, "max": 100, "step": 1, "value": 0 }
+]

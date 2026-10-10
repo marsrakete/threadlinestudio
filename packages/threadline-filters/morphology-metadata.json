@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "groupId": "morphology",
+  "labelKey": "filters.groups.morphology",
+  "descriptionKey": "filters.groups.morphology.description",
+  "filters": [
+    { "id": "canny", "labelKey": "filters.morphology.canny", "controls": [{ "id": "strength", "stateKey": "canny", "labelKey": "filters.morphology.canny", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "dilation", "labelKey": "filters.morphology.dilation", "controls": [{ "id": "strength", "stateKey": "dilation", "labelKey": "filters.morphology.dilation", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "erosion", "labelKey": "filters.morphology.erosion", "controls": [{ "id": "strength", "stateKey": "erosion", "labelKey": "filters.morphology.erosion", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "opening", "labelKey": "filters.morphology.opening", "controls": [{ "id": "strength", "stateKey": "opening", "labelKey": "filters.morphology.opening", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "closing", "labelKey": "filters.morphology.closing", "controls": [{ "id": "strength", "stateKey": "closing", "labelKey": "filters.morphology.closing", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "top-hat", "labelKey": "filters.morphology.topHat", "controls": [{ "id": "strength", "stateKey": "topHat", "labelKey": "filters.morphology.topHat", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "black-hat", "labelKey": "filters.morphology.blackHat", "controls": [{ "id": "strength", "stateKey": "blackHat", "labelKey": "filters.morphology.blackHat", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "groupId": "corrections",
+  "labelKey": "filters.groups.corrections",
+  "descriptionKey": "filters.groups.corrections.description",
+  "filters": [
+    {
+      "id": "brightness",
+      "labelKey": "filters.corrections.brightness",
+      "controls": [{ "id": "amount", "stateKey": "brightness", "labelKey": "filters.corrections.brightness", "type": "range", "min": -100, "max": 100, "step": 1, "defaultValue": 0 }]
+    },
+    {
+      "id": "contrast",
+      "labelKey": "filters.corrections.contrast",
+      "controls": [{ "id": "amount", "stateKey": "contrast", "labelKey": "filters.corrections.contrast", "type": "range", "min": -100, "max": 100, "step": 1, "defaultValue": 0 }]
+    },
+    {
+      "id": "saturation",
+      "labelKey": "filters.corrections.saturation",
+      "controls": [{ "id": "amount", "stateKey": "saturation", "labelKey": "filters.corrections.saturation", "type": "range", "min": -100, "max": 100, "step": 1, "defaultValue": 0 }]
+    },
+    {
+      "id": "blur",
+      "labelKey": "filters.corrections.blur",
+      "controls": [{ "id": "amount", "stateKey": "blur", "labelKey": "filters.corrections.blur", "type": "range", "min": 0, "max": 18, "step": 0.2, "defaultValue": 0 }]
+    },
+    {
+      "id": "sharpen",
+      "labelKey": "filters.corrections.sharpen",
+      "controls": [{ "id": "amount", "stateKey": "sharpen", "labelKey": "filters.corrections.sharpen", "type": "range", "min": 0, "max": 4, "step": 0.1, "defaultValue": 0 }]
+    },
+    {
+      "id": "focus-center",
+      "labelKey": "filters.corrections.focus-center",
+      "controls": [{ "id": "amount", "stateKey": "focusCenter", "labelKey": "filters.corrections.focus-center", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }]
+    },
+    {
+      "id": "background-blur",
+      "performance": "strong",
+      "labelKey": "filters.corrections.background-blur",
+      "controls": [{ "id": "amount", "stateKey": "backgroundBlur", "labelKey": "filters.corrections.background-blur", "type": "range", "min": 0, "max": 32, "step": 1, "defaultValue": 0 }]
+    }
+  ]
+}

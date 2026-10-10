@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "groupId": "graphics",
+  "labelKey": "filters.groups.graphics",
+  "descriptionKey": "filters.groups.graphics.description",
+  "filters": [
+    { "id": "bauhaus", "labelKey": "filters.graphics.bauhaus", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "bauhaus", "labelKey": "filters.graphics.bauhaus", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "brutalism", "labelKey": "filters.graphics.brutalism", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "brutalism", "labelKey": "filters.graphics.brutalism", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "swiss-poster", "labelKey": "filters.graphics.swissPoster", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "swissPoster", "labelKey": "filters.graphics.swissPoster", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "kodachrome", "labelKey": "filters.graphics.kodachrome", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "kodachrome", "labelKey": "filters.graphics.kodachrome", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "daguerreotype", "labelKey": "filters.graphics.daguerreotype", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "daguerreotype", "labelKey": "filters.graphics.daguerreotype", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "risograph", "labelKey": "filters.graphics.risograph", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "risograph", "labelKey": "filters.graphics.risograph", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "screenprint", "labelKey": "filters.graphics.screenprint", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "screenprint", "labelKey": "filters.graphics.screenprint", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "roentgen", "labelKey": "filters.graphics.roentgen", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "roentgen", "labelKey": "filters.graphics.roentgen", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] }
+  ]
+}

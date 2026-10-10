@@ -34,6 +34,17 @@ Ein Bild wird lokal geladen, direkt im Canvas bearbeitet und anschließend als `
 - Posterize: reduziert Farb- und Helligkeitsstufen
 - Halftone: macht ein Druckraster daraus
 
+### Awareness-Aktionen
+
+Kreative Avatar- und Bild-Looks zu verschiedenen Solidaritäts- und Awareness-Aktionen:
+
+- **Pinktober · Brustkrebs-Awareness:** legt einen einstellbaren rosa Duotone-Farbstich über das Bild
+- **Pride:** überlagert das Bild mit Regenbogenstreifen; Breite und Intensität sind einstellbar
+- **Earth Day:** setzt einen Grün-Blau-Duotone-Look
+- **Orange Day:** setzt ein Orange als Zeichen gegen Gewalt an Frauen
+- **Movember:** ergänzt einen verschiebbaren Schnurrbart; Größe und Form sind einstellbar
+- **Awareness-Schleife:** fügt eine farbige Solidaritätsschleife mit anpassbarer Größe und Form hinzu
+
 ### Verfremdung
 
 - Pixelate: vergrößert sichtbare Pixel
@@ -98,6 +109,17 @@ Zusätzlich gibt es im Bereich `Projekt`:
 - Wenn ein Bild zu hell oder zu weiß kippt, zuerst `Helligkeit`, `Kontrast`, `Overlay` und starke Stilfilter reduzieren.
 - Für saubere Ergebnisse zuerst Korrektur, dann Stil, dann Verfremdung und zum Schluss Muster oder Material einsetzen.
 
+## Wiederverwendbare Filterlibrary
+
+Die extrahierten Filter, Metadaten und Übersetzungen liegen im selben Repository
+unter [`packages/threadline-filters`](./packages/threadline-filters/README.md).
+Sie werden bewusst nicht in einer externen Paketregistry veröffentlicht. Andere
+Projekte können dieses Repository klonen und die benötigten Module direkt aus
+`packages/threadline-filters/` einbinden.
+
+In Node.js kann der Pixeleinstieg relativ aus dem Checkout geladen werden:
+`require("./packages/threadline-filters")`.
+
 ## Export
 
 - `PNG`: verlustfrei
@@ -130,8 +152,8 @@ Es gibt zwei Ebenen:
 
 ## English
 
-Threadline Studio is a no-AI browser image editor. It stores the current project locally, offers correction, style, distortion, pattern, material and atmosphere effects, and exports directly from the browser.
+Threadline Studio is a no-AI browser image editor. It stores the current project locally, offers correction, style, awareness-action looks such as Pinktober and Pride, distortion, pattern, material and atmosphere effects, and exports directly from the browser.
 
 ## Français
 
-Threadline Studio est un éditeur d'image sans IA dans le navigateur. Il mémorise le projet localement, propose des effets de correction, de style, de déformation, des motifs, des matériaux et une ambiance, puis exporte directement depuis le navigateur.
+Threadline Studio est un éditeur d'image sans IA dans le navigateur. Il mémorise le projet localement, propose des effets de correction, de style, des looks solidaires comme Octobre rose et Pride, de déformation, des motifs, des matériaux et une ambiance, puis exporte directement depuis le navigateur.

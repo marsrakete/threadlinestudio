@@ -2,9 +2,12 @@
   "name": "threadline-studio",
   "private": true,
   "scripts": {
-    "build:og-image": "node scripts/build-og-images.js"
+    "build:og-image": "node scripts/build-og-images.js",
+    "test:filters": "node --test tests/filter-factory.contract.js tests/filter-library.contract.js tests/canvas-runtime.contract.js tests/canvas-sampling.contract.js tests/canvas-geometry.contract.js tests/morphology-effects.contract.js tests/canvas-effects.contract.js tests/campaign-effects.contract.js tests/atmosphere-effects.contract.js tests/canvas-primitives.contract.js tests/pattern-effects.contract.js tests/material-effects.contract.js tests/graphic-effects.contract.js tests/composition-effects.contract.js tests/morph-effects.contract.js tests/text-effects.contract.js tests/artist-effects.contract.js tests/art-effects.contract.js tests/effects-entry.contract.js tests/filter-metadata-schema.contract.js tests/metadata-runtime.contract.js tests/repository-consumer.contract.js tests/repository-consumer-browser.contract.js tests/campaign-metadata.contract.js tests/corrections-metadata.contract.js tests/styles-metadata.contract.js tests/fx-metadata.contract.js tests/morphology-metadata.contract.js tests/patterns-metadata.contract.js tests/materials-metadata.contract.js tests/atmosphere-metadata.contract.js tests/art-metadata.contract.js tests/artists-metadata.contract.js tests/graphics-metadata.contract.js tests/word-art-metadata.contract.js tests/fragment-metadata.contract.js tests/cut-metadata.contract.js tests/morph-metadata.contract.js tests/performance-metadata.contract.js && node scripts/filter-baseline.js",
+    "baseline:filters:update": "node scripts/filter-baseline.js --update"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@resvg/resvg-js": "^2.6.2",
     "sharp": "^0.35.2"
   }

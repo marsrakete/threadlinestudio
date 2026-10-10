@@ -1,0 +1,19 @@
+[
+  { "key": "testPattern", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "stripes", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "checker", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "dots", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "diagonalLines", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "crosshatch", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "waves", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "meshFence", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "tireTracks", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "fingerprint", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "topoLines", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "staffLines", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "blueprintGrid", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "zebra", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "gradientWash", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "overlayOpacity", "min": 0, "max": 100, "step": 1, "value": 0 },
+  { "key": "frame", "min": 0, "max": 100, "step": 1, "value": 0 }
+]

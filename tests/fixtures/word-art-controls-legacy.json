@@ -1,0 +1,14 @@
+[
+  { "key": "textMosaic", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "asciiDeluxe", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "keywordCloud", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "contourText", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "typoHalftone", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "typoRelief", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "linePoetry", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "stampText", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "magazineCollage", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "popSlogans", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "matrixText", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "wordSilhouette", "min": 0, "max": 1000, "step": 1, "value": 0 }
+]

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "groupId": "styles",
+  "labelKey": "filters.groups.styles",
+  "descriptionKey": "filters.groups.styles.description",
+  "filters": [
+    { "id": "grayscale", "labelKey": "filters.styles.grayscale", "controls": [{ "id": "strength", "stateKey": "grayscale", "labelKey": "filters.styles.grayscale", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "blackwhite", "labelKey": "filters.styles.blackwhite", "controls": [{ "id": "threshold", "stateKey": "blackwhite", "labelKey": "filters.styles.blackwhite", "type": "range", "min": 0, "max": 255, "step": 1, "defaultValue": 0 }] },
+    { "id": "sepia", "labelKey": "filters.styles.sepia", "controls": [{ "id": "strength", "stateKey": "sepia", "labelKey": "filters.styles.sepia", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "duotone", "labelKey": "filters.styles.duotone", "controls": [{ "id": "strength", "stateKey": "duotone", "labelKey": "filters.styles.duotone", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "hue-shift", "labelKey": "filters.styles.hueShift", "controls": [{ "id": "angle", "stateKey": "hueShift", "labelKey": "filters.styles.hueShift", "type": "range", "min": -180, "max": 180, "step": 1, "defaultValue": 0, "unit": "°" }] },
+    { "id": "color-focus-one", "labelKey": "filters.styles.colorFocusOne", "controls": [
+      { "id": "strength", "stateKey": "colorFocus1", "labelKey": "filters.styles.colorFocusOne", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 },
+      { "id": "tolerance", "stateKey": "colorFocusTolerance1", "labelKey": "filters.styles.colorFocusToleranceOne", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 24 }
+    ] },
+    { "id": "color-focus-two", "labelKey": "filters.styles.colorFocusTwo", "controls": [
+      { "id": "strength", "stateKey": "colorFocus2", "labelKey": "filters.styles.colorFocusTwo", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 },
+      { "id": "tolerance", "stateKey": "colorFocusTolerance2", "labelKey": "filters.styles.colorFocusToleranceTwo", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 24 }
+    ] },
+    { "id": "color-swap", "labelKey": "filters.styles.colorSwap", "controls": [{ "id": "strength", "stateKey": "colorSwap", "labelKey": "filters.styles.colorSwap", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "warm-cool", "labelKey": "filters.styles.warmCool", "controls": [{ "id": "balance", "stateKey": "warmCool", "labelKey": "filters.styles.warmCool", "type": "range", "min": -100, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "split-tone", "labelKey": "filters.styles.splitTone", "controls": [{ "id": "strength", "stateKey": "splitTone", "labelKey": "filters.styles.splitTone", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "saturation-mask", "labelKey": "filters.styles.saturationMask", "controls": [{ "id": "strength", "stateKey": "saturationMask", "labelKey": "filters.styles.saturationMask", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "gradient-map", "labelKey": "filters.styles.gradientMap", "controls": [{ "id": "strength", "stateKey": "gradientMap", "labelKey": "filters.styles.gradientMap", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "false-color", "performance": "strong", "labelKey": "filters.styles.falseColor", "controls": [{ "id": "strength", "stateKey": "falseColor", "labelKey": "filters.styles.falseColor", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "cross-process", "performance": "strong", "labelKey": "filters.styles.crossProcess", "controls": [{ "id": "strength", "stateKey": "crossProcess", "labelKey": "filters.styles.crossProcess", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "heatmap", "performance": "strong", "labelKey": "filters.styles.heatmap", "controls": [{ "id": "strength", "stateKey": "heatmap", "labelKey": "filters.styles.heatmap", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "poster-blocks", "performance": "strong", "labelKey": "filters.styles.posterBlocks", "controls": [{ "id": "strength", "stateKey": "posterBlocks", "labelKey": "filters.styles.posterBlocks", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "color-separation", "labelKey": "filters.styles.colorSeparation", "controls": [{ "id": "strength", "stateKey": "colorSeparation", "labelKey": "filters.styles.colorSeparation", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "luminance-color", "labelKey": "filters.styles.luminanceColor", "controls": [{ "id": "balance", "stateKey": "luminanceColor", "labelKey": "filters.styles.luminanceColor", "type": "range", "min": -100, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "vintage", "labelKey": "filters.styles.vintage", "controls": [{ "id": "strength", "stateKey": "vintage", "labelKey": "filters.styles.vintage", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "oil-paint", "performance": "strong", "labelKey": "filters.styles.oilPaint", "controls": [{ "id": "strength", "stateKey": "oilPaint", "labelKey": "filters.styles.oilPaint", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "pop-art", "performance": "strong", "labelKey": "filters.styles.popArt", "controls": [{ "id": "strength", "stateKey": "popArt", "labelKey": "filters.styles.popArt", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "posterize", "labelKey": "filters.styles.posterize", "controls": [{ "id": "levels", "stateKey": "posterize", "labelKey": "filters.styles.posterize", "type": "range", "min": 0, "max": 12, "step": 1, "defaultValue": 0 }] },
+    { "id": "halftone", "performance": "strong", "labelKey": "filters.styles.halftone", "controls": [{ "id": "size", "stateKey": "halftone", "labelKey": "filters.styles.halftone", "type": "range", "min": 0, "max": 18, "step": 1, "defaultValue": 0 }] }
+  ]
+}

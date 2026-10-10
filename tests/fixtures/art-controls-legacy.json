@@ -1,0 +1,22 @@
+[
+  { "key": "gridDecay", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "dadaCollage", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "cubistFacets", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "dreamLook", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "asciiText", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "carpet", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "mosaic", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "matrixRain", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "candy", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "neonLines", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "icehouse", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "sandstorm", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "abstracted", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "feltMarker", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "linoCut", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "pointillism", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "ballpointPen", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "squashStretch", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "randomWords", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "minecraft", "min": 0, "max": 1000, "step": 1, "value": 0 }
+]

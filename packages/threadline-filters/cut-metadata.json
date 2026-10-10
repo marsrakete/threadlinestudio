@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "groupId": "cut",
+  "labelKey": "filters.groups.cut",
+  "descriptionKey": "filters.groups.cut.description",
+  "filters": [
+    { "id": "punch-card", "labelKey": "filters.cut.punchCard", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "punchCard", "labelKey": "filters.cut.punchCard", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "perforation", "labelKey": "filters.cut.perforation", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "perforation", "labelKey": "filters.cut.perforation", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "die-cut", "labelKey": "filters.cut.dieCut", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "dieCut", "labelKey": "filters.cut.dieCut", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "paper-cut", "labelKey": "filters.cut.paperCut", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "paperCut", "labelKey": "filters.cut.paperCut", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] }
+  ]
+}

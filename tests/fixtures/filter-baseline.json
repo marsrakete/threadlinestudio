@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "platform": "win32-x64",
+  "browser": "145.0.7632.6",
+  "fixture": {
+    "path": "tests/fixtures/filter-baseline-source.svg",
+    "width": 256,
+    "height": 192,
+    "randomSeed": 87431
+  },
+  "cases": [
+    {
+      "id": "neutral",
+      "width": 256,
+      "height": 192,
+      "sha256": "4ac909e5ab8673809320551fea41a9cd7a9b8ed3530e5113842263f796c2de2a"
+    },
+    {
+      "id": "corrections",
+      "width": 256,
+      "height": 192,
+      "sha256": "80fc83a70c2659b8636a3a3d6fbf0d92a84fb7dab55b4b4c61c0408f9ecc0a13"
+    },
+    {
+      "id": "color-and-style",
+      "width": 256,
+      "height": 192,
+      "sha256": "6b78413dfc4770739cd83aeb6d5a9d48b5486b78b2b94e066db1aa07724d98ad"
+    },
+    {
+      "id": "color-focus",
+      "width": 256,
+      "height": 192,
+      "sha256": "53a884f1e6e28f363353a1480f847a9f2961187c949f784e6c015a32ec298c7c"
+    },
+    {
+      "id": "campaign-pinktober",
+      "width": 256,
+      "height": 192,
+      "sha256": "ed96540cb0ada17a7fc58fcd3836592253a7df133fafe72015d7cdfeea690e21"
+    },
+    {
+      "id": "campaign-pride",
+      "width": 256,
+      "height": 192,
+      "sha256": "47a805aeb7f14d8f94f1a064e8561b1f2dede3aa8582705e79db3b2bbe12c007"
+    },
+    {
+      "id": "campaign-overlays",
+      "width": 256,
+      "height": 192,
+      "sha256": "79a2ac60d72f5205a46a52dbdfd5cf8cd005e0a833983d74a0a3623060b62e12"
+    },
+    {
+      "id": "basic-effects",
+      "width": 256,
+      "height": 192,
+      "sha256": "e3fbf5d67673e4150c20e6a947064a8879a4222dd28657470f33026cd94a1a98"
+    },
+    {
+      "id": "morphology",
+      "width": 256,
+      "height": 192,
+      "sha256": "5ccf02dabeb90932bca2ade6ecbe4ec48b3c0c63823003b6fa9e49f4463b7aba"
+    },
+    {
+      "id": "patterns",
+      "width": 256,
+      "height": 192,
+      "sha256": "f935b0988513b217aa52004951592f036b85a39078775df21e0378fb9fe7ad59"
+    },
+    {
+      "id": "materials",
+      "width": 256,
+      "height": 192,
+      "sha256": "fc50c2f4f7c1328c83f25e103781a6bbde54d290352de1ee304bce94e4be41c4"
+    },
+    {
+      "id": "atmosphere",
+      "width": 256,
+      "height": 192,
+      "sha256": "5a5854b47c053fa00a3044b64ac6cc009cf922b5cc84de0d492e10ac3572aeae"
+    },
+    {
+      "id": "art",
+      "width": 256,
+      "height": 192,
+      "sha256": "2a43160c17aa139f05e4d10cbc2cec0196e19ccbbb54a653292132d355f5d95f"
+    },
+    {
+      "id": "word-art",
+      "width": 256,
+      "height": 192,
+      "sha256": "7c6d5c4131490bd9f33053448b54d9c1f75dea9fa9d0b17a2decd4dbae1c0adc"
+    },
+    {
+      "id": "fragments",
+      "width": 256,
+      "height": 192,
+      "sha256": "a8200c6b98f987f6c76852a08cd260124f4c83d7ca344121bd0e99f08545c0f0"
+    },
+    {
+      "id": "cut-effects",
+      "width": 256,
+      "height": 192,
+      "sha256": "f6e5eb712926b88945c3004ab5b62a0c8c381545044ded098929d41c034d9834"
+    },
+    {
+      "id": "morph-effects",
+      "width": 256,
+      "height": 192,
+      "sha256": "ac28d75cfb12679363ae290691122063343e849c3cf76870e5b6af60768f9617"
+    },
+    {
+      "id": "artist-filters",
+      "width": 256,
+      "height": 192,
+      "sha256": "bedb1898bce67687178ab20656cf5c14c36847a558ea0069fc0ec5080ae44ea2"
+    },
+    {
+      "id": "graphic-filters",
+      "width": 256,
+      "height": 192,
+      "sha256": "84bc5716ca33cb3e435743af66ea41606bc4cabd38dc5c368dc2b8e60732e001"
+    }
+  ]
+}

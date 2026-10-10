@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "groupId": "morph",
+  "labelKey": "filters.groups.morph",
+  "descriptionKey": "filters.groups.morph.description",
+  "filters": [
+    { "id": "swirl", "labelKey": "filters.morph.swirl", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "swirlMorph", "labelKey": "filters.morph.swirl", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "melt", "labelKey": "filters.morph.melt", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "meltMorph", "labelKey": "filters.morph.melt", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "rubber-sheet", "labelKey": "filters.morph.rubberSheet", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "rubberSheet", "labelKey": "filters.morph.rubberSheet", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "wave-pull", "labelKey": "filters.morph.wavePull", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "wavePull", "labelKey": "filters.morph.wavePull", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "pinch", "labelKey": "filters.morph.pinch", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "pinchMorph", "labelKey": "filters.morph.pinch", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "bulge", "labelKey": "filters.morph.bulge", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "bulgeMorph", "labelKey": "filters.morph.bulge", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "crease-pull", "labelKey": "filters.morph.creasePull", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "creasePull", "labelKey": "filters.morph.creasePull", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "crumple", "labelKey": "filters.morph.crumple", "performance": "veryStrong", "controls": [{ "id": "strength", "stateKey": "crumpleMorph", "labelKey": "filters.morph.crumple", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] }
+  ]
+}

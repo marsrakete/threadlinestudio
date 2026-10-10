@@ -1,0 +1,9 @@
+{
+  "name": "threadline-filter-library-consumer-example",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Standalone example for consuming Threadline filters from a Git checkout.",
+  "scripts": {
+    "start": "node consumer.js"
+  }
+}

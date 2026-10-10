@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://marsrakete.github.io/threadlinestudio/schemas/filter-metadata-v1.schema.json",
+  "title": "Threadline Filter Metadata",
+  "description": "Versioned, UI-neutral metadata for reusable image filters and their controls.",
+  "$comment": "Consumers must additionally require max > min, defaultValue between min and max inclusive, and unique filter IDs and control IDs within each group/filter.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "groupId",
+    "labelKey",
+    "filters"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "groupId": {
+      "$ref": "#/$defs/id"
+    },
+    "labelKey": {
+      "$ref": "#/$defs/translationKey"
+    },
+    "descriptionKey": {
+      "$ref": "#/$defs/translationKey"
+    },
+    "filters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/filter"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+    },
+    "translationKey": {
+      "type": "string",
+      "pattern": "^filters\\.[a-zA-Z0-9_.-]+$"
+    },
+    "filter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "labelKey",
+        "controls"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "labelKey": {
+          "$ref": "#/$defs/translationKey"
+        },
+        "descriptionKey": {
+          "$ref": "#/$defs/translationKey"
+        },
+        "performance": {
+          "enum": [
+            "normal",
+            "strong",
+            "veryStrong"
+          ]
+        },
+        "controls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/control"
+          }
+        }
+      }
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "stateKey",
+        "labelKey",
+        "type",
+        "min",
+        "max",
+        "step",
+        "defaultValue"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "stateKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9]*$"
+        },
+        "labelKey": {
+          "$ref": "#/$defs/translationKey"
+        },
+        "descriptionKey": {
+          "$ref": "#/$defs/translationKey"
+        },
+        "type": {
+          "const": "range"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number",
+          "description": "Must be greater than min."
+        },
+        "step": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "defaultValue": {
+          "type": "number",
+          "description": "Must be between min and max, inclusive."
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

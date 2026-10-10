@@ -1,0 +1,10 @@
+[
+  { "key": "swirlMorph", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "meltMorph", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "rubberSheet", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "wavePull", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "pinchMorph", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "bulgeMorph", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "creasePull", "min": 0, "max": 1000, "step": 1, "value": 0 },
+  { "key": "crumpleMorph", "min": 0, "max": 1000, "step": 1, "value": 0 }
+]

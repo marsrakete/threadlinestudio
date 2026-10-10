@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "groupId": "patterns",
+  "labelKey": "filters.groups.patterns",
+  "descriptionKey": "filters.groups.patterns.description",
+  "filters": [
+    { "id": "test-pattern", "performance": "veryStrong", "labelKey": "filters.patterns.testPattern", "controls": [{ "id": "strength", "stateKey": "testPattern", "labelKey": "filters.patterns.testPattern", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "stripes", "labelKey": "filters.patterns.stripes", "controls": [{ "id": "strength", "stateKey": "stripes", "labelKey": "filters.patterns.stripes", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "checker", "labelKey": "filters.patterns.checker", "controls": [{ "id": "strength", "stateKey": "checker", "labelKey": "filters.patterns.checker", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "dots", "labelKey": "filters.patterns.dots", "controls": [{ "id": "strength", "stateKey": "dots", "labelKey": "filters.patterns.dots", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "diagonal-lines", "labelKey": "filters.patterns.diagonalLines", "controls": [{ "id": "strength", "stateKey": "diagonalLines", "labelKey": "filters.patterns.diagonalLines", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "crosshatch", "labelKey": "filters.patterns.crosshatch", "controls": [{ "id": "strength", "stateKey": "crosshatch", "labelKey": "filters.patterns.crosshatch", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "waves", "labelKey": "filters.patterns.waves", "controls": [{ "id": "strength", "stateKey": "waves", "labelKey": "filters.patterns.waves", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "mesh-fence", "performance": "strong", "labelKey": "filters.patterns.meshFence", "controls": [{ "id": "strength", "stateKey": "meshFence", "labelKey": "filters.patterns.meshFence", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "tire-tracks", "performance": "veryStrong", "labelKey": "filters.patterns.tireTracks", "controls": [{ "id": "strength", "stateKey": "tireTracks", "labelKey": "filters.patterns.tireTracks", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "fingerprint", "performance": "veryStrong", "labelKey": "filters.patterns.fingerprint", "controls": [{ "id": "strength", "stateKey": "fingerprint", "labelKey": "filters.patterns.fingerprint", "type": "range", "min": 0, "max": 1000, "step": 1, "defaultValue": 0 }] },
+    { "id": "topographic-lines", "labelKey": "filters.patterns.topoLines", "controls": [{ "id": "strength", "stateKey": "topoLines", "labelKey": "filters.patterns.topoLines", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "staff-lines", "labelKey": "filters.patterns.staffLines", "controls": [{ "id": "strength", "stateKey": "staffLines", "labelKey": "filters.patterns.staffLines", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "blueprint-grid", "labelKey": "filters.patterns.blueprintGrid", "controls": [{ "id": "strength", "stateKey": "blueprintGrid", "labelKey": "filters.patterns.blueprintGrid", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "zebra", "labelKey": "filters.patterns.zebra", "controls": [{ "id": "strength", "stateKey": "zebra", "labelKey": "filters.patterns.zebra", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "gradient-wash", "labelKey": "filters.patterns.gradientWash", "controls": [{ "id": "strength", "stateKey": "gradientWash", "labelKey": "filters.patterns.gradientWash", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "overlay-opacity", "performance": "strong", "labelKey": "filters.patterns.overlayOpacity", "controls": [{ "id": "opacity", "stateKey": "overlayOpacity", "labelKey": "filters.patterns.overlayOpacity", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] },
+    { "id": "frame", "labelKey": "filters.patterns.frame", "controls": [{ "id": "strength", "stateKey": "frame", "labelKey": "filters.patterns.frame", "type": "range", "min": 0, "max": 100, "step": 1, "defaultValue": 0 }] }
+  ]
+}
