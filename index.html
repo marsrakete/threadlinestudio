@@ -218,22 +218,27 @@
               </div>
             </summary>
             <div class="panel-body">
-                <div class="field-grid compact-grid" id="colorFocusFields"></div>
-                <div class="focus-color-groups">
-                  <div class="focus-color-group">
-                    <label class="field">
-                      <span data-i18n="focusColorOne">Zielfarbe 1</span>
-                      <input id="focusColorInput" type="color" value="#ff3b30" />
-                    </label>
-                    <button class="secondary" id="focusColorPickerButton" type="button" data-i18n="focusColorPickerOne">Pipette 1</button>
-                  </div>
-                  <div class="focus-color-group">
-                    <label class="field">
-                      <span data-i18n="focusColorTwo">Zielfarbe 2</span>
-                      <input id="focusColor2Input" type="color" value="#ffd400" />
-                    </label>
-                    <button class="secondary" id="focusColor2PickerButton" type="button" data-i18n="focusColorPickerTwo">Pipette 2</button>
-                  </div>
+                <div class="focus-pairs">
+                  <fieldset class="focus-pair">
+                    <legend data-i18n="focusColorOne">Zielfarbe 1</legend>
+                    <div class="focus-pair-top">
+                      <input id="focusColorInput" type="color" value="#ff3b30" aria-label="Zielfarbe 1" />
+                      <button class="secondary" id="focusColorPickerButton" type="button" data-i18n="focusColorPickerOne">Pipette 1</button>
+                    </div>
+                    <div class="field-grid compact-grid" id="colorFocusOneFields"></div>
+                  </fieldset>
+                  <fieldset class="focus-pair">
+                    <legend data-i18n="focusColorTwo">Zielfarbe 2</legend>
+                    <div class="focus-pair-top">
+                      <input id="focusColor2Input" type="color" value="#ffd400" aria-label="Zielfarbe 2" />
+                      <button class="secondary" id="focusColor2PickerButton" type="button" data-i18n="focusColorPickerTwo">Pipette 2</button>
+                    </div>
+                    <div class="field-grid compact-grid" id="colorFocusTwoFields"></div>
+                  </fieldset>
+                  <fieldset class="focus-pair focus-pair-shared">
+                    <legend data-i18n="filters.styles.colorSwap">Farben tauschen</legend>
+                    <div class="field-grid compact-grid" id="colorFocusSharedFields"></div>
+                  </fieldset>
                 </div>            </div>
           </details>
 
