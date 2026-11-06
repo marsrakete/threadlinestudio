@@ -76,10 +76,12 @@ test("trim releases scratch canvases beyond the current pass usage", () => {
   assert.equal(unused.width, 0);
   assert.equal(unused.height, 0);
   runtime.reset();
-  const recreated = runtime.getScratchCanvas(3, 2);
-  assert.equal(recreated, retained);
-  assert.equal(canvases.length, 2);
-  assert.notEqual(canvases[1], unused);
+  const reused = runtime.getScratchCanvas(3, 2);
+  const recreated = runtime.getScratchCanvas(2, 1);
+  assert.equal(reused, retained);
+  assert.equal(canvases.length, 3);
+  assert.notEqual(canvases[2], unused);
+  assert.equal(recreated, canvases[2]);
 });
 
 /** Trimming after a pass with no scratch use releases the entire pool. */
