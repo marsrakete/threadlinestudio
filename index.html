@@ -207,27 +207,38 @@
                 <small class="field-hint" data-i18n="overlayColorHelp">Verwendet von: Overlay, Pop-Art, Verlaufsumsetzung, Falschfarben, Lichtleck und farbigen Mustern.</small>
               </label>
             </div>
-            <div class="focus-block">
-              <div class="focus-block-head">
-                <h3 data-i18n="styleColorFocusTitle">Farbfokus</h3>
+            </div>
+          </details>
+
+          <details class="panel collapsible" open>
+            <summary class="panel-summary">
+              <div class="panel-head">
+                <h2 data-i18n="styleColorFocusTitle">Farbfokus</h2>
                 <p data-i18n="styleColorFocusIntro">Jede Zielfarbe hat ihre eigene Stärke und Toleranz. Alles andere wird schwarzweiß. Zuerst beide Zielfarben aussuchen, danach mit den Reglern arbeiten.</p>
               </div>
-              <div class="field-grid compact-grid" id="colorFocusFields"></div>
-              <div class="color-inline focus-color-inline">
-                <label class="field">
-                  <span data-i18n="focusColorOne">Zielfarbe 1</span>
-                  <input id="focusColorInput" type="color" value="#ff3b30" />
-                </label>
-                <label class="field">
-                  <span data-i18n="focusColorTwo">Zielfarbe 2</span>
-                  <input id="focusColor2Input" type="color" value="#ffd400" />
-                </label>
+            </summary>
+            <div class="panel-body">
+              <div class="focus-block">
+                <div class="focus-block-head">
+                  <h3 data-i18n="styleColorFocusTitle">Farbfokus</h3>
+                  <p data-i18n="styleColorFocusIntro">Jede Zielfarbe hat ihre eigene Stärke und Toleranz. Alles andere wird schwarzweiß. Zuerst beide Zielfarben aussuchen, danach mit den Reglern arbeiten.</p>
+                </div>
+                <div class="field-grid compact-grid" id="colorFocusFields"></div>
+                <div class="color-inline focus-color-inline">
+                  <label class="field">
+                    <span data-i18n="focusColorOne">Zielfarbe 1</span>
+                    <input id="focusColorInput" type="color" value="#ff3b30" />
+                  </label>
+                  <label class="field">
+                    <span data-i18n="focusColorTwo">Zielfarbe 2</span>
+                    <input id="focusColor2Input" type="color" value="#ffd400" />
+                  </label>
+                </div>
+                <div class="button-row focus-actions">
+                  <button class="secondary" id="focusColorPickerButton" type="button" data-i18n="focusColorPickerOne">Pipette 1</button>
+                  <button class="secondary" id="focusColor2PickerButton" type="button" data-i18n="focusColorPickerTwo">Pipette 2</button>
+                </div>
               </div>
-              <div class="button-row focus-actions">
-                <button class="secondary" id="focusColorPickerButton" type="button" data-i18n="focusColorPickerOne">Pipette 1</button>
-                <button class="secondary" id="focusColor2PickerButton" type="button" data-i18n="focusColorPickerTwo">Pipette 2</button>
-              </div>
-            </div>
             </div>
           </details>
 
