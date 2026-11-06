@@ -175,7 +175,6 @@ const els = {
   flipYButton: document.getElementById("flipYButton"),
   correctionFields: document.getElementById("correctionFields"),
   styleFields: document.getElementById("styleFields"),
-  colorFocusFields: document.getElementById("colorFocusFields"),
   campaignPinkFields: document.getElementById("campaignPinkFields"),
   campaignPrideFields: document.getElementById("campaignPrideFields"),
   campaignColorFields: document.getElementById("campaignColorFields"),
@@ -193,6 +192,9 @@ const els = {
   artistsFields: document.getElementById("artistsFields"),
   graphicsFields: document.getElementById("graphicsFields"),
   wordArtFields: document.getElementById("wordArtFields"),
+  colorFocusOneFields: document.getElementById("colorFocusOneFields"),
+  colorFocusTwoFields: document.getElementById("colorFocusTwoFields"),
+  colorFocusSharedFields: document.getElementById("colorFocusSharedFields"),
   duotoneDarkInput: document.getElementById("duotoneDarkInput"),
   duotoneLightInput: document.getElementById("duotoneLightInput"),
   overlayColorInput: document.getElementById("overlayColorInput"),
@@ -200,6 +202,7 @@ const els = {
   focusColor2Input: document.getElementById("focusColor2Input"),
   focusColorPickerButton: document.getElementById("focusColorPickerButton"),
   focusColor2PickerButton: document.getElementById("focusColor2PickerButton"),
+  resetColorFocusButton: document.getElementById("resetColorFocusButton"),
   exportFormatSelect: document.getElementById("exportFormatSelect"),
   exportWidthSelect: document.getElementById("exportWidthSelect"),
   qualityInput: document.getElementById("qualityInput"),
@@ -347,7 +350,10 @@ function buildControlFields() {
   renderControls(els.correctionFields, CONTROL_GROUPS.corrections, "corrections");
   const colorFocusFilterIds = ["color-focus-one", "color-focus-two", "color-swap"];
   renderControls(els.styleFields, CONTROL_GROUPS.styles.filter((control) => !colorFocusFilterIds.includes(control.filterId)), "styles");
-  renderControls(els.colorFocusFields, getControlsByFilterIds(CONTROL_GROUPS.styles, colorFocusFilterIds), "styles");
+  renderControls(els.colorFocusOneFields, getControlsByFilterIds(CONTROL_GROUPS.styles, ["color-focus-one"]), "styles");
+  renderControls(els.colorFocusTwoFields, getControlsByFilterIds(CONTROL_GROUPS.styles, ["color-focus-two"]), "styles");
+  renderControls(els.colorFocusSharedFields, getControlsByFilterIds(CONTROL_GROUPS.styles, ["color-swap"]), "styles");
+
   renderControls(els.campaignPinkFields, getControlsByFilterIds(CONTROL_GROUPS.campaigns, ["pinktober"]), "campaigns");
   renderControls(els.campaignPrideFields, getControlsByFilterIds(CONTROL_GROUPS.campaigns, ["pride"]), "campaigns");
   renderControls(els.campaignColorFields, getControlsByFilterIds(CONTROL_GROUPS.campaigns, ["earth-day", "orange-day"]), "campaigns");
@@ -454,6 +460,7 @@ function bindEvents() {
   els.focusColor2PickerButton.addEventListener("click", () => {
     void activateFocusColorPicker("focusColor2");
   });
+  els.resetColorFocusButton.addEventListener("click", resetColorFocus);
 
   [els.zoomInput, els.panXInput, els.panYInput, els.rotationInput].forEach((input) => {
     input.addEventListener("input", updateTransformFromInputs);
@@ -749,6 +756,14 @@ function fitToFrame() {
   state.project.transform.rotation = 0;
   state.project.transform.flipX = false;
   state.project.transform.flipY = false;
+  touchProject();
+}
+
+function resetColorFocus() {
+  state.project.styles.colorFocus1 = 0;
+  state.project.styles.colorFocusTolerance1 = 24;
+  state.project.styles.colorFocus2 = 0;
+  state.project.styles.colorFocusTolerance2 = 24;
   touchProject();
 }
 
