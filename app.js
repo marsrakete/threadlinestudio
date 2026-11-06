@@ -849,7 +849,6 @@ function render() {
   const canvas = els.previewCanvas;
   updateCanvasFrameAspectRatio();
   ensurePreviewCanvasSize();
-  resetScratchCanvases();
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -865,7 +864,13 @@ function render() {
   const workingCtx = workingCanvas.getContext("2d", { willReadFrequently: true });
   workingCtx.clearRect(0, 0, workingCanvas.width, workingCanvas.height);
   drawBaseImage(workingCtx, workingCanvas.width, workingCanvas.height);
-  applyEffects(workingCanvas, workingCtx);
+  try {
+    applyEffects(workingCanvas, workingCtx);
+    canvasRuntime.trim();
+  } catch (error) {
+    canvasRuntime.release();
+    throw error;
+  }
   ctx.drawImage(workingCanvas, 0, 0);
 }
 
@@ -1864,35 +1869,41 @@ async function createExportBlob() {
   const aspect = getFrameAspectRatio();
   const attemptScales = [1, 0.82, 0.66, 0.5];
   let lastError = null;
-  for (const scale of attemptScales) {
-    const width = Math.max(320, Math.min(requestedWidth, Math.round(requestedWidth * scale)));
-    const height = Math.round(width / aspect);
-    const exportCanvas = document.createElement("canvas");
-    try {
-      exportCanvas.width = width;
-      exportCanvas.height = height;
-      const exportCtx = exportCanvas.getContext("2d", { willReadFrequently: true });
-      exportCtx.clearRect(0, 0, width, height);
-      drawBaseImage(exportCtx, width, height);
-      applyEffects(exportCanvas, exportCtx);
 
-      const format = state.project.export.format;
-      if (format === "pdf") {
-        const jpegBlob = await canvasToBlob(exportCanvas, "image/jpeg", 0.92);
-        return createSimplePdfBlob(jpegBlob, width, height);
+  try {
+    for (const scale of attemptScales) {
+      const width = Math.max(320, Math.min(requestedWidth, Math.round(requestedWidth * scale)));
+      const height = Math.round(width / aspect);
+      const exportCanvas = document.createElement("canvas");
+      try {
+        exportCanvas.width = width;
+        exportCanvas.height = height;
+        const exportCtx = exportCanvas.getContext("2d", { willReadFrequently: true });
+        exportCtx.clearRect(0, 0, width, height);
+        drawBaseImage(exportCtx, width, height);
+        applyEffects(exportCanvas, exportCtx);
+
+        const format = state.project.export.format;
+        if (format === "pdf") {
+          const jpegBlob = await canvasToBlob(exportCanvas, "image/jpeg", 0.92);
+          return createSimplePdfBlob(jpegBlob, width, height);
+        }
+
+        const mime = format === "jpeg" ? "image/jpeg" : format === "webp" ? "image/webp" : "image/png";
+        return await canvasToBlob(exportCanvas, mime, state.project.export.quality);
+      } catch (error) {
+        lastError = error;
+        canvasRuntime.release();
+        console.warn("Export retry with smaller canvas", { requestedWidth, width, error });
+      } finally {
+        exportCanvas.width = 0;
+        exportCanvas.height = 0;
       }
-
-      const mime = format === "jpeg" ? "image/jpeg" : format === "webp" ? "image/webp" : "image/png";
-      return await canvasToBlob(exportCanvas, mime, state.project.export.quality);
-    } catch (error) {
-      lastError = error;
-      console.warn("Export retry with smaller canvas", { requestedWidth, width, error });
-    } finally {
-      exportCanvas.width = 0;
-      exportCanvas.height = 0;
     }
+    throw lastError || new Error("Export failed");
+  } finally {
+    canvasRuntime.release();
   }
-  throw lastError || new Error("Export failed");
 }
 
 function createSimplePdfBlob(imageBlob, width, height) {
