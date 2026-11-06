@@ -363,6 +363,14 @@ input[type="color"] { inline-size: 100%; block-size: 44px; border: 0; border-rad
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.focus-swap-control {
+  min-width: 0;
+}
+
+.focus-swap-control .field {
+  grid-column: 1 / -1;
+}
+
 .focus-reset-button {
   align-self: center;
   justify-self: start;
