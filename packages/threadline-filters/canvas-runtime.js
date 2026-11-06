@@ -119,6 +119,16 @@
       nextCanvasIndex = 0;
     }
 
+    /** Releases pooled canvases that were not needed in the most recent pass.
+     * @returns {void} Nothing.
+     */
+    function trim() {
+      for (let index = nextCanvasIndex; index < canvases.length; index += 1) {
+        resizeCanvas(canvases[index], 0, 0);
+      }
+      canvases.length = nextCanvasIndex;
+    }
+
     /** Copies a source canvas into the next scratch canvas.
      * @param {HTMLCanvasElement} source - Canvas to copy.
      * @returns {HTMLCanvasElement} Scratch canvas containing the source pixels.
@@ -159,7 +169,7 @@
       return value;
     }
 
-    return Object.freeze({ getScratchCanvas, reset, cloneCanvas, release, random });
+    return Object.freeze({ getScratchCanvas, reset, trim, cloneCanvas, release, random });
   }
 
   return Object.freeze({ createCanvasRuntime });
