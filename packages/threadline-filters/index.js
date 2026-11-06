@@ -371,21 +371,19 @@
     validateRange(tolerance, "tolerance", 0, 1);
     const rgb = parseHexColor(targetHex, "targetHex");
     const [targetHue, targetSat, targetLight] = rgbToHsl(rgb.r, rgb.g, rgb.b);
-    const hueTolerance = 4 + tolerance * 58;
-    const satThreshold = 0.05 + tolerance * 0.14;
-    const softRange = 6 + tolerance * 24;
+    const hueTolerance = 6 + tolerance * 72;
+    const softRange = 8 + tolerance * 32;
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
       const gray = 0.299 * r + 0.587 * g + 0.114 * b;
       const [h, s, l] = rgbToHsl(r, g, b);
-      const hueDistance = getHueDistance(h, targetHue);
-      let satFactor = 1;
-      if (s > satThreshold) {
-        satFactor = 1 - s * 0.55;
-      }
-      const focusDistance = hueDistance + satFactor * 44 + Math.abs(l - targetLight) * 18 + Math.abs(s - targetSat) * 12;
+      const chromaConfidence = smoothstep(0.08, 0.32, s);
+      const hueDistance = getHueDistance(h, targetHue) * mix(0.35, 1, chromaConfidence);
+      const shadeDistance = Math.abs(l - targetLight);
+      const saturationDistance = Math.abs(s - targetSat);
+      const focusDistance = hueDistance + shadeDistance * 8 + saturationDistance * 16;
       const preserve = 1 - smoothstep(hueTolerance, hueTolerance + softRange, focusDistance);
       const targetR = mix(gray, r, preserve);
       const targetG = mix(gray, g, preserve);
