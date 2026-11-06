@@ -304,6 +304,10 @@ input[type="color"] { inline-size: 100%; block-size: 44px; border: 0; border-rad
   margin-top: 14px;
 }
 
+.color-inline .field > span {
+  min-height: 2.6em;
+}
+
 .focus-block {
   display: grid;
   gap: 14px;
