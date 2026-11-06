@@ -123,9 +123,12 @@ function assertCampaignMetadataContract() {
   assert.match(serviceWorkerSource, /cut-metadata\.json/);
   assert.match(serviceWorkerSource, /morph-metadata\.json/);
   const versionInfo = require("../version.json");
+  require("../version.js");
+  const appVersionInfo = globalThis.APP_VERSION_INFO;
   assert.equal(packageDefinition.version, "0.34.0");
-  assert.equal(versionInfo.appVersion, "0.2.73");
-  assert.equal(versionInfo.cacheVersion, "v176");
+  assert.equal(versionInfo.appVersion, appVersionInfo.appVersion);
+  assert.equal(versionInfo.cacheVersion, appVersionInfo.cacheVersion);
+  assert.equal(versionInfo.label, appVersionInfo.label);
 }
 
 /** Runs the campaign metadata contract as a Node test.
