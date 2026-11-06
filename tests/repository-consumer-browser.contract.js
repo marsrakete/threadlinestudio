@@ -90,7 +90,8 @@ test("Threadline Studio initializes through the unified filter factory", async f
     });
     await page.goto(url + "/index.html", { waitUntil: "load" });
     await page.waitForFunction(function appHasInitialized() {
-      return document.querySelector("#versionText") && document.querySelector("#versionText").textContent.includes("App 0.2.73");
+      const expectedVersion = window.APP_VERSION_INFO?.appVersion;
+      return expectedVersion && document.querySelector("#versionText")?.textContent.includes("App " + expectedVersion);
     });
     const factoryState = await page.evaluate(function readFactoryState() {
       return {
@@ -98,12 +99,13 @@ test("Threadline Studio initializes through the unified filter factory", async f
         projectHeading: document.querySelector('[data-i18n="projectTitle"]')?.textContent.trim(),
         uploadAvailable: Boolean(document.querySelector("#imageInput")),
         version: document.querySelector("#versionText")?.textContent || "",
+        expectedVersion: window.APP_VERSION_INFO?.appVersion || "",
       };
     });
     assert.equal(factoryState.initialized, true);
     assert.equal(factoryState.projectHeading, "Projekt");
     assert.equal(factoryState.uploadAvailable, true);
-    assert.match(factoryState.version, /App 0\.2\.73/);
+    assert.ok(factoryState.version.includes("App " + factoryState.expectedVersion));
     assert.deepEqual(pageErrors, []);
   } finally {
     if (browser) {
