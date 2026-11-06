@@ -194,6 +194,7 @@ const els = {
   wordArtFields: document.getElementById("wordArtFields"),
   colorFocusOneFields: document.getElementById("colorFocusOneFields"),
   colorFocusTwoFields: document.getElementById("colorFocusTwoFields"),
+  colorFocusSharedFields: document.getElementById("colorFocusSharedFields"),
   duotoneDarkInput: document.getElementById("duotoneDarkInput"),
   duotoneLightInput: document.getElementById("duotoneLightInput"),
   overlayColorInput: document.getElementById("overlayColorInput"),
@@ -347,10 +348,11 @@ function createDefaultProject() {
 
 function buildControlFields() {
   renderControls(els.correctionFields, CONTROL_GROUPS.corrections, "corrections");
-  const colorFocusFilterIds = ["color-focus-one", "color-focus-two"];
+  const colorFocusFilterIds = ["color-focus-one", "color-focus-two", "color-swap"];
   renderControls(els.styleFields, CONTROL_GROUPS.styles.filter((control) => !colorFocusFilterIds.includes(control.filterId)), "styles");
   renderControls(els.colorFocusOneFields, getControlsByFilterIds(CONTROL_GROUPS.styles, ["color-focus-one"]), "styles");
   renderControls(els.colorFocusTwoFields, getControlsByFilterIds(CONTROL_GROUPS.styles, ["color-focus-two"]), "styles");
+  renderControls(els.colorFocusSharedFields, getControlsByFilterIds(CONTROL_GROUPS.styles, ["color-swap"]), "styles");
 
   renderControls(els.campaignPinkFields, getControlsByFilterIds(CONTROL_GROUPS.campaigns, ["pinktober"]), "campaigns");
   renderControls(els.campaignPrideFields, getControlsByFilterIds(CONTROL_GROUPS.campaigns, ["pride"]), "campaigns");
