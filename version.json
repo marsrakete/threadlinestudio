@@ -1,5 +1,5 @@
 {
-  "appVersion": "0.2.74",
-  "cacheVersion": "v177",
-  "label": "Farbfokus und Farbpalette verbessert"
+  "appVersion": "0.2.76",
+  "cacheVersion": "v179",
+  "label": "Canvas-Speicher nach Bedarf freigegeben"
 }

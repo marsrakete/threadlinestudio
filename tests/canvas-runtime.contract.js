@@ -60,6 +60,43 @@ test("scratch canvases are reused after reset and resized safely", () => {
   assert.equal(canvases.length, 2);
 });
 
+/** Frees scratch canvases that are not used in the latest pass.
+ * The retained prefix remains reusable and later slots are allocated again.
+ */
+test("trim releases scratch canvases beyond the current pass usage", () => {
+  const canvases = [];
+  const runtime = createRuntime(() => 0.25, canvases);
+  const retained = runtime.getScratchCanvas(20, 10);
+  const unused = runtime.getScratchCanvas(8, 5);
+  runtime.reset();
+  assert.equal(runtime.getScratchCanvas(7, 4), retained);
+  runtime.trim();
+  assert.equal(retained.width, 7);
+  assert.equal(retained.height, 4);
+  assert.equal(unused.width, 0);
+  assert.equal(unused.height, 0);
+  runtime.reset();
+  const reused = runtime.getScratchCanvas(3, 2);
+  const recreated = runtime.getScratchCanvas(2, 1);
+  assert.equal(reused, retained);
+  assert.equal(canvases.length, 3);
+  assert.notEqual(canvases[2], unused);
+  assert.equal(recreated, canvases[2]);
+});
+
+/** Trimming after a pass with no scratch use releases the entire pool. */
+test("trim releases the full pool when the latest pass needs no scratch canvases", () => {
+  const canvases = [];
+  const runtime = createRuntime(() => 0.25, canvases);
+  const oldCanvas = runtime.getScratchCanvas(4, 6);
+  runtime.reset();
+  runtime.trim();
+  assert.equal(oldCanvas.width, 0);
+  assert.equal(oldCanvas.height, 0);
+  assert.equal(runtime.getScratchCanvas(4, 6) === oldCanvas, false);
+  assert.equal(canvases.length, 2);
+});
+
 /** Verifies cloning uses a scratch canvas and draws the source at its origin. */
 test("cloneCanvas copies into a correctly sized scratch canvas", () => {
   const canvases = [];

@@ -13,7 +13,7 @@ permissions:
 jobs:
   test:
     name: Filtertests und Bildbaselines
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 20
 
     steps:
@@ -30,7 +30,7 @@ jobs:
         run: npm ci
 
       - name: Chromium für Playwright installieren
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Tests ausführen
         run: npm run test:filters
