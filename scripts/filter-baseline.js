@@ -289,7 +289,9 @@ async function verifyCampaignMetadataUi(page) {
       cutCount: cutControls.length,
       morphCount: morphControls.length,
       styleMainFieldCount: document.querySelectorAll("#styleFields input[type=range]").length,
-      colorFocusFieldCount: document.querySelectorAll("#colorFocusFields input[type=range]").length,
+      colorFocusFieldCount: document.querySelectorAll(
+        "#colorFocusOneFields input[type=range], #colorFocusTwoFields input[type=range], #colorFocusSharedFields input[type=range]",
+      ).length,
       campaignFieldCounts: {
         pinktober: document.querySelectorAll("#campaignPinkFields input[type=range]").length,
         pride: document.querySelectorAll("#campaignPrideFields input[type=range]").length,
