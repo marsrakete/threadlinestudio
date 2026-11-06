@@ -1,5 +1,5 @@
 globalThis.APP_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.73",
-  cacheVersion: "v176",
-  label: "Filterlibrary bleibt im Repository",
+  appVersion: "0.2.74",
+  cacheVersion: "v177",
+  label: "Farbfokus und Farbpalette verbessert",
 });
