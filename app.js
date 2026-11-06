@@ -689,7 +689,7 @@ function handleControlInput(event) {
   state.project[group][key] = Number(input.value);
   const config = CONTROL_GROUPS[group].find((item) => item.key === key);
   document.getElementById(`${group}-${key}-value`).textContent = formatControlValue(config, Number(input.value));
-  touchProject();
+  touchProject(false, false);
 }
 
 function pickFocusColorFromPoint(clientX, clientY) {
@@ -783,12 +783,16 @@ function nudgeRotation(delta) {
   touchProject();
 }
 
-function touchProject(skipRevision = false) {
+function touchProject(skipRevision = false, syncUi = true) {
   if (!skipRevision) {
     state.project.meta.revision += 1;
   }
   state.project.meta.updatedAt = new Date().toISOString();
-  syncUiFromState();
+  if (syncUi) {
+    syncUiFromState();
+  } else {
+    syncProjectStatus();
+  }
   scheduleLocalStateSave();
   queueRender();
 }
@@ -876,10 +880,17 @@ function ensurePreviewCanvasSize() {
   const maxDimension = isMobile
     ? (heavyFxActive ? 640 : 840)
     : (heavyFxActive ? 900 : 1280);
+  const maxPixels = isMobile
+    ? (heavyFxActive ? 360_000 : 600_000)
+    : (heavyFxActive ? 700_000 : 1_400_000);
 
-  let targetWidth = Math.round(displayWidth * deviceScale);
-  targetWidth = Math.min(targetWidth, maxDimension);
-  const targetHeight = Math.round(targetWidth / aspect);
+  const desiredWidth = displayWidth * deviceScale;
+  const desiredHeight = desiredWidth / aspect;
+  const dimensionScale = maxDimension / Math.max(desiredWidth, desiredHeight);
+  const pixelScale = Math.sqrt(maxPixels / (desiredWidth * desiredHeight));
+  const scale = Math.min(1, dimensionScale, pixelScale);
+  const targetWidth = Math.max(1, Math.round(desiredWidth * scale));
+  const targetHeight = Math.max(1, Math.round(desiredHeight * scale));
 
   if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
     canvas.width = targetWidth;
@@ -900,8 +911,16 @@ function getFrameAspectRatio() {
 
 function hasHeavyPreviewEffects() {
   const { styles, campaigns, fx, corrections } = state.project;
+  const hasStrongMetadataEffect = Object.entries(CONTROL_GROUPS).some(([groupKey, controls]) =>
+    controls.some((control) => (
+      (control.performance === "strong" || control.performance === "veryStrong")
+      && Number(state.project[groupKey]?.[control.key]) > 0
+    )),
+  );
+
   return (
-    fx.pencil > 0
+    hasStrongMetadataEffect
+    || fx.pencil > 0
     || fx.charcoal > 0
     || fx.comic > 0
     || fx.edges > 0
@@ -909,7 +928,7 @@ function hasHeavyPreviewEffects() {
     || styles.halftone > 0
     || campaigns.pinktober > 0
     || hasCampaignOverlays(campaigns)
-    || fx.backgroundBlur > 0
+    || corrections.backgroundBlur > 0
     || corrections.blur > 0
     || corrections.sharpen > 0
   );
@@ -2005,12 +2024,7 @@ function syncUiFromState() {
     }
   }
 
-  const updated = new Date(state.project.meta.updatedAt);
-  els.projectMetaText.textContent = state.sourceImage
-    ? `${t("statusLoaded")} · ${state.project.source.fileName || "image"} · ${updated.toLocaleString()}`
-    : t("projectMetaFallback");
-  els.versionText.textContent = `App ${state.versionInfo.appVersion} · Cache ${state.versionInfo.cacheVersion} · ${state.versionInfo.label} · Revision r${state.project.meta.revision}`;
-  els.autosaveBadge.textContent = `${t("autosaveReady")} · ${updated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  syncProjectStatus();
   const hasImage = Boolean(state.sourceImage);
   const mobileLayout = isMobileLayout();
   els.exportButton.disabled = !hasImage;
@@ -2024,6 +2038,15 @@ function syncUiFromState() {
   els.shareImageButton.classList.toggle("secondary", !mobileLayout);
   els.emptyBodyText.hidden = mobileLayout;
   els.canvasFrame.style.cursor = state.focusColorPickingTarget ? "crosshair" : (!hasImage && mobileLayout ? "pointer" : "");
+}
+
+function syncProjectStatus() {
+  const updated = new Date(state.project.meta.updatedAt);
+  els.projectMetaText.textContent = state.sourceImage
+    ? `${t("statusLoaded")} · ${state.project.source.fileName || "image"} · ${updated.toLocaleString()}`
+    : t("projectMetaFallback");
+  els.versionText.textContent = `App ${state.versionInfo.appVersion} · Cache ${state.versionInfo.cacheVersion} · ${state.versionInfo.label} · Revision r${state.project.meta.revision}`;
+  els.autosaveBadge.textContent = `${t("autosaveReady")} · ${updated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 function loadLocalState() {
