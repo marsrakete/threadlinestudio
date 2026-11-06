@@ -175,7 +175,6 @@ const els = {
   flipYButton: document.getElementById("flipYButton"),
   correctionFields: document.getElementById("correctionFields"),
   styleFields: document.getElementById("styleFields"),
-  colorFocusFields: document.getElementById("colorFocusFields"),
   campaignPinkFields: document.getElementById("campaignPinkFields"),
   campaignPrideFields: document.getElementById("campaignPrideFields"),
   campaignColorFields: document.getElementById("campaignColorFields"),
