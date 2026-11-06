@@ -83,7 +83,8 @@ test("Threadline Studio initializes through the unified filter factory", async f
   let browser;
   try {
     browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
+    const context = await browser.newContext({ locale: "de-DE" });
+    const page = await context.newPage();
     const pageErrors = [];
     page.on("pageerror", function collectPageError(error) {
       pageErrors.push(error.message);
