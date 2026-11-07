@@ -693,6 +693,7 @@ async function restoreSourceImage() {
     console.error("Could not restore source image", error);
     if (state.project.source.dataUrl) {
       state.sourcePersistenceFailed = true;
+      alert(t("sourceStorageFailed"));
       try { state.sourceImage = await loadImage(state.project.source.dataUrl); } catch (imageError) { console.error(imageError); }
     }
     syncUiFromState(); render();
@@ -2017,7 +2018,9 @@ async function importBackup(text) {
       blob = await (await fetch(project.source.dataUrl)).blob();
       await writeSourceImageRecord({ blob, fileName: project.source.fileName || "image", mimeType: project.source.mimeType || blob.type });
       project.source = { ...project.source, dataUrl: "" };
-    } else await deleteSourceImageRecord();
+    } else {
+      try { await deleteSourceImageRecord(); } catch (deleteError) { console.warn("Could not remove previous source image", deleteError); }
+    }
     state.project = project; state.sourceBlob = blob; state.sourcePersistenceFailed = false;
     state.settings = { ...state.settings, languagePreference: parsed?.settings?.languagePreference || "auto" };
     markProjectSourceDirty(); saveLocalState(true); await restoreSourceImage(); alert(t("backupLoaded"));
@@ -2109,6 +2112,12 @@ function loadLocalState() {
       state.project = mergeProject(createDefaultProject(), JSON.parse(savedProjectState));
       if (savedProjectSource) {
         state.project.source = { ...state.project.source, ...JSON.parse(savedProjectSource) };
+      } else {
+        const legacyProject = localStorage.getItem(STORAGE_KEY);
+        if (legacyProject) {
+          const legacySource = JSON.parse(legacyProject)?.source;
+          if (legacySource?.dataUrl) state.project.source = { ...state.project.source, ...legacySource };
+        }
       }
     } else {
       const legacyProject = localStorage.getItem(STORAGE_KEY);
