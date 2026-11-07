@@ -89,6 +89,7 @@ const state = {
   saveTimer: 0,
   focusColorPickingTarget: "",
   renderQueued: false,
+  projectStatusPending: false,
   previewWorkingCanvas: null,
   previewInteractionActive: false,
   previewPointerActive: false,
@@ -804,7 +805,7 @@ function touchProject(skipRevision = false, syncUi = true) {
   if (syncUi) {
     syncUiFromState();
   } else {
-    syncProjectStatus();
+    state.projectStatusPending = true;
   }
   scheduleLocalStateSave();
   queueRender();
@@ -843,6 +844,10 @@ function queueRender() {
   state.renderQueued = true;
   requestAnimationFrame(() => {
     state.renderQueued = false;
+    if (state.projectStatusPending) {
+      state.projectStatusPending = false;
+      syncProjectStatus();
+    }
     render();
   });
 }
@@ -2139,6 +2144,7 @@ function syncUiFromState() {
     }
   }
 
+  state.projectStatusPending = false;
   syncProjectStatus();
   const hasImage = Boolean(state.sourceImage);
   const mobileLayout = isMobileLayout();
