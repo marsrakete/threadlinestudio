@@ -598,6 +598,7 @@ function bindCanvasGestures() {
         return;
     }
     els.canvasFrame.setPointerCapture(event.pointerId);
+    beginPreviewPointerInteraction();
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (activePointers.size === 1) {
       dragStart = {
@@ -622,13 +623,13 @@ function bindCanvasGestures() {
       const rect = els.canvasFrame.getBoundingClientRect();
       state.project.transform.panX = clamp(dragStart.panX + (event.clientX - dragStart.x) / rect.width, -1.25, 1.25);
       state.project.transform.panY = clamp(dragStart.panY + (event.clientY - dragStart.y) / rect.height, -1.25, 1.25);
-      syncUiFromState();
+      syncTransformUiFromState();
       queueRender();
     } else if (activePointers.size === 2 && pinchStart) {
       const points = [...activePointers.values()];
       const nextDistance = getDistance(points[0], points[1]);
       state.project.transform.zoom = clamp(pinchStart.zoom * (nextDistance / Math.max(10, pinchStart.distance)), 0.5, 3);
-      syncUiFromState();
+      syncTransformUiFromState();
       queueRender();
     }
   };
@@ -639,7 +640,7 @@ function bindCanvasGestures() {
       dragStart = null;
       pinchStart = null;
       scheduleLocalStateSave();
-      render();
+      endPreviewPointerInteraction();
     } else if (activePointers.size === 1) {
       const [point] = [...activePointers.values()];
       dragStart = {
@@ -760,7 +761,8 @@ function updateTransformFromInputs() {
   state.project.transform.panX = Number(els.panXInput.value);
   state.project.transform.panY = Number(els.panYInput.value);
   state.project.transform.rotation = Number(els.rotationInput.value);
-  touchProject();
+  syncTransformUiFromState();
+  touchProject(false, false);
 }
 
 function fitToFrame() {
@@ -2097,7 +2099,7 @@ function clearProject() {
   alert(t("projectCleared"));
 }
 
-function syncUiFromState() {
+function syncTransformUiFromState() {
   const transform = state.project.transform;
   els.zoomInput.value = String(transform.zoom);
   els.panXInput.value = String(transform.panX);
@@ -2107,6 +2109,10 @@ function syncUiFromState() {
   els.panXValue.textContent = `${Math.round(transform.panX * 100)}%`;
   els.panYValue.textContent = `${Math.round(transform.panY * 100)}%`;
   els.rotationValue.textContent = `${Math.round(transform.rotation)}°`;
+}
+
+function syncUiFromState() {
+  syncTransformUiFromState();
   els.qualityInput.value = String(state.project.export.quality);
   els.qualityValue.textContent = `${Math.round(state.project.export.quality * 100)}%`;
   els.exportFormatSelect.value = state.project.export.format;
