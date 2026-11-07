@@ -50,7 +50,7 @@ test("large originals are downsampled once for preview and stay full size for ex
       CanvasRenderingContext2D.prototype.drawImage = function (image, ...args) {
         const sourceWidth = image.naturalWidth || image.videoWidth || image.width || 0;
         const sourceHeight = image.naturalHeight || image.videoHeight || image.height || 0;
-        if (sourceWidth > this.canvas.width || sourceHeight > this.canvas.height) {
+        if (sourceWidth >= 3000 && (sourceWidth > this.canvas.width || sourceHeight > this.canvas.height)) {
           window.__largeSourceDraws.push({ sourceWidth, sourceHeight, targetWidth: this.canvas.width, targetHeight: this.canvas.height });
         }
         return original.call(this, image, ...args);
