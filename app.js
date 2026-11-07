@@ -21,14 +21,17 @@ const STORAGE_KEY = "threadline-studio-project";
 const PROJECT_STATE_KEY = "threadline-studio-project-state";
 const PROJECT_SOURCE_KEY = "threadline-studio-project-source";
 const SETTINGS_KEY = "threadline-studio-settings";
+const SOURCE_DB_NAME = "threadline-studio-source";
+const SOURCE_STORE_NAME = "images";
+const SOURCE_RECORD_KEY = "current";
 const LOCAL_SAVE_DEBOUNCE_MS = 320;
 const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.73",
-  cacheVersion: "v176",
-  label: "Filterlibrary bleibt im Repository",
+  appVersion: "0.2.77",
+  cacheVersion: "v180",
+  label: "Originalbilder platzsparend in IndexedDB gespeichert",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
 const CURRENT_VERSION_INFO = DEFAULT_VERSION;
@@ -84,6 +87,9 @@ const state = {
   project: createDefaultProject(),
   deferredPrompt: null,
   sourceImage: null,
+  sourceBlob: null,
+  sourceObjectUrl: "",
+  sourcePersistenceFailed: false,
   sourceStorageDirty: false,
   saveTimer: 0,
   focusColorPickingTarget: "",
@@ -654,32 +660,81 @@ function bindCanvasGestures() {
 }
 
 async function loadImageFile(file) {
-  releaseSourceImage();
-  releaseRenderBuffers();
-  const dataUrl = await readFileAsDataUrl(file);
-  state.project.source = {
-    dataUrl,
-    fileName: file.name,
-    mimeType: file.type || "image/png",
-  };
-  markProjectSourceDirty();
-  await restoreSourceImage();
-  fitToFrame();
+  try { await writeSourceImageRecord({ blob: file, fileName: file.name, mimeType: file.type || "image/png" }); }
+  catch (error) { console.error(error); alert(t("sourceStorageFailed")); return; }
+  releaseSourceImage(); releaseRenderBuffers();
+  state.sourceBlob = file; state.sourcePersistenceFailed = false;
+  state.project.source = { dataUrl: "", fileName: file.name, mimeType: file.type || "image/png" };
+  markProjectSourceDirty(); saveLocalState(true);
+  await restoreSourceImage(); fitToFrame();
 }
 
 async function restoreSourceImage() {
-  if (!state.project.source.dataUrl) {
-    releaseSourceImage();
-    releaseRenderBuffers();
-    syncUiFromState();
-    render();
-    return;
+  try {
+    let blob = state.sourceBlob;
+    if (state.project.source.dataUrl) {
+      blob = await (await fetch(state.project.source.dataUrl)).blob();
+      await writeSourceImageRecord({ blob, fileName: state.project.source.fileName || "image", mimeType: state.project.source.mimeType || blob.type || "image/png" });
+      state.project.source = { ...state.project.source, dataUrl: "", mimeType: state.project.source.mimeType || blob.type };
+      state.sourceBlob = blob; state.sourcePersistenceFailed = false;
+      localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(PROJECT_SOURCE_KEY);
+      markProjectSourceDirty(); saveLocalState(true);
+    } else if (!blob && state.project.source.fileName) {
+      const record = await readSourceImageRecord();
+      if (record?.blob instanceof Blob) {
+        blob = record.blob; state.sourceBlob = blob;
+        state.project.source = { ...state.project.source, fileName: state.project.source.fileName || record.fileName || "image", mimeType: state.project.source.mimeType || record.mimeType || blob.type };
+      }
+    }
+    if (!blob) { releaseSourceImage(); releaseRenderBuffers(); syncUiFromState(); render(); return; }
+    releaseSourceImage(); state.sourceObjectUrl = URL.createObjectURL(blob);
+    state.sourceImage = await loadImage(state.sourceObjectUrl); syncUiFromState(); render();
+  } catch (error) {
+    console.error("Could not restore source image", error);
+    if (state.project.source.dataUrl) {
+      state.sourcePersistenceFailed = true;
+      try { state.sourceImage = await loadImage(state.project.source.dataUrl); } catch (imageError) { console.error(imageError); }
+    }
+    syncUiFromState(); render();
   }
-  releaseSourceImage();
-  const image = await loadImage(state.project.source.dataUrl);
-  state.sourceImage = image;
-  syncUiFromState();
-  render();
+}
+
+function openSourceDatabase() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) return reject(new Error("IndexedDB unavailable"));
+    const request = window.indexedDB.open(SOURCE_DB_NAME, 1);
+    request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains(SOURCE_STORE_NAME)) request.result.createObjectStore(SOURCE_STORE_NAME); };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Could not open database"));
+  });
+}
+async function writeSourceImageRecord(record) {
+  const db = await openSourceDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SOURCE_STORE_NAME, "readwrite");
+    tx.objectStore(SOURCE_STORE_NAME).put(record, SOURCE_RECORD_KEY);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = tx.onabort = () => { db.close(); reject(tx.error || new Error("Could not write image")); };
+  });
+}
+async function readSourceImageRecord() {
+  const db = await openSourceDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SOURCE_STORE_NAME, "readonly"), req = tx.objectStore(SOURCE_STORE_NAME).get(SOURCE_RECORD_KEY);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error || new Error("Could not read image"));
+    tx.oncomplete = () => db.close();
+    tx.onerror = () => { db.close(); reject(tx.error || new Error("Could not read image")); };
+  });
+}
+async function deleteSourceImageRecord() {
+  const db = await openSourceDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SOURCE_STORE_NAME, "readwrite");
+    tx.objectStore(SOURCE_STORE_NAME).delete(SOURCE_RECORD_KEY);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = tx.onabort = () => { db.close(); reject(tx.error || new Error("Could not delete image")); };
+  });
 }
 
 function handleControlInput(event) {
@@ -830,11 +885,8 @@ function releaseRenderBuffers() {
 }
 
 function releaseSourceImage() {
-  if (!state.sourceImage) return;
-  try {
-    state.sourceImage.src = "";
-  } catch {}
-  state.sourceImage = null;
+  if (state.sourceImage) { try { state.sourceImage.src = ""; } catch {} state.sourceImage = null; }
+  if (state.sourceObjectUrl) { URL.revokeObjectURL(state.sourceObjectUrl); state.sourceObjectUrl = ""; }
 }
 
 function resetScratchCanvases() {
@@ -1946,46 +1998,35 @@ function createSimplePdfBlob(imageBlob, width, height) {
   });
 }
 
-function createBackupBlob() {
-  return new Blob([JSON.stringify({
-    versionInfo: state.versionInfo,
-    project: state.project,
-    settings: state.settings,
-  }, null, 2)], { type: "application/json" });
+async function createBackupBlob() {
+  const project = structuredClone(state.project);
+  if (!project.source.dataUrl && state.sourceBlob) project.source.dataUrl = await readBlobAsDataUrl(state.sourceBlob);
+  return new Blob([JSON.stringify({ versionInfo: state.versionInfo, project, settings: state.settings }, null, 2)], { type: "application/json" });
 }
-
-function downloadBackup() {
-  downloadBlob(createBackupBlob(), "threadline-studio-project.json");
+async function downloadBackup() {
+  try { downloadBlob(await createBackupBlob(), "threadline-studio-project.json"); }
+  catch (error) { console.error(error); alert(t("backupFailed")); }
 }
-
-function importBackup(text) {
+async function importBackup(text) {
   try {
     const parsed = JSON.parse(text);
-    if (!parsed?.project || !parsed?.project?.source) throw new Error("Invalid backup");
-    state.project = mergeProject(createDefaultProject(), parsed.project);
-    state.settings = {
-      languagePreference: parsed?.settings?.languagePreference || "auto",
-    };
-    markProjectSourceDirty();
-    syncUiFromState();
-    saveLocalState(true);
-    restoreSourceImage();
-    alert(t("backupLoaded"));
-  } catch (error) {
-    console.error(error);
-    alert(t("backupInvalid"));
-  }
+    if (!parsed?.project || !parsed.project.source) throw new Error("Invalid backup");
+    const project = mergeProject(createDefaultProject(), parsed.project);
+    let blob = null;
+    if (project.source.dataUrl) {
+      blob = await (await fetch(project.source.dataUrl)).blob();
+      await writeSourceImageRecord({ blob, fileName: project.source.fileName || "image", mimeType: project.source.mimeType || blob.type });
+      project.source = { ...project.source, dataUrl: "" };
+    } else await deleteSourceImageRecord();
+    state.project = project; state.sourceBlob = blob; state.sourcePersistenceFailed = false;
+    state.settings = { ...state.settings, languagePreference: parsed?.settings?.languagePreference || "auto" };
+    markProjectSourceDirty(); saveLocalState(true); await restoreSourceImage(); alert(t("backupLoaded"));
+  } catch (error) { console.error(error); alert(error?.message === "Invalid backup" ? t("backupInvalid") : t("sourceStorageFailed")); }
 }
-
-function clearProject() {
-  state.project = createDefaultProject();
-  releaseSourceImage();
-  releaseRenderBuffers();
-  markProjectSourceDirty();
-  syncUiFromState();
-  saveLocalState(true);
-  render();
-  alert(t("projectCleared"));
+async function clearProject() {
+  try { await deleteSourceImageRecord(); } catch (error) { console.error(error); }
+  state.project = createDefaultProject(); state.sourceBlob = null; state.sourcePersistenceFailed = false;
+  releaseSourceImage(); releaseRenderBuffers(); markProjectSourceDirty(); syncUiFromState(); saveLocalState(true); render(); alert(t("projectCleared"));
 }
 
 function syncUiFromState() {
@@ -2081,14 +2122,7 @@ function loadLocalState() {
 }
 
 function serializeProjectForStorage() {
-  return {
-    ...state.project,
-    source: {
-      dataUrl: "",
-      fileName: "",
-      mimeType: "",
-    },
-  };
+  return { ...state.project, source: { ...state.project.source, dataUrl: "" } };
 }
 
 function scheduleLocalStateSave(forceSource = false) {
@@ -2119,20 +2153,9 @@ function saveLocalState(forceSource = false) {
   try {
     localStorage.setItem(PROJECT_STATE_KEY, JSON.stringify(serializeProjectForStorage()));
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
-    if (forceSource || state.sourceStorageDirty) {
-      localStorage.removeItem(STORAGE_KEY);
-      if (state.project.source?.dataUrl) {
-        localStorage.setItem(PROJECT_SOURCE_KEY, JSON.stringify(state.project.source));
-      } else {
-        localStorage.removeItem(PROJECT_SOURCE_KEY);
-      }
-      state.sourceStorageDirty = false;
-      return;
-    }
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error("saveLocalState failed", error);
-  }
+    if (!state.sourcePersistenceFailed) { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(PROJECT_SOURCE_KEY); }
+    if (forceSource || state.sourceStorageDirty) state.sourceStorageDirty = false;
+  } catch (error) { console.error("saveLocalState failed", error); }
 }
 
 /** Merges saved data over defaults. Expects a default project and saved project and returns the merged project. */
@@ -2421,12 +2444,10 @@ function normalizeMimeExt(format) {
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file);
   });
 }
+function readBlobAsDataUrl(blob) { return readFileAsDataUrl(blob); }
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
