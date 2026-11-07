@@ -1008,6 +1008,20 @@ function drawBaseImage(ctx, width, height) {
   ctx.restore();
 }
 
+function hasActiveEffectValues(values, excludedKeys = []) {
+  const excluded = new Set(excludedKeys);
+  return Object.entries(values || {}).some(([key, value]) => !excluded.has(key) && Number(value) > 0);
+}
+
+function applyFinalPixelEffects(data, width, height, atmosphere, styles, patterns, colors) {
+  if (atmosphere.grain > 0) THREADLINE_FILTERS.applyGrain(data, atmosphere.grain / 100, canvasRuntime.random);
+  if (atmosphere.vignette > 0) applyVignette(data, width, height, atmosphere.vignette / 100);
+  if (atmosphere.scanlines > 0) applyScanlines(data, width, height, atmosphere.scanlines / 100);
+  if (styles.colorSeparation > 0) applyColorSeparation(data, width, height, styles.colorSeparation / 100);
+  if (patterns.overlayOpacity > 0) applyOverlay(data, colors.overlayColor, patterns.overlayOpacity / 100);
+  if (patterns.frame > 0) applyFrame(data, width, height, patterns.frame / 100);
+}
+
 function applyEffects(canvas, ctx) {
   resetScratchCanvases();
   const { corrections, styles, campaigns, fx, morphology, patterns, materials, atmosphere, art, wordArt, fragment, cut, morph, artists, graphics, colors } = state.project;
@@ -1049,11 +1063,51 @@ function applyEffects(canvas, ctx) {
     || fx.silhouette > 0
   );
 
-  if (needsInitialPixelPass) {
+  const needsFinalPixelPass = (
+    atmosphere.grain > 0
+    || atmosphere.vignette > 0
+    || atmosphere.scanlines > 0
+    || styles.colorSeparation > 0
+    || patterns.overlayOpacity > 0
+    || patterns.frame > 0
+  );
+  const hasIntermediateCanvasEffects = (
+    corrections.blur > 0
+    || focusBlurAmount > 0.1
+    || corrections.sharpen > 0
+    || edgeAmount > 0.001
+    || embossAmount > 0.001
+    || pencilAmount > 0.001
+    || lineBlendAmount > 0.001
+    || charcoalAmount > 0.001
+    || comicAmount > 0.001
+    || styles.oilPaint > 0
+    || styles.popArt > 0
+    || styles.halftone > 0
+    || fx.pixelate > 0
+    || fx.glitch > 0
+    || Object.values(campaigns).some((value) => Number(value) > 0)
+    || hasActiveEffectValues(fx, ["invert", "silhouette"])
+    || hasActiveEffectValues(morphology)
+    || hasActiveEffectValues(patterns, ["overlayOpacity", "frame"])
+    || hasActiveEffectValues(materials)
+    || hasActiveEffectValues(atmosphere, ["grain", "vignette", "scanlines"])
+    || hasActiveEffectValues(art)
+    || hasActiveEffectValues(wordArt)
+    || hasActiveEffectValues(fragment)
+    || hasActiveEffectValues(cut)
+    || hasActiveEffectValues(morph)
+    || hasActiveEffectValues(artists)
+    || hasActiveEffectValues(graphics)
+  );
+  const canMergePixelPasses = !hasIntermediateCanvasEffects;
+
+  if (needsInitialPixelPass || (canMergePixelPasses && needsFinalPixelPass)) {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
-    THREADLINE_FILTERS.applyBasicAdjustments(data, corrections, styles.hueShift || 0);
+    if (needsInitialPixelPass) {
+      THREADLINE_FILTERS.applyBasicAdjustments(data, corrections, styles.hueShift || 0);
     if (styles.colorFocus1 > 0) {
       applyColorFocus(data, styles.colorFocus1 / 100, colors.focusColor, styles.colorFocusTolerance1 / 100);
     }
@@ -1087,8 +1141,11 @@ function applyEffects(canvas, ctx) {
     if (styles.posterBlocks > 0) applyPosterBlocks(data, styles.posterBlocks / 100);
     if (styles.luminanceColor !== 0) applyLuminanceColor(data, styles.luminanceColor / 100);
     if (fx.invert > 0) applyInvert(data, fx.invert / 100);
-    if (fx.silhouette > 0) applySilhouette(data, fx.silhouette / 100);
-
+      if (fx.silhouette > 0) applySilhouette(data, fx.silhouette / 100);
+    }
+    if (canMergePixelPasses && needsFinalPixelPass) {
+      applyFinalPixelEffects(data, canvas.width, canvas.height, atmosphere, styles, patterns, colors);
+    }
     ctx.putImageData(imageData, 0, 0);
   }
 
@@ -1131,26 +1188,9 @@ function applyEffects(canvas, ctx) {
   applyArtistEffects(canvas, artists, colors);
   applyGraphicStyleEffects(canvas, graphics, colors);
 
-  const needsFinalPixelPass = (
-    atmosphere.grain > 0
-    || atmosphere.vignette > 0
-    || atmosphere.scanlines > 0
-    || styles.colorSeparation > 0
-    || patterns.overlayOpacity > 0
-    || patterns.frame > 0
-  );
-
-  if (needsFinalPixelPass) {
+  if (needsFinalPixelPass && !canMergePixelPasses) {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    if (atmosphere.grain > 0) THREADLINE_FILTERS.applyGrain(data, atmosphere.grain / 100, canvasRuntime.random);
-    if (atmosphere.vignette > 0) applyVignette(data, canvas.width, canvas.height, atmosphere.vignette / 100);
-    if (atmosphere.scanlines > 0) applyScanlines(data, canvas.width, canvas.height, atmosphere.scanlines / 100);
-    if (styles.colorSeparation > 0) applyColorSeparation(data, canvas.width, canvas.height, styles.colorSeparation / 100);
-    if (patterns.overlayOpacity > 0) applyOverlay(data, colors.overlayColor, patterns.overlayOpacity / 100);
-    if (patterns.frame > 0) applyFrame(data, canvas.width, canvas.height, patterns.frame / 100);
-
+    applyFinalPixelEffects(imageData.data, canvas.width, canvas.height, atmosphere, styles, patterns, colors);
     ctx.putImageData(imageData, 0, 0);
   }
 }
