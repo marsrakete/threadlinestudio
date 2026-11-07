@@ -26,9 +26,9 @@ const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.73",
-  cacheVersion: "v176",
-  label: "Filterlibrary bleibt im Repository",
+  appVersion: "0.2.78",
+  cacheVersion: "v181",
+  label: "Regler-Vorschau flüssiger durch reduzierte Auflösung",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
 const CURRENT_VERSION_INFO = DEFAULT_VERSION;
@@ -89,6 +89,9 @@ const state = {
   focusColorPickingTarget: "",
   renderQueued: false,
   previewWorkingCanvas: null,
+  previewInteractionActive: false,
+  previewPointerActive: false,
+  previewInteractionTimer: 0,
   readmeText: "",
   updateInProgress: false,
   reloadInProgress: false,
@@ -438,8 +441,14 @@ function bindEvents() {
     }
   });
 
-  document.querySelectorAll('input[type="range"][data-group]').forEach((input) => {
-    input.addEventListener("input", handleControlInput);
+  const filterRangeInputs = [...document.querySelectorAll('input[type="range"][data-group]')];
+  filterRangeInputs.forEach((input) => input.addEventListener("input", handleControlInput));
+  const previewRangeInputs = [...filterRangeInputs, els.zoomInput, els.panXInput, els.panYInput, els.rotationInput];
+  previewRangeInputs.forEach((input) => {
+    input.addEventListener("pointerdown", beginPreviewPointerInteraction);
+    input.addEventListener("pointerup", endPreviewPointerInteraction);
+    input.addEventListener("pointercancel", endPreviewPointerInteraction);
+    input.addEventListener("blur", endPreviewPointerInteraction);
   });
 
   [els.duotoneDarkInput, els.duotoneLightInput, els.overlayColorInput, els.focusColorInput, els.focusColor2Input].forEach((input) => {
@@ -683,6 +692,7 @@ async function restoreSourceImage() {
 }
 
 function handleControlInput(event) {
+  markPreviewInteraction();
   const input = event.currentTarget;
   const group = input.dataset.group;
   const key = input.dataset.key;
@@ -742,6 +752,7 @@ async function openNativeEyeDropper(targetKey) {
 }
 
 function updateTransformFromInputs() {
+  markPreviewInteraction();
   state.project.transform.zoom = Number(els.zoomInput.value);
   state.project.transform.panX = Number(els.panXInput.value);
   state.project.transform.panY = Number(els.panYInput.value);
@@ -794,6 +805,34 @@ function touchProject(skipRevision = false, syncUi = true) {
     syncProjectStatus();
   }
   scheduleLocalStateSave();
+  queueRender();
+}
+
+function markPreviewInteraction() {
+  state.previewInteractionActive = true;
+  if (!state.previewPointerActive) {
+    window.clearTimeout(state.previewInteractionTimer);
+    state.previewInteractionTimer = window.setTimeout(endPreviewInteraction, 180);
+  }
+}
+
+function beginPreviewPointerInteraction() {
+  window.clearTimeout(state.previewInteractionTimer);
+  state.previewPointerActive = true;
+  state.previewInteractionActive = true;
+  queueRender();
+}
+
+function endPreviewPointerInteraction() {
+  state.previewPointerActive = false;
+  endPreviewInteraction();
+}
+
+function endPreviewInteraction() {
+  window.clearTimeout(state.previewInteractionTimer);
+  state.previewInteractionTimer = 0;
+  if (!state.previewInteractionActive) return;
+  state.previewInteractionActive = false;
   queueRender();
 }
 
@@ -894,8 +933,9 @@ function ensurePreviewCanvasSize() {
   const dimensionScale = maxDimension / Math.max(desiredWidth, desiredHeight);
   const pixelScale = Math.sqrt(maxPixels / (desiredWidth * desiredHeight));
   const scale = Math.min(1, dimensionScale, pixelScale);
-  const targetWidth = Math.max(1, Math.round(desiredWidth * scale));
-  const targetHeight = Math.max(1, Math.round(desiredHeight * scale));
+  const interactionScale = state.previewInteractionActive ? 0.55 : 1;
+  const targetWidth = Math.max(1, Math.round(desiredWidth * scale * interactionScale));
+  const targetHeight = Math.max(1, Math.round(desiredHeight * scale * interactionScale));
 
   if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
     canvas.width = targetWidth;
