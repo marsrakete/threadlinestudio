@@ -21,6 +21,9 @@ const STORAGE_KEY = "threadline-studio-project";
 const PROJECT_STATE_KEY = "threadline-studio-project-state";
 const PROJECT_SOURCE_KEY = "threadline-studio-project-source";
 const SETTINGS_KEY = "threadline-studio-settings";
+const SOURCE_DB_NAME = "threadline-studio-source";
+const SOURCE_STORE_NAME = "images";
+const SOURCE_RECORD_KEY = "current";
 const LOCAL_SAVE_DEBOUNCE_MS = 320;
 const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
@@ -85,6 +88,9 @@ const state = {
   deferredPrompt: null,
   sourceImage: null,
   previewSourceImage: null,
+  sourceBlob: null,
+  sourceObjectUrl: "",
+  sourcePersistenceFailed: false,
   sourceStorageDirty: false,
   saveTimer: 0,
   focusColorPickingTarget: "",
@@ -665,33 +671,139 @@ function bindCanvasGestures() {
 }
 
 async function loadImageFile(file) {
+  try {
+    await writeSourceImageRecord({ blob: file, fileName: file.name, mimeType: file.type || "image/png" });
+  } catch (error) {
+    console.error("Could not save source image", error);
+    alert(t("sourceStorageFailed"));
+    return;
+  }
   releaseSourceImage();
   releaseRenderBuffers();
-  const dataUrl = await readFileAsDataUrl(file);
-  state.project.source = {
-    dataUrl,
-    fileName: file.name,
-    mimeType: file.type || "image/png",
-  };
+  state.sourceBlob = file;
+  state.sourcePersistenceFailed = false;
+  state.project.source = { dataUrl: "", fileName: file.name, mimeType: file.type || "image/png" };
   markProjectSourceDirty();
+  saveLocalState(true);
   await restoreSourceImage();
   fitToFrame();
 }
 
 async function restoreSourceImage() {
-  if (!state.project.source.dataUrl) {
+  try {
+    let blob = state.sourceBlob;
+    if (state.project.source.dataUrl) {
+      blob = await (await fetch(state.project.source.dataUrl)).blob();
+      await writeSourceImageRecord({
+        blob,
+        fileName: state.project.source.fileName || "image",
+        mimeType: state.project.source.mimeType || blob.type || "image/png",
+      });
+      state.project.source = { ...state.project.source, dataUrl: "", mimeType: state.project.source.mimeType || blob.type };
+      state.sourceBlob = blob;
+      state.sourcePersistenceFailed = false;
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(PROJECT_SOURCE_KEY);
+      markProjectSourceDirty();
+      saveLocalState(true);
+    } else if (!blob && state.project.source.fileName) {
+      const record = await readSourceImageRecord();
+      if (record?.blob instanceof Blob) {
+        blob = record.blob;
+        state.sourceBlob = blob;
+        state.project.source = {
+          ...state.project.source,
+          fileName: state.project.source.fileName || record.fileName || "image",
+          mimeType: state.project.source.mimeType || record.mimeType || blob.type,
+        };
+      }
+    }
+    if (!blob) {
+      releaseSourceImage();
+      releaseRenderBuffers();
+      syncUiFromState();
+      render();
+      return;
+    }
     releaseSourceImage();
-    releaseRenderBuffers();
+    state.sourceObjectUrl = URL.createObjectURL(blob);
+    const image = await loadImage(state.sourceObjectUrl);
+    state.sourceImage = image;
+    state.previewSourceImage = createPreviewSourceImage(image);
     syncUiFromState();
     render();
-    return;
+  } catch (error) {
+    console.error("Could not restore source image", error);
+    if (state.project.source.dataUrl) {
+      state.sourcePersistenceFailed = true;
+      alert(t("sourceStorageFailed"));
+      try {
+        const image = await loadImage(state.project.source.dataUrl);
+        state.sourceImage = image;
+        state.previewSourceImage = createPreviewSourceImage(image);
+      } catch (imageError) {
+        console.error("Could not load legacy source image", imageError);
+      }
+    }
+    syncUiFromState();
+    render();
   }
-  releaseSourceImage();
-  const image = await loadImage(state.project.source.dataUrl);
-  state.sourceImage = image;
-  state.previewSourceImage = createPreviewSourceImage(image);
-  syncUiFromState();
-  render();
+}
+
+function openSourceDatabase() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error("IndexedDB is unavailable"));
+      return;
+    }
+    const request = window.indexedDB.open(SOURCE_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(SOURCE_STORE_NAME)) request.result.createObjectStore(SOURCE_STORE_NAME);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Could not open source database"));
+  });
+}
+
+async function writeSourceImageRecord(record) {
+  const database = await openSourceDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(SOURCE_STORE_NAME, "readwrite");
+    transaction.objectStore(SOURCE_STORE_NAME).put(record, SOURCE_RECORD_KEY);
+    transaction.oncomplete = () => { database.close(); resolve(); };
+    transaction.onerror = transaction.onabort = () => {
+      database.close();
+      reject(transaction.error || new Error("Could not write source image"));
+    };
+  });
+}
+
+async function readSourceImageRecord() {
+  const database = await openSourceDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(SOURCE_STORE_NAME, "readonly");
+    const request = transaction.objectStore(SOURCE_STORE_NAME).get(SOURCE_RECORD_KEY);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error || new Error("Could not read source image"));
+    transaction.oncomplete = () => database.close();
+    transaction.onerror = () => {
+      database.close();
+      reject(transaction.error || new Error("Could not read source image"));
+    };
+  });
+}
+
+async function deleteSourceImageRecord() {
+  const database = await openSourceDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(SOURCE_STORE_NAME, "readwrite");
+    transaction.objectStore(SOURCE_STORE_NAME).delete(SOURCE_RECORD_KEY);
+    transaction.oncomplete = () => { database.close(); resolve(); };
+    transaction.onerror = transaction.onabort = () => {
+      database.close();
+      reject(transaction.error || new Error("Could not delete source image"));
+    };
+  });
 }
 
 function handleControlInput(event) {
