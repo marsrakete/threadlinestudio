@@ -84,6 +84,7 @@ const state = {
   project: createDefaultProject(),
   deferredPrompt: null,
   sourceImage: null,
+  previewSourceImage: null,
   sourceStorageDirty: false,
   saveTimer: 0,
   focusColorPickingTarget: "",
@@ -687,6 +688,7 @@ async function restoreSourceImage() {
   releaseSourceImage();
   const image = await loadImage(state.project.source.dataUrl);
   state.sourceImage = image;
+  state.previewSourceImage = createPreviewSourceImage(image);
   syncUiFromState();
   render();
 }
@@ -869,11 +871,14 @@ function releaseRenderBuffers() {
 }
 
 function releaseSourceImage() {
-  if (!state.sourceImage) return;
-  try {
-    state.sourceImage.src = "";
-  } catch {}
-  state.sourceImage = null;
+  if (state.sourceImage) {
+    try { state.sourceImage.src = ""; } catch {}
+    state.sourceImage = null;
+  }
+  if (state.previewSourceImage && state.previewSourceImage.tagName === "CANVAS") {
+    releaseCanvas(state.previewSourceImage);
+  }
+  state.previewSourceImage = null;
 }
 
 function resetScratchCanvases() {
@@ -902,7 +907,7 @@ function render() {
   const workingCanvas = getReusableCanvas("previewWorkingCanvas", canvas.width, canvas.height);
   const workingCtx = workingCanvas.getContext("2d", { willReadFrequently: true });
   workingCtx.clearRect(0, 0, workingCanvas.width, workingCanvas.height);
-  drawBaseImage(workingCtx, workingCanvas.width, workingCanvas.height);
+  drawBaseImage(workingCtx, workingCanvas.width, workingCanvas.height, state.previewSourceImage || state.sourceImage);
   try {
     applyEffects(workingCanvas, workingCtx);
     canvasRuntime.trim();
@@ -979,7 +984,27 @@ function hasHeavyPreviewEffects() {
   );
 }
 
-function drawBaseImage(ctx, width, height) {
+function createPreviewSourceImage(image) {
+  const maxDimension = 1280;
+  const maxPixels = 1_400_000;
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+  const scale = Math.min(
+    1,
+    maxDimension / Math.max(sourceWidth, sourceHeight),
+    Math.sqrt(maxPixels / (sourceWidth * sourceHeight)),
+  );
+  if (scale >= 1) return image;
+
+  const preview = document.createElement("canvas");
+  preview.width = Math.max(1, Math.round(sourceWidth * scale));
+  preview.height = Math.max(1, Math.round(sourceHeight * scale));
+  const context = preview.getContext("2d");
+  context.drawImage(image, 0, 0, preview.width, preview.height);
+  return preview;
+}
+
+function drawBaseImage(ctx, width, height, image = state.sourceImage) {
   ctx.save();
   ctx.fillStyle = "#050607";
   ctx.fillRect(0, 0, width, height);
@@ -990,7 +1015,6 @@ function drawBaseImage(ctx, width, height) {
   ctx.rotate((rotation * Math.PI) / 180);
   ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
 
-  const image = state.sourceImage;
   const imageRatio = image.width / image.height;
   const canvasRatio = width / height;
   let drawWidth;
