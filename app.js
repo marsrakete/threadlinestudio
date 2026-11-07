@@ -1086,7 +1086,7 @@ function applyEffects(canvas, ctx) {
     || styles.halftone > 0
     || fx.pixelate > 0
     || fx.glitch > 0
-    || Object.values(campaigns).some((value) => Number(value) > 0)
+    || hasActiveEffectValues(campaigns, ["prideWidth", "movemberShape", "ribbonShape"])
     || hasActiveEffectValues(fx, ["invert", "silhouette"])
     || hasActiveEffectValues(morphology)
     || hasActiveEffectValues(patterns, ["overlayOpacity", "frame"])
