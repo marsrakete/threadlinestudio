@@ -87,6 +87,7 @@ test("simple correction and finish effects share a single pixel read", async () 
     await flushAnimationFrames(page);
     assert.equal(await page.evaluate(() => window.__pixelReadCount), 1);
 
+    await page.evaluate(() => { window.__pixelReadCount = 0; });
     await setRangeValue(page, blur, 5);
     await flushAnimationFrames(page);
     assert.equal(await page.evaluate(() => window.__pixelReadCount), 2);
