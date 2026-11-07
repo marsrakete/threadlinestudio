@@ -21,14 +21,17 @@ const STORAGE_KEY = "threadline-studio-project";
 const PROJECT_STATE_KEY = "threadline-studio-project-state";
 const PROJECT_SOURCE_KEY = "threadline-studio-project-source";
 const SETTINGS_KEY = "threadline-studio-settings";
+const SOURCE_DB_NAME = "threadline-studio-source";
+const SOURCE_STORE_NAME = "images";
+const SOURCE_RECORD_KEY = "current";
 const LOCAL_SAVE_DEBOUNCE_MS = 320;
 const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.73",
-  cacheVersion: "v176",
-  label: "Filterlibrary bleibt im Repository",
+  appVersion: "0.2.83",
+  cacheVersion: "v186",
+  label: "Bildspeicherung und Vorschau-Performance zusammengeführt",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
 const CURRENT_VERSION_INFO = DEFAULT_VERSION;
@@ -84,11 +87,19 @@ const state = {
   project: createDefaultProject(),
   deferredPrompt: null,
   sourceImage: null,
+  previewSourceImage: null,
+  sourceBlob: null,
+  sourceObjectUrl: "",
+  sourcePersistenceFailed: false,
   sourceStorageDirty: false,
   saveTimer: 0,
   focusColorPickingTarget: "",
   renderQueued: false,
+  projectStatusPending: false,
   previewWorkingCanvas: null,
+  previewInteractionActive: false,
+  previewPointerActive: false,
+  previewInteractionTimer: 0,
   readmeText: "",
   updateInProgress: false,
   reloadInProgress: false,
@@ -438,8 +449,14 @@ function bindEvents() {
     }
   });
 
-  document.querySelectorAll('input[type="range"][data-group]').forEach((input) => {
-    input.addEventListener("input", handleControlInput);
+  const filterRangeInputs = [...document.querySelectorAll('input[type="range"][data-group]')];
+  filterRangeInputs.forEach((input) => input.addEventListener("input", handleControlInput));
+  const previewRangeInputs = [...filterRangeInputs, els.zoomInput, els.panXInput, els.panYInput, els.rotationInput];
+  previewRangeInputs.forEach((input) => {
+    input.addEventListener("pointerdown", beginPreviewPointerInteraction);
+    input.addEventListener("pointerup", endPreviewPointerInteraction);
+    input.addEventListener("pointercancel", endPreviewPointerInteraction);
+    input.addEventListener("blur", endPreviewPointerInteraction);
   });
 
   [els.duotoneDarkInput, els.duotoneLightInput, els.overlayColorInput, els.focusColorInput, els.focusColor2Input].forEach((input) => {
@@ -587,6 +604,7 @@ function bindCanvasGestures() {
         return;
     }
     els.canvasFrame.setPointerCapture(event.pointerId);
+    beginPreviewPointerInteraction();
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (activePointers.size === 1) {
       dragStart = {
@@ -611,13 +629,13 @@ function bindCanvasGestures() {
       const rect = els.canvasFrame.getBoundingClientRect();
       state.project.transform.panX = clamp(dragStart.panX + (event.clientX - dragStart.x) / rect.width, -1.25, 1.25);
       state.project.transform.panY = clamp(dragStart.panY + (event.clientY - dragStart.y) / rect.height, -1.25, 1.25);
-      syncUiFromState();
+      syncTransformUiFromState();
       queueRender();
     } else if (activePointers.size === 2 && pinchStart) {
       const points = [...activePointers.values()];
       const nextDistance = getDistance(points[0], points[1]);
       state.project.transform.zoom = clamp(pinchStart.zoom * (nextDistance / Math.max(10, pinchStart.distance)), 0.5, 3);
-      syncUiFromState();
+      syncTransformUiFromState();
       queueRender();
     }
   };
@@ -628,7 +646,7 @@ function bindCanvasGestures() {
       dragStart = null;
       pinchStart = null;
       scheduleLocalStateSave();
-      render();
+      endPreviewPointerInteraction();
     } else if (activePointers.size === 1) {
       const [point] = [...activePointers.values()];
       dragStart = {
@@ -648,41 +666,148 @@ function bindCanvasGestures() {
   els.canvasFrame.addEventListener("wheel", (event) => {
     event.preventDefault();
     state.project.transform.zoom = clamp(state.project.transform.zoom - event.deltaY * 0.0015, 0.5, 3);
-    syncUiFromState();
     touchProject();
   }, { passive: false });
 }
 
 async function loadImageFile(file) {
+  try {
+    await writeSourceImageRecord({ blob: file, fileName: file.name, mimeType: file.type || "image/png" });
+  } catch (error) {
+    console.error("Could not save source image", error);
+    alert(t("sourceStorageFailed"));
+    return;
+  }
   releaseSourceImage();
   releaseRenderBuffers();
-  const dataUrl = await readFileAsDataUrl(file);
-  state.project.source = {
-    dataUrl,
-    fileName: file.name,
-    mimeType: file.type || "image/png",
-  };
+  state.sourceBlob = file;
+  state.sourcePersistenceFailed = false;
+  state.project.source = { dataUrl: "", fileName: file.name, mimeType: file.type || "image/png" };
   markProjectSourceDirty();
+  saveLocalState(true);
   await restoreSourceImage();
   fitToFrame();
 }
 
 async function restoreSourceImage() {
-  if (!state.project.source.dataUrl) {
+  try {
+    let blob = state.sourceBlob;
+    if (state.project.source.dataUrl) {
+      blob = await (await fetch(state.project.source.dataUrl)).blob();
+      await writeSourceImageRecord({
+        blob,
+        fileName: state.project.source.fileName || "image",
+        mimeType: state.project.source.mimeType || blob.type || "image/png",
+      });
+      state.project.source = { ...state.project.source, dataUrl: "", mimeType: state.project.source.mimeType || blob.type };
+      state.sourceBlob = blob;
+      state.sourcePersistenceFailed = false;
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(PROJECT_SOURCE_KEY);
+      markProjectSourceDirty();
+      saveLocalState(true);
+    } else if (!blob && state.project.source.fileName) {
+      const record = await readSourceImageRecord();
+      if (record?.blob instanceof Blob) {
+        blob = record.blob;
+        state.sourceBlob = blob;
+        state.project.source = {
+          ...state.project.source,
+          fileName: state.project.source.fileName || record.fileName || "image",
+          mimeType: state.project.source.mimeType || record.mimeType || blob.type,
+        };
+      }
+    }
+    if (!blob) {
+      releaseSourceImage();
+      releaseRenderBuffers();
+      syncUiFromState();
+      render();
+      return;
+    }
     releaseSourceImage();
-    releaseRenderBuffers();
+    state.sourceObjectUrl = URL.createObjectURL(blob);
+    const image = await loadImage(state.sourceObjectUrl);
+    state.sourceImage = image;
+    state.previewSourceImage = createPreviewSourceImage(image);
     syncUiFromState();
     render();
-    return;
+  } catch (error) {
+    console.error("Could not restore source image", error);
+    if (state.project.source.dataUrl) {
+      state.sourcePersistenceFailed = true;
+      alert(t("sourceStorageFailed"));
+      try {
+        const image = await loadImage(state.project.source.dataUrl);
+        state.sourceImage = image;
+        state.previewSourceImage = createPreviewSourceImage(image);
+      } catch (imageError) {
+        console.error("Could not load legacy source image", imageError);
+      }
+    }
+    syncUiFromState();
+    render();
   }
-  releaseSourceImage();
-  const image = await loadImage(state.project.source.dataUrl);
-  state.sourceImage = image;
-  syncUiFromState();
-  render();
+}
+
+function openSourceDatabase() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error("IndexedDB is unavailable"));
+      return;
+    }
+    const request = window.indexedDB.open(SOURCE_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(SOURCE_STORE_NAME)) request.result.createObjectStore(SOURCE_STORE_NAME);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Could not open source database"));
+  });
+}
+
+async function writeSourceImageRecord(record) {
+  const database = await openSourceDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(SOURCE_STORE_NAME, "readwrite");
+    transaction.objectStore(SOURCE_STORE_NAME).put(record, SOURCE_RECORD_KEY);
+    transaction.oncomplete = () => { database.close(); resolve(); };
+    transaction.onerror = transaction.onabort = () => {
+      database.close();
+      reject(transaction.error || new Error("Could not write source image"));
+    };
+  });
+}
+
+async function readSourceImageRecord() {
+  const database = await openSourceDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(SOURCE_STORE_NAME, "readonly");
+    const request = transaction.objectStore(SOURCE_STORE_NAME).get(SOURCE_RECORD_KEY);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error || new Error("Could not read source image"));
+    transaction.oncomplete = () => database.close();
+    transaction.onerror = () => {
+      database.close();
+      reject(transaction.error || new Error("Could not read source image"));
+    };
+  });
+}
+
+async function deleteSourceImageRecord() {
+  const database = await openSourceDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(SOURCE_STORE_NAME, "readwrite");
+    transaction.objectStore(SOURCE_STORE_NAME).delete(SOURCE_RECORD_KEY);
+    transaction.oncomplete = () => { database.close(); resolve(); };
+    transaction.onerror = transaction.onabort = () => {
+      database.close();
+      reject(transaction.error || new Error("Could not delete source image"));
+    };
+  });
 }
 
 function handleControlInput(event) {
+  markPreviewInteraction();
   const input = event.currentTarget;
   const group = input.dataset.group;
   const key = input.dataset.key;
@@ -742,11 +867,13 @@ async function openNativeEyeDropper(targetKey) {
 }
 
 function updateTransformFromInputs() {
+  markPreviewInteraction();
   state.project.transform.zoom = Number(els.zoomInput.value);
   state.project.transform.panX = Number(els.panXInput.value);
   state.project.transform.panY = Number(els.panYInput.value);
   state.project.transform.rotation = Number(els.rotationInput.value);
-  touchProject();
+  syncTransformUiFromState();
+  touchProject(false, false);
 }
 
 function fitToFrame() {
@@ -791,9 +918,37 @@ function touchProject(skipRevision = false, syncUi = true) {
   if (syncUi) {
     syncUiFromState();
   } else {
-    syncProjectStatus();
+    state.projectStatusPending = true;
   }
   scheduleLocalStateSave();
+  queueRender();
+}
+
+function markPreviewInteraction() {
+  state.previewInteractionActive = true;
+  if (!state.previewPointerActive) {
+    window.clearTimeout(state.previewInteractionTimer);
+    state.previewInteractionTimer = window.setTimeout(endPreviewInteraction, 180);
+  }
+}
+
+function beginPreviewPointerInteraction() {
+  window.clearTimeout(state.previewInteractionTimer);
+  state.previewPointerActive = true;
+  state.previewInteractionActive = true;
+  queueRender();
+}
+
+function endPreviewPointerInteraction() {
+  state.previewPointerActive = false;
+  endPreviewInteraction();
+}
+
+function endPreviewInteraction() {
+  window.clearTimeout(state.previewInteractionTimer);
+  state.previewInteractionTimer = 0;
+  if (!state.previewInteractionActive) return;
+  state.previewInteractionActive = false;
   queueRender();
 }
 
@@ -802,6 +957,10 @@ function queueRender() {
   state.renderQueued = true;
   requestAnimationFrame(() => {
     state.renderQueued = false;
+    if (state.projectStatusPending) {
+      state.projectStatusPending = false;
+      syncProjectStatus();
+    }
     render();
   });
 }
@@ -830,11 +989,16 @@ function releaseRenderBuffers() {
 }
 
 function releaseSourceImage() {
-  if (!state.sourceImage) return;
-  try {
-    state.sourceImage.src = "";
-  } catch {}
-  state.sourceImage = null;
+  if (state.sourceImage) {
+    try { state.sourceImage.src = ""; } catch {}
+    state.sourceImage = null;
+  }
+  if (state.previewSourceImage && state.previewSourceImage.tagName === "CANVAS") releaseCanvas(state.previewSourceImage);
+  state.previewSourceImage = null;
+  if (state.sourceObjectUrl) {
+    URL.revokeObjectURL(state.sourceObjectUrl);
+    state.sourceObjectUrl = "";
+  }
 }
 
 function resetScratchCanvases() {
@@ -863,7 +1027,7 @@ function render() {
   const workingCanvas = getReusableCanvas("previewWorkingCanvas", canvas.width, canvas.height);
   const workingCtx = workingCanvas.getContext("2d", { willReadFrequently: true });
   workingCtx.clearRect(0, 0, workingCanvas.width, workingCanvas.height);
-  drawBaseImage(workingCtx, workingCanvas.width, workingCanvas.height);
+  drawBaseImage(workingCtx, workingCanvas.width, workingCanvas.height, state.previewSourceImage || state.sourceImage);
   try {
     applyEffects(workingCanvas, workingCtx);
     canvasRuntime.trim();
@@ -894,8 +1058,9 @@ function ensurePreviewCanvasSize() {
   const dimensionScale = maxDimension / Math.max(desiredWidth, desiredHeight);
   const pixelScale = Math.sqrt(maxPixels / (desiredWidth * desiredHeight));
   const scale = Math.min(1, dimensionScale, pixelScale);
-  const targetWidth = Math.max(1, Math.round(desiredWidth * scale));
-  const targetHeight = Math.max(1, Math.round(desiredHeight * scale));
+  const interactionScale = state.previewInteractionActive ? 0.55 : 1;
+  const targetWidth = Math.max(1, Math.round(desiredWidth * scale * interactionScale));
+  const targetHeight = Math.max(1, Math.round(desiredHeight * scale * interactionScale));
 
   if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
     canvas.width = targetWidth;
@@ -939,7 +1104,27 @@ function hasHeavyPreviewEffects() {
   );
 }
 
-function drawBaseImage(ctx, width, height) {
+function createPreviewSourceImage(image) {
+  const maxDimension = 1280;
+  const maxPixels = 1_400_000;
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+  const scale = Math.min(
+    1,
+    maxDimension / Math.max(sourceWidth, sourceHeight),
+    Math.sqrt(maxPixels / (sourceWidth * sourceHeight)),
+  );
+  if (scale >= 1) return image;
+
+  const preview = document.createElement("canvas");
+  preview.width = Math.max(1, Math.round(sourceWidth * scale));
+  preview.height = Math.max(1, Math.round(sourceHeight * scale));
+  const context = preview.getContext("2d");
+  context.drawImage(image, 0, 0, preview.width, preview.height);
+  return preview;
+}
+
+function drawBaseImage(ctx, width, height, image = state.sourceImage) {
   ctx.save();
   ctx.fillStyle = "#050607";
   ctx.fillRect(0, 0, width, height);
@@ -950,7 +1135,6 @@ function drawBaseImage(ctx, width, height) {
   ctx.rotate((rotation * Math.PI) / 180);
   ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
 
-  const image = state.sourceImage;
   const imageRatio = image.width / image.height;
   const canvasRatio = width / height;
   let drawWidth;
@@ -966,6 +1150,20 @@ function drawBaseImage(ctx, width, height) {
 
   ctx.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
   ctx.restore();
+}
+
+function hasActiveEffectValues(values, excludedKeys = []) {
+  const excluded = new Set(excludedKeys);
+  return Object.entries(values || {}).some(([key, value]) => !excluded.has(key) && Number(value) > 0);
+}
+
+function applyFinalPixelEffects(data, width, height, atmosphere, styles, patterns, colors) {
+  if (atmosphere.grain > 0) THREADLINE_FILTERS.applyGrain(data, atmosphere.grain / 100, canvasRuntime.random);
+  if (atmosphere.vignette > 0) applyVignette(data, width, height, atmosphere.vignette / 100);
+  if (atmosphere.scanlines > 0) applyScanlines(data, width, height, atmosphere.scanlines / 100);
+  if (styles.colorSeparation > 0) applyColorSeparation(data, width, height, styles.colorSeparation / 100);
+  if (patterns.overlayOpacity > 0) applyOverlay(data, colors.overlayColor, patterns.overlayOpacity / 100);
+  if (patterns.frame > 0) applyFrame(data, width, height, patterns.frame / 100);
 }
 
 function applyEffects(canvas, ctx) {
@@ -1009,46 +1207,89 @@ function applyEffects(canvas, ctx) {
     || fx.silhouette > 0
   );
 
-  if (needsInitialPixelPass) {
+  const needsFinalPixelPass = (
+    atmosphere.grain > 0
+    || atmosphere.vignette > 0
+    || atmosphere.scanlines > 0
+    || styles.colorSeparation > 0
+    || patterns.overlayOpacity > 0
+    || patterns.frame > 0
+  );
+  const hasIntermediateCanvasEffects = (
+    corrections.blur > 0
+    || focusBlurAmount > 0.1
+    || corrections.sharpen > 0
+    || edgeAmount > 0.001
+    || embossAmount > 0.001
+    || pencilAmount > 0.001
+    || lineBlendAmount > 0.001
+    || charcoalAmount > 0.001
+    || comicAmount > 0.001
+    || styles.oilPaint > 0
+    || styles.popArt > 0
+    || styles.halftone > 0
+    || fx.pixelate > 0
+    || fx.glitch > 0
+    || hasActiveEffectValues(campaigns, ["prideWidth", "movemberShape", "ribbonShape"])
+    || hasActiveEffectValues(fx, ["invert", "silhouette"])
+    || hasActiveEffectValues(morphology)
+    || hasActiveEffectValues(patterns, ["overlayOpacity", "frame"])
+    || hasActiveEffectValues(materials)
+    || hasActiveEffectValues(atmosphere, ["grain", "vignette", "scanlines"])
+    || hasActiveEffectValues(art)
+    || hasActiveEffectValues(wordArt)
+    || hasActiveEffectValues(fragment)
+    || hasActiveEffectValues(cut)
+    || hasActiveEffectValues(morph)
+    || hasActiveEffectValues(artists)
+    || hasActiveEffectValues(graphics)
+  );
+  const canMergePixelPasses = !hasIntermediateCanvasEffects;
+
+  if (needsInitialPixelPass || (canMergePixelPasses && needsFinalPixelPass)) {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
-    THREADLINE_FILTERS.applyBasicAdjustments(data, corrections, styles.hueShift || 0);
-    if (styles.colorFocus1 > 0) {
-      applyColorFocus(data, styles.colorFocus1 / 100, colors.focusColor, styles.colorFocusTolerance1 / 100);
+    if (needsInitialPixelPass) {
+      THREADLINE_FILTERS.applyBasicAdjustments(data, corrections, styles.hueShift || 0);
+      if (styles.colorFocus1 > 0) {
+        applyColorFocus(data, styles.colorFocus1 / 100, colors.focusColor, styles.colorFocusTolerance1 / 100);
+      }
+      if (styles.colorFocus2 > 0) {
+        applyColorFocus(data, styles.colorFocus2 / 100, colors.focusColor2, styles.colorFocusTolerance2 / 100);
+      }
+      if (styles.colorSwap > 0) {
+        applyColorSwap(data, styles.colorSwap / 100, colors.focusColor, colors.focusColor2, styles.colorFocusTolerance1 / 100);
+      }
+      if (styles.warmCool !== 0) {
+        applyWarmCoolFocus(data, styles.warmCool / 100);
+      }
+      if (styles.grayscale > 0) THREADLINE_FILTERS.applyGrayscale(data, styles.grayscale / 100);
+      if (styles.blackwhite > 0) THREADLINE_FILTERS.applyBlackWhite(data, styles.blackwhite);
+      if (styles.sepia > 0) THREADLINE_FILTERS.applySepia(data, styles.sepia / 100);
+      if (styles.posterize > 0) THREADLINE_FILTERS.applyPosterize(data, styles.posterize);
+      if (styles.vintage > 0) THREADLINE_FILTERS.applyVintage(data, styles.vintage / 100);
+      if (styles.duotone > 0) THREADLINE_FILTERS.applyDuotone(data, styles.duotone / 100, colors.duotoneDark, colors.duotoneLight);
+      if (campaigns.pinktober > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.pinktober / 100, "#46152f", "#ff8fbd");
+      if (campaigns.prideIntensity > 0) {
+        applyCampaignRainbow(data, canvas.width, canvas.height, campaigns.prideWidth / 100, campaigns.prideIntensity / 100);
+      }
+      if (campaigns.earthDay > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.earthDay / 100, "#123d50", "#7ecb78");
+      if (campaigns.orangeDay > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.orangeDay / 100, "#4a2418", "#ff9b32");
+      if (styles.splitTone > 0) applySplitTone(data, styles.splitTone / 100, colors.duotoneDark, colors.duotoneLight);
+      if (styles.saturationMask > 0) applySaturationMask(data, styles.saturationMask / 100);
+      if (styles.gradientMap > 0) applyGradientMap(data, styles.gradientMap / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
+      if (styles.falseColor > 0) applyFalseColor(data, styles.falseColor / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
+      if (styles.crossProcess > 0) applyCrossProcess(data, styles.crossProcess / 100);
+      if (styles.heatmap > 0) applyHeatmap(data, styles.heatmap / 100);
+      if (styles.posterBlocks > 0) applyPosterBlocks(data, styles.posterBlocks / 100);
+      if (styles.luminanceColor !== 0) applyLuminanceColor(data, styles.luminanceColor / 100);
+      if (fx.invert > 0) applyInvert(data, fx.invert / 100);
+        if (fx.silhouette > 0) applySilhouette(data, fx.silhouette / 100);
     }
-    if (styles.colorFocus2 > 0) {
-      applyColorFocus(data, styles.colorFocus2 / 100, colors.focusColor2, styles.colorFocusTolerance2 / 100);
+    if (canMergePixelPasses && needsFinalPixelPass) {
+      applyFinalPixelEffects(data, canvas.width, canvas.height, atmosphere, styles, patterns, colors);
     }
-    if (styles.colorSwap > 0) {
-      applyColorSwap(data, styles.colorSwap / 100, colors.focusColor, colors.focusColor2, styles.colorFocusTolerance1 / 100);
-    }
-    if (styles.warmCool !== 0) {
-      applyWarmCoolFocus(data, styles.warmCool / 100);
-    }
-    if (styles.grayscale > 0) THREADLINE_FILTERS.applyGrayscale(data, styles.grayscale / 100);
-    if (styles.blackwhite > 0) THREADLINE_FILTERS.applyBlackWhite(data, styles.blackwhite);
-    if (styles.sepia > 0) THREADLINE_FILTERS.applySepia(data, styles.sepia / 100);
-    if (styles.posterize > 0) THREADLINE_FILTERS.applyPosterize(data, styles.posterize);
-    if (styles.vintage > 0) THREADLINE_FILTERS.applyVintage(data, styles.vintage / 100);
-    if (styles.duotone > 0) THREADLINE_FILTERS.applyDuotone(data, styles.duotone / 100, colors.duotoneDark, colors.duotoneLight);
-    if (campaigns.pinktober > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.pinktober / 100, "#46152f", "#ff8fbd");
-    if (campaigns.prideIntensity > 0) {
-      applyCampaignRainbow(data, canvas.width, canvas.height, campaigns.prideWidth / 100, campaigns.prideIntensity / 100);
-    }
-    if (campaigns.earthDay > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.earthDay / 100, "#123d50", "#7ecb78");
-    if (campaigns.orangeDay > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.orangeDay / 100, "#4a2418", "#ff9b32");
-    if (styles.splitTone > 0) applySplitTone(data, styles.splitTone / 100, colors.duotoneDark, colors.duotoneLight);
-    if (styles.saturationMask > 0) applySaturationMask(data, styles.saturationMask / 100);
-    if (styles.gradientMap > 0) applyGradientMap(data, styles.gradientMap / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
-    if (styles.falseColor > 0) applyFalseColor(data, styles.falseColor / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
-    if (styles.crossProcess > 0) applyCrossProcess(data, styles.crossProcess / 100);
-    if (styles.heatmap > 0) applyHeatmap(data, styles.heatmap / 100);
-    if (styles.posterBlocks > 0) applyPosterBlocks(data, styles.posterBlocks / 100);
-    if (styles.luminanceColor !== 0) applyLuminanceColor(data, styles.luminanceColor / 100);
-    if (fx.invert > 0) applyInvert(data, fx.invert / 100);
-    if (fx.silhouette > 0) applySilhouette(data, fx.silhouette / 100);
-
     ctx.putImageData(imageData, 0, 0);
   }
 
@@ -1091,26 +1332,9 @@ function applyEffects(canvas, ctx) {
   applyArtistEffects(canvas, artists, colors);
   applyGraphicStyleEffects(canvas, graphics, colors);
 
-  const needsFinalPixelPass = (
-    atmosphere.grain > 0
-    || atmosphere.vignette > 0
-    || atmosphere.scanlines > 0
-    || styles.colorSeparation > 0
-    || patterns.overlayOpacity > 0
-    || patterns.frame > 0
-  );
-
-  if (needsFinalPixelPass) {
+  if (needsFinalPixelPass && !canMergePixelPasses) {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    if (atmosphere.grain > 0) THREADLINE_FILTERS.applyGrain(data, atmosphere.grain / 100, canvasRuntime.random);
-    if (atmosphere.vignette > 0) applyVignette(data, canvas.width, canvas.height, atmosphere.vignette / 100);
-    if (atmosphere.scanlines > 0) applyScanlines(data, canvas.width, canvas.height, atmosphere.scanlines / 100);
-    if (styles.colorSeparation > 0) applyColorSeparation(data, canvas.width, canvas.height, styles.colorSeparation / 100);
-    if (patterns.overlayOpacity > 0) applyOverlay(data, colors.overlayColor, patterns.overlayOpacity / 100);
-    if (patterns.frame > 0) applyFrame(data, canvas.width, canvas.height, patterns.frame / 100);
-
+    applyFinalPixelEffects(imageData.data, canvas.width, canvas.height, atmosphere, styles, patterns, colors);
     ctx.putImageData(imageData, 0, 0);
   }
 }
@@ -1946,39 +2170,49 @@ function createSimplePdfBlob(imageBlob, width, height) {
   });
 }
 
-function createBackupBlob() {
-  return new Blob([JSON.stringify({
-    versionInfo: state.versionInfo,
-    project: state.project,
-    settings: state.settings,
-  }, null, 2)], { type: "application/json" });
+async function createBackupBlob() {
+  const project = structuredClone(state.project);
+  if (!project.source.dataUrl && state.sourceBlob) project.source.dataUrl = await readBlobAsDataUrl(state.sourceBlob);
+  return new Blob([JSON.stringify({ versionInfo: state.versionInfo, project, settings: state.settings }, null, 2)], { type: "application/json" });
 }
 
-function downloadBackup() {
-  downloadBlob(createBackupBlob(), "threadline-studio-project.json");
+async function downloadBackup() {
+  try { downloadBlob(await createBackupBlob(), "threadline-studio-project.json"); }
+  catch (error) { console.error(error); alert(t("backupFailed")); }
 }
 
-function importBackup(text) {
+async function importBackup(text) {
   try {
     const parsed = JSON.parse(text);
-    if (!parsed?.project || !parsed?.project?.source) throw new Error("Invalid backup");
-    state.project = mergeProject(createDefaultProject(), parsed.project);
-    state.settings = {
-      languagePreference: parsed?.settings?.languagePreference || "auto",
-    };
+    if (!parsed?.project || !parsed.project.source) throw new Error("Invalid backup");
+    const project = mergeProject(createDefaultProject(), parsed.project);
+    let blob = null;
+    if (project.source.dataUrl) {
+      blob = await (await fetch(project.source.dataUrl)).blob();
+      await writeSourceImageRecord({ blob, fileName: project.source.fileName || "image", mimeType: project.source.mimeType || blob.type });
+      project.source = { ...project.source, dataUrl: "" };
+    } else {
+      try { await deleteSourceImageRecord(); } catch (error) { console.warn("Could not delete old source image", error); }
+    }
+    state.project = project;
+    state.sourceBlob = blob;
+    state.sourcePersistenceFailed = false;
+    state.settings = { ...state.settings, languagePreference: parsed?.settings?.languagePreference || "auto" };
     markProjectSourceDirty();
-    syncUiFromState();
     saveLocalState(true);
-    restoreSourceImage();
+    await restoreSourceImage();
     alert(t("backupLoaded"));
   } catch (error) {
     console.error(error);
-    alert(t("backupInvalid"));
+    alert(error?.message === "Invalid backup" ? t("backupInvalid") : t("sourceStorageFailed"));
   }
 }
 
-function clearProject() {
+async function clearProject() {
+  try { await deleteSourceImageRecord(); } catch (error) { console.error(error); }
   state.project = createDefaultProject();
+  state.sourceBlob = null;
+  state.sourcePersistenceFailed = false;
   releaseSourceImage();
   releaseRenderBuffers();
   markProjectSourceDirty();
@@ -1988,7 +2222,7 @@ function clearProject() {
   alert(t("projectCleared"));
 }
 
-function syncUiFromState() {
+function syncTransformUiFromState() {
   const transform = state.project.transform;
   els.zoomInput.value = String(transform.zoom);
   els.panXInput.value = String(transform.panX);
@@ -1998,6 +2232,10 @@ function syncUiFromState() {
   els.panXValue.textContent = `${Math.round(transform.panX * 100)}%`;
   els.panYValue.textContent = `${Math.round(transform.panY * 100)}%`;
   els.rotationValue.textContent = `${Math.round(transform.rotation)}°`;
+}
+
+function syncUiFromState() {
+  syncTransformUiFromState();
   els.qualityInput.value = String(state.project.export.quality);
   els.qualityValue.textContent = `${Math.round(state.project.export.quality * 100)}%`;
   els.exportFormatSelect.value = state.project.export.format;
@@ -2035,6 +2273,7 @@ function syncUiFromState() {
     }
   }
 
+  state.projectStatusPending = false;
   syncProjectStatus();
   const hasImage = Boolean(state.sourceImage);
   const mobileLayout = isMobileLayout();
@@ -2068,6 +2307,10 @@ function loadLocalState() {
       state.project = mergeProject(createDefaultProject(), JSON.parse(savedProjectState));
       if (savedProjectSource) {
         state.project.source = { ...state.project.source, ...JSON.parse(savedProjectSource) };
+      } else {
+        const legacyProject = localStorage.getItem(STORAGE_KEY);
+        const legacySource = legacyProject ? JSON.parse(legacyProject)?.source : null;
+        if (legacySource?.dataUrl) state.project.source = { ...state.project.source, ...legacySource };
       }
     } else {
       const legacyProject = localStorage.getItem(STORAGE_KEY);
@@ -2075,20 +2318,11 @@ function loadLocalState() {
     }
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     if (savedSettings) state.settings = { ...state.settings, ...JSON.parse(savedSettings) };
-  } catch (error) {
-    console.error(error);
-  }
+  } catch (error) { console.error(error); }
 }
 
 function serializeProjectForStorage() {
-  return {
-    ...state.project,
-    source: {
-      dataUrl: "",
-      fileName: "",
-      mimeType: "",
-    },
-  };
+  return { ...state.project, source: { ...state.project.source, dataUrl: "" } };
 }
 
 function scheduleLocalStateSave(forceSource = false) {
@@ -2119,20 +2353,12 @@ function saveLocalState(forceSource = false) {
   try {
     localStorage.setItem(PROJECT_STATE_KEY, JSON.stringify(serializeProjectForStorage()));
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
-    if (forceSource || state.sourceStorageDirty) {
+    if (!state.sourcePersistenceFailed) {
       localStorage.removeItem(STORAGE_KEY);
-      if (state.project.source?.dataUrl) {
-        localStorage.setItem(PROJECT_SOURCE_KEY, JSON.stringify(state.project.source));
-      } else {
-        localStorage.removeItem(PROJECT_SOURCE_KEY);
-      }
-      state.sourceStorageDirty = false;
-      return;
+      localStorage.removeItem(PROJECT_SOURCE_KEY);
     }
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error("saveLocalState failed", error);
-  }
+    if (forceSource || state.sourceStorageDirty) state.sourceStorageDirty = false;
+  } catch (error) { console.error("saveLocalState failed", error); }
 }
 
 /** Merges saved data over defaults. Expects a default project and saved project and returns the merged project. */
@@ -2426,6 +2652,10 @@ function readFileAsDataUrl(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+function readBlobAsDataUrl(blob) {
+  return readFileAsDataUrl(blob);
 }
 
 function loadImage(src) {
