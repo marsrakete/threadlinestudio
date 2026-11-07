@@ -56,10 +56,10 @@ test("slider previews use fewer pixels while dragging and restore quality before
       input.value = input.max;
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
-    await page.waitForFunction(() => {
+    await page.waitForFunction(width => {
       const canvas = document.querySelector("#previewCanvas");
-      return canvas.width > 0 && canvas.height > 0;
-    });
+      return canvas.width > 0 && canvas.width < width * 0.7;
+    }, initial.width);
     const dragging = await page.locator("#previewCanvas").evaluate(canvas => ({ width: canvas.width, height: canvas.height }));
     assert.ok(dragging.width < initial.width * 0.7, `expected reduced preview width, got ${dragging.width} from ${initial.width}`);
 
