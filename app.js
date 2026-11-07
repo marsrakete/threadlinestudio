@@ -993,10 +993,12 @@ function releaseSourceImage() {
     try { state.sourceImage.src = ""; } catch {}
     state.sourceImage = null;
   }
-  if (state.previewSourceImage && state.previewSourceImage.tagName === "CANVAS") {
-    releaseCanvas(state.previewSourceImage);
-  }
+  if (state.previewSourceImage && state.previewSourceImage.tagName === "CANVAS") releaseCanvas(state.previewSourceImage);
   state.previewSourceImage = null;
+  if (state.sourceObjectUrl) {
+    URL.revokeObjectURL(state.sourceObjectUrl);
+    state.sourceObjectUrl = "";
+  }
 }
 
 function resetScratchCanvases() {
@@ -2168,39 +2170,49 @@ function createSimplePdfBlob(imageBlob, width, height) {
   });
 }
 
-function createBackupBlob() {
-  return new Blob([JSON.stringify({
-    versionInfo: state.versionInfo,
-    project: state.project,
-    settings: state.settings,
-  }, null, 2)], { type: "application/json" });
+async function createBackupBlob() {
+  const project = structuredClone(state.project);
+  if (!project.source.dataUrl && state.sourceBlob) project.source.dataUrl = await readBlobAsDataUrl(state.sourceBlob);
+  return new Blob([JSON.stringify({ versionInfo: state.versionInfo, project, settings: state.settings }, null, 2)], { type: "application/json" });
 }
 
-function downloadBackup() {
-  downloadBlob(createBackupBlob(), "threadline-studio-project.json");
+async function downloadBackup() {
+  try { downloadBlob(await createBackupBlob(), "threadline-studio-project.json"); }
+  catch (error) { console.error(error); alert(t("backupFailed")); }
 }
 
-function importBackup(text) {
+async function importBackup(text) {
   try {
     const parsed = JSON.parse(text);
-    if (!parsed?.project || !parsed?.project?.source) throw new Error("Invalid backup");
-    state.project = mergeProject(createDefaultProject(), parsed.project);
-    state.settings = {
-      languagePreference: parsed?.settings?.languagePreference || "auto",
-    };
+    if (!parsed?.project || !parsed.project.source) throw new Error("Invalid backup");
+    const project = mergeProject(createDefaultProject(), parsed.project);
+    let blob = null;
+    if (project.source.dataUrl) {
+      blob = await (await fetch(project.source.dataUrl)).blob();
+      await writeSourceImageRecord({ blob, fileName: project.source.fileName || "image", mimeType: project.source.mimeType || blob.type });
+      project.source = { ...project.source, dataUrl: "" };
+    } else {
+      try { await deleteSourceImageRecord(); } catch (error) { console.warn("Could not delete old source image", error); }
+    }
+    state.project = project;
+    state.sourceBlob = blob;
+    state.sourcePersistenceFailed = false;
+    state.settings = { ...state.settings, languagePreference: parsed?.settings?.languagePreference || "auto" };
     markProjectSourceDirty();
-    syncUiFromState();
     saveLocalState(true);
-    restoreSourceImage();
+    await restoreSourceImage();
     alert(t("backupLoaded"));
   } catch (error) {
     console.error(error);
-    alert(t("backupInvalid"));
+    alert(error?.message === "Invalid backup" ? t("backupInvalid") : t("sourceStorageFailed"));
   }
 }
 
-function clearProject() {
+async function clearProject() {
+  try { await deleteSourceImageRecord(); } catch (error) { console.error(error); }
   state.project = createDefaultProject();
+  state.sourceBlob = null;
+  state.sourcePersistenceFailed = false;
   releaseSourceImage();
   releaseRenderBuffers();
   markProjectSourceDirty();
@@ -2295,6 +2307,10 @@ function loadLocalState() {
       state.project = mergeProject(createDefaultProject(), JSON.parse(savedProjectState));
       if (savedProjectSource) {
         state.project.source = { ...state.project.source, ...JSON.parse(savedProjectSource) };
+      } else {
+        const legacyProject = localStorage.getItem(STORAGE_KEY);
+        const legacySource = legacyProject ? JSON.parse(legacyProject)?.source : null;
+        if (legacySource?.dataUrl) state.project.source = { ...state.project.source, ...legacySource };
       }
     } else {
       const legacyProject = localStorage.getItem(STORAGE_KEY);
@@ -2302,20 +2318,11 @@ function loadLocalState() {
     }
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     if (savedSettings) state.settings = { ...state.settings, ...JSON.parse(savedSettings) };
-  } catch (error) {
-    console.error(error);
-  }
+  } catch (error) { console.error(error); }
 }
 
 function serializeProjectForStorage() {
-  return {
-    ...state.project,
-    source: {
-      dataUrl: "",
-      fileName: "",
-      mimeType: "",
-    },
-  };
+  return { ...state.project, source: { ...state.project.source, dataUrl: "" } };
 }
 
 function scheduleLocalStateSave(forceSource = false) {
@@ -2346,20 +2353,12 @@ function saveLocalState(forceSource = false) {
   try {
     localStorage.setItem(PROJECT_STATE_KEY, JSON.stringify(serializeProjectForStorage()));
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
-    if (forceSource || state.sourceStorageDirty) {
+    if (!state.sourcePersistenceFailed) {
       localStorage.removeItem(STORAGE_KEY);
-      if (state.project.source?.dataUrl) {
-        localStorage.setItem(PROJECT_SOURCE_KEY, JSON.stringify(state.project.source));
-      } else {
-        localStorage.removeItem(PROJECT_SOURCE_KEY);
-      }
-      state.sourceStorageDirty = false;
-      return;
+      localStorage.removeItem(PROJECT_SOURCE_KEY);
     }
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error("saveLocalState failed", error);
-  }
+    if (forceSource || state.sourceStorageDirty) state.sourceStorageDirty = false;
+  } catch (error) { console.error("saveLocalState failed", error); }
 }
 
 /** Merges saved data over defaults. Expects a default project and saved project and returns the merged project. */
@@ -2653,6 +2652,10 @@ function readFileAsDataUrl(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+function readBlobAsDataUrl(blob) {
+  return readFileAsDataUrl(blob);
 }
 
 function loadImage(src) {
