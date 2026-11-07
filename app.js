@@ -1107,7 +1107,7 @@ function applyEffects(canvas, ctx) {
     const data = imageData.data;
 
     if (needsInitialPixelPass) {
-        THREADLINE_FILTERS.applyBasicAdjustments(data, corrections, styles.hueShift || 0);
+      THREADLINE_FILTERS.applyBasicAdjustments(data, corrections, styles.hueShift || 0);
       if (styles.colorFocus1 > 0) {
         applyColorFocus(data, styles.colorFocus1 / 100, colors.focusColor, styles.colorFocusTolerance1 / 100);
       }
