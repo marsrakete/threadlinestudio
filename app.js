@@ -660,7 +660,6 @@ function bindCanvasGestures() {
   els.canvasFrame.addEventListener("wheel", (event) => {
     event.preventDefault();
     state.project.transform.zoom = clamp(state.project.transform.zoom - event.deltaY * 0.0015, 0.5, 3);
-    syncUiFromState();
     touchProject();
   }, { passive: false });
 }
