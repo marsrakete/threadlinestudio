@@ -1107,41 +1107,41 @@ function applyEffects(canvas, ctx) {
     const data = imageData.data;
 
     if (needsInitialPixelPass) {
-      THREADLINE_FILTERS.applyBasicAdjustments(data, corrections, styles.hueShift || 0);
-    if (styles.colorFocus1 > 0) {
-      applyColorFocus(data, styles.colorFocus1 / 100, colors.focusColor, styles.colorFocusTolerance1 / 100);
-    }
-    if (styles.colorFocus2 > 0) {
-      applyColorFocus(data, styles.colorFocus2 / 100, colors.focusColor2, styles.colorFocusTolerance2 / 100);
-    }
-    if (styles.colorSwap > 0) {
-      applyColorSwap(data, styles.colorSwap / 100, colors.focusColor, colors.focusColor2, styles.colorFocusTolerance1 / 100);
-    }
-    if (styles.warmCool !== 0) {
-      applyWarmCoolFocus(data, styles.warmCool / 100);
-    }
-    if (styles.grayscale > 0) THREADLINE_FILTERS.applyGrayscale(data, styles.grayscale / 100);
-    if (styles.blackwhite > 0) THREADLINE_FILTERS.applyBlackWhite(data, styles.blackwhite);
-    if (styles.sepia > 0) THREADLINE_FILTERS.applySepia(data, styles.sepia / 100);
-    if (styles.posterize > 0) THREADLINE_FILTERS.applyPosterize(data, styles.posterize);
-    if (styles.vintage > 0) THREADLINE_FILTERS.applyVintage(data, styles.vintage / 100);
-    if (styles.duotone > 0) THREADLINE_FILTERS.applyDuotone(data, styles.duotone / 100, colors.duotoneDark, colors.duotoneLight);
-    if (campaigns.pinktober > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.pinktober / 100, "#46152f", "#ff8fbd");
-    if (campaigns.prideIntensity > 0) {
-      applyCampaignRainbow(data, canvas.width, canvas.height, campaigns.prideWidth / 100, campaigns.prideIntensity / 100);
-    }
-    if (campaigns.earthDay > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.earthDay / 100, "#123d50", "#7ecb78");
-    if (campaigns.orangeDay > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.orangeDay / 100, "#4a2418", "#ff9b32");
-    if (styles.splitTone > 0) applySplitTone(data, styles.splitTone / 100, colors.duotoneDark, colors.duotoneLight);
-    if (styles.saturationMask > 0) applySaturationMask(data, styles.saturationMask / 100);
-    if (styles.gradientMap > 0) applyGradientMap(data, styles.gradientMap / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
-    if (styles.falseColor > 0) applyFalseColor(data, styles.falseColor / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
-    if (styles.crossProcess > 0) applyCrossProcess(data, styles.crossProcess / 100);
-    if (styles.heatmap > 0) applyHeatmap(data, styles.heatmap / 100);
-    if (styles.posterBlocks > 0) applyPosterBlocks(data, styles.posterBlocks / 100);
-    if (styles.luminanceColor !== 0) applyLuminanceColor(data, styles.luminanceColor / 100);
-    if (fx.invert > 0) applyInvert(data, fx.invert / 100);
-      if (fx.silhouette > 0) applySilhouette(data, fx.silhouette / 100);
+        THREADLINE_FILTERS.applyBasicAdjustments(data, corrections, styles.hueShift || 0);
+      if (styles.colorFocus1 > 0) {
+        applyColorFocus(data, styles.colorFocus1 / 100, colors.focusColor, styles.colorFocusTolerance1 / 100);
+      }
+      if (styles.colorFocus2 > 0) {
+        applyColorFocus(data, styles.colorFocus2 / 100, colors.focusColor2, styles.colorFocusTolerance2 / 100);
+      }
+      if (styles.colorSwap > 0) {
+        applyColorSwap(data, styles.colorSwap / 100, colors.focusColor, colors.focusColor2, styles.colorFocusTolerance1 / 100);
+      }
+      if (styles.warmCool !== 0) {
+        applyWarmCoolFocus(data, styles.warmCool / 100);
+      }
+      if (styles.grayscale > 0) THREADLINE_FILTERS.applyGrayscale(data, styles.grayscale / 100);
+      if (styles.blackwhite > 0) THREADLINE_FILTERS.applyBlackWhite(data, styles.blackwhite);
+      if (styles.sepia > 0) THREADLINE_FILTERS.applySepia(data, styles.sepia / 100);
+      if (styles.posterize > 0) THREADLINE_FILTERS.applyPosterize(data, styles.posterize);
+      if (styles.vintage > 0) THREADLINE_FILTERS.applyVintage(data, styles.vintage / 100);
+      if (styles.duotone > 0) THREADLINE_FILTERS.applyDuotone(data, styles.duotone / 100, colors.duotoneDark, colors.duotoneLight);
+      if (campaigns.pinktober > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.pinktober / 100, "#46152f", "#ff8fbd");
+      if (campaigns.prideIntensity > 0) {
+        applyCampaignRainbow(data, canvas.width, canvas.height, campaigns.prideWidth / 100, campaigns.prideIntensity / 100);
+      }
+      if (campaigns.earthDay > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.earthDay / 100, "#123d50", "#7ecb78");
+      if (campaigns.orangeDay > 0) THREADLINE_FILTERS.applyDuotone(data, campaigns.orangeDay / 100, "#4a2418", "#ff9b32");
+      if (styles.splitTone > 0) applySplitTone(data, styles.splitTone / 100, colors.duotoneDark, colors.duotoneLight);
+      if (styles.saturationMask > 0) applySaturationMask(data, styles.saturationMask / 100);
+      if (styles.gradientMap > 0) applyGradientMap(data, styles.gradientMap / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
+      if (styles.falseColor > 0) applyFalseColor(data, styles.falseColor / 100, [colors.duotoneDark, colors.overlayColor, colors.duotoneLight]);
+      if (styles.crossProcess > 0) applyCrossProcess(data, styles.crossProcess / 100);
+      if (styles.heatmap > 0) applyHeatmap(data, styles.heatmap / 100);
+      if (styles.posterBlocks > 0) applyPosterBlocks(data, styles.posterBlocks / 100);
+      if (styles.luminanceColor !== 0) applyLuminanceColor(data, styles.luminanceColor / 100);
+      if (fx.invert > 0) applyInvert(data, fx.invert / 100);
+        if (fx.silhouette > 0) applySilhouette(data, fx.silhouette / 100);
     }
     if (canMergePixelPasses && needsFinalPixelPass) {
       applyFinalPixelEffects(data, canvas.width, canvas.height, atmosphere, styles, patterns, colors);
