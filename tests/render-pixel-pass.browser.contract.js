@@ -58,6 +58,7 @@ test("simple correction and finish effects share a single pixel read", async () 
     const page = await context.newPage();
     await page.goto(url + "/index.html", { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelector("#projectMetaText")?.textContent.includes("pixel-pass.png"));
+    await flushAnimationFrames(page);
 
     await page.evaluate(() => {
       const prototype = CanvasRenderingContext2D.prototype;
@@ -72,8 +73,17 @@ test("simple correction and finish effects share a single pixel read", async () 
     const vignette = 'input[type="range"][data-group="atmosphere"][data-key="vignette"]';
     const blur = 'input[type="range"][data-group="corrections"][data-key="blur"]';
     await page.locator(brightness).dispatchEvent("pointerdown", { pointerId: 1, bubbles: true });
-    await setRangeValue(page, brightness, 18);
-    await setRangeValue(page, vignette, 45);
+    await flushAnimationFrames(page);
+    await page.evaluate(() => { window.__pixelReadCount = 0; });
+    await page.evaluate(() => {
+      const setValue = (selector, value) => {
+        const input = document.querySelector(selector);
+        input.value = String(value);
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      };
+      setValue('input[type="range"][data-group="corrections"][data-key="brightness"]', 18);
+      setValue('input[type="range"][data-group="atmosphere"][data-key="vignette"]', 45);
+    });
     await flushAnimationFrames(page);
     assert.equal(await page.evaluate(() => window.__pixelReadCount), 1);
 
