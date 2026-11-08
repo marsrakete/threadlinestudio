@@ -70,6 +70,8 @@ test("wide and landscape layouts scroll preview and tools independently", async 
           }),
           projectVisible: getComputedStyle(document.querySelector(".desktop-stage-panel")).display !== "none",
           projectInsidePreview: document.querySelector(".desktop-stage-panel").closest(".canvas-wrap") === preview,
+          canvasWidthRatio: document.querySelector("#previewCanvas").getBoundingClientRect().width
+            / document.querySelector(".canvas-frame").clientWidth,
           previewColumnRatio: Number.parseFloat(getComputedStyle(document.querySelector(".workspace")).gridTemplateColumns.split(" ")[0])
             / document.querySelector(".workspace").clientWidth,
         };
@@ -78,7 +80,12 @@ test("wide and landscape layouts scroll preview and tools independently", async 
       assert.ok(panes.toolsClient > 0 && panes.toolsScroll > panes.toolsClient, `tools should scroll independently at ${viewport.width}px: ${JSON.stringify(panes)}`);
       assert.equal(panes.projectVisible, true);
       assert.equal(panes.projectInsidePreview, true);
-      assert.ok(panes.previewColumnRatio > 0.57, `preview column should use the available width at ${viewport.width}px: ${JSON.stringify(panes)}`);
+      assert.ok(panes.canvasWidthRatio > 0.99, `canvas should fill its frame at ${viewport.width}px: ${JSON.stringify(panes)}`);
+      if (viewport.width > 1180) {
+        assert.ok(panes.previewColumnRatio > 0.65, `desktop preview should use at least two thirds of the workspace at ${viewport.width}px: ${JSON.stringify(panes)}`);
+      } else {
+        assert.ok(panes.previewColumnRatio > 0.57, `landscape preview should use the available width at ${viewport.width}px: ${JSON.stringify(panes)}`);
+      }
 
       await page.evaluate(() => { document.querySelector(".side-panels").scrollTop = 180; });
       assert.equal(await page.locator(".canvas-wrap").evaluate(node => node.scrollTop), 0);
