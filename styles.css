@@ -670,6 +670,7 @@ button:disabled,
     min-height: 0;
     overflow: hidden;
     align-items: stretch;
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .canvas-wrap,
@@ -779,6 +780,7 @@ body.mobile-landscape .workspace {
   min-height: 0;
   overflow: hidden;
   align-items: stretch;
+  grid-template-rows: minmax(0, 1fr);
 }
 
 body.mobile-landscape .canvas-wrap,

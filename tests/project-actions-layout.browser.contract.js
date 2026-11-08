@@ -65,8 +65,8 @@ test("wide and landscape layouts scroll preview and tools independently", async 
           projectInsidePreview: document.querySelector(".desktop-stage-panel").closest(".canvas-wrap") === preview,
         };
       });
-      assert.ok(panes.previewClient > 0 && panes.previewScroll > panes.previewClient, `preview should scroll independently at ${viewport.width}px`);
-      assert.ok(panes.toolsClient > 0 && panes.toolsScroll > panes.toolsClient, `tools should scroll independently at ${viewport.width}px`);
+      assert.ok(panes.previewClient > 0 && panes.previewScroll > panes.previewClient, `preview should scroll independently at ${viewport.width}px: ${JSON.stringify(panes)}`);
+      assert.ok(panes.toolsClient > 0 && panes.toolsScroll > panes.toolsClient, `tools should scroll independently at ${viewport.width}px: ${JSON.stringify(panes)}`);
       assert.equal(panes.projectVisible, true);
       assert.equal(panes.projectInsidePreview, true);
 
