@@ -99,24 +99,60 @@ test("wide and landscape layouts scroll preview and tools independently", async 
   }
 });
 
-test("portrait mobile returns to the original page flow without a fixed action dock", async () => {
+test("portrait mobile centers the preview and keeps its actions in the page flow", async () => {
   const { server, url } = await startServer();
   let browser;
   try {
     browser = await chromium.launch({ headless: true });
-    for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 1024, height: 1366 }]) {
+    for (const viewport of [{ width: 390, height: 844 }, { width: 1024, height: 1366 }]) {
       const page = await openPage(browser, url, viewport);
       assert.equal(await page.locator(".mobile-action-dock").count(), 0);
       assert.equal(await page.locator(".mobile-project-panel").isVisible(), true);
       for (const actionId of ["mobileFitButton", "mobileResetImageButton", "mobileCenterButton"]) {
         assert.equal(await page.locator(`#${actionId}`).isVisible(), true, `${actionId} should be visible at ${viewport.width}px`);
       }
-      assert.equal(await page.locator(".canvas-wrap").evaluate(node => getComputedStyle(node).position), "sticky");
+      assert.equal(await page.locator(".canvas-wrap").evaluate(node => getComputedStyle(node).position), "static");
+      const alignment = await page.evaluate(() => {
+        const frame = document.querySelector(".canvas-frame").getBoundingClientRect();
+        const stage = document.querySelector(".stage").getBoundingClientRect();
+        return Math.abs((frame.left + frame.right) / 2 - (stage.left + stage.right) / 2);
+      });
+      assert.ok(alignment < 2, `preview should be horizontally centered at ${viewport.width}px`);
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       await page.waitForTimeout(40);
       assert.ok(await page.evaluate(() => window.scrollY > 0), `mobile layout should use document scrolling at ${viewport.width}px`);
       await page.close();
     }
+  } finally {
+    if (browser) await browser.close();
+    await closeServer(server);
+  }
+});
+
+test("phone landscape keeps the project panel under the preview in an independently scrolling left pane", async () => {
+  const { server, url } = await startServer();
+  let browser;
+  try {
+    browser = await chromium.launch({ headless: true });
+    const page = await openPage(browser, url, { width: 844, height: 390 });
+    await page.locator(".side-panels .collapsible").evaluateAll(panels => panels.forEach(panel => { panel.open = true; }));
+    const layout = await page.evaluate(() => {
+      const preview = document.querySelector(".canvas-wrap");
+      const tools = document.querySelector(".side-panels");
+      const project = document.querySelector(".desktop-stage-panel");
+      return {
+        previewClient: preview.clientHeight,
+        previewScroll: preview.scrollHeight,
+        toolsClient: tools.clientHeight,
+        toolsScroll: tools.scrollHeight,
+        projectVisible: getComputedStyle(project).display !== "none",
+        projectUnderPreview: project.closest(".canvas-wrap") === preview,
+      };
+    });
+    assert.ok(layout.previewClient > 0 && layout.previewScroll > layout.previewClient, JSON.stringify(layout));
+    assert.ok(layout.toolsClient > 0 && layout.toolsScroll > layout.toolsClient, JSON.stringify(layout));
+    assert.equal(layout.projectVisible, true);
+    assert.equal(layout.projectUnderPreview, true);
   } finally {
     if (browser) await browser.close();
     await closeServer(server);

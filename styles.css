@@ -748,8 +748,8 @@ body.mobile-layout .canvas-wrap {
 }
 
 body.mobile-layout .canvas-wrap {
-  position: sticky;
-  top: 8px;
+  position: static;
+  top: auto;
 }
 
 body.mobile-landscape .workspace {
@@ -815,7 +815,9 @@ body.mobile-landscape .side-panels > * { flex: 0 0 auto; }
   .share-card { grid-template-columns: 1fr; }
   .share-qr-image { width: min(180px, 100%); height: auto; aspect-ratio: 1; }
   .canvas-wrap {
-    margin-inline: -8px;
+    margin: 8px 0 14px;
+    position: static;
+    top: auto;
   }
   .stage {
     padding: 0;
@@ -826,9 +828,12 @@ body.mobile-landscape .side-panels > * { flex: 0 0 auto; }
     backdrop-filter: none;
   }
   .canvas-frame {
-    border: 0;
+    width: 100%;
+    margin-inline: auto;
+    border: 1px solid var(--line);
+    border-radius: 14px;
     background: #090a0c;
-    max-height: 68svh;
+    max-height: 62svh;
   }
   .hero { margin-bottom: 12px; }
   .hero-copy { padding: 12px; }
@@ -850,23 +855,42 @@ body.mobile-landscape .side-panels > * { flex: 0 0 auto; }
 
 @media (max-width: 900px) and (orientation: landscape) {
   body { padding: 8px; }
-  body.mobile-landscape .desktop-stage-panel { display: none; }
-  body.mobile-landscape .mobile-project-panel { display: grid; }
+  body.mobile-landscape .desktop-stage-panel { display: block; }
+  body.mobile-landscape .mobile-project-panel { display: none; }
+  body.mobile-landscape .app-shell {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 16px);
+    height: calc(100dvh - 16px);
+    min-height: 0;
+  }
+  body.mobile-landscape .hero { margin-bottom: 8px; }
+  body.mobile-landscape .hero-copy { padding: 8px 12px; gap: 4px; }
+  body.mobile-landscape .eyebrow,
+  body.mobile-landscape .lede,
+  body.mobile-landscape .hero-meta { display: none; }
+  body.mobile-landscape h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
+  body.mobile-landscape .header-actions { gap: 6px; }
+  body.mobile-landscape .header-actions button { min-height: 38px; padding: 0.5rem 0.7rem; }
   body.mobile-landscape .workspace {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
     gap: 8px;
-    flex: none;
-    height: auto;
-    overflow: visible;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+    align-items: stretch;
+    grid-template-rows: minmax(0, 1fr);
   }
-  body.mobile-landscape .app-shell { display: block; height: auto; min-height: 0; }
   body.mobile-landscape .canvas-wrap,
   body.mobile-landscape .side-panels {
-    height: auto;
-    max-height: none;
-    overflow: visible;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
-  body.mobile-landscape .canvas-wrap { position: sticky; top: 8px; }
-  body.mobile-landscape .side-panels { display: grid; }
-  body.mobile-landscape .canvas-frame { max-height: calc(100svh - 28px); }
+  body.mobile-landscape .canvas-wrap { position: static; top: auto; align-content: start; }
+  body.mobile-landscape .side-panels { display: flex; flex-direction: column; }
+  body.mobile-landscape .side-panels > * { flex: 0 0 auto; }
+  body.mobile-landscape .canvas-frame { max-height: calc(100svh - 112px); }
 }
