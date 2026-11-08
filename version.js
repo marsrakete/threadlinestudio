@@ -1,5 +1,5 @@
 globalThis.APP_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.83",
-  cacheVersion: "v186",
-  label: "Bildspeicherung und Vorschau-Performance zusammengeführt",
+  appVersion: "0.2.84",
+  cacheVersion: "v187",
+  label: "Projektaktionen auf allen Ansichten erreichbar",
 });

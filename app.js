@@ -29,9 +29,9 @@ const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.83",
-  cacheVersion: "v186",
-  label: "Bildspeicherung und Vorschau-Performance zusammengeführt",
+  appVersion: "0.2.84",
+  cacheVersion: "v187",
+  label: "Projektaktionen auf allen Ansichten erreichbar",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
 const CURRENT_VERSION_INFO = DEFAULT_VERSION;
@@ -247,6 +247,8 @@ const els = {
   readmeContent: document.getElementById("readmeContent"),
   openReadmeButton: document.getElementById("openReadmeButton"),
   resetImageButtonDesktop: document.getElementById("resetImageButtonDesktop"),
+  mobileDockSaveButton: document.getElementById("mobileDockSaveButton"),
+  mobileDockResetButton: document.getElementById("mobileDockResetButton"),
   fitButtonDesktop: document.getElementById("fitButtonDesktop"),
   centerButtonDesktop: document.getElementById("centerButtonDesktop"),
   confirmDialog: document.getElementById("confirmDialog"),
@@ -521,6 +523,7 @@ function bindEvents() {
   });
   els.resetImageButton.addEventListener("click", resetEffects);
   els.resetImageButtonDesktop?.addEventListener("click", resetEffects);
+  els.mobileDockResetButton?.addEventListener("click", resetEffects);
   els.exportButton.addEventListener("click", exportCurrentImage);
   els.shareImageButton.addEventListener("click", shareCurrentImage);
   els.settingsButton.addEventListener("click", () => {
@@ -539,6 +542,7 @@ function bindEvents() {
   });
   els.downloadBackupButton.addEventListener("click", downloadBackup);
   els.downloadBackupButtonDesktop?.addEventListener("click", downloadBackup);
+  els.mobileDockSaveButton?.addEventListener("click", downloadBackup);
   els.backupInput.addEventListener("change", async (event) => {
     const [file] = event.target.files || [];
     if (!file) return;
@@ -2281,6 +2285,8 @@ function syncUiFromState() {
   els.shareImageButton.disabled = !hasImage;
   els.downloadBackupButton.disabled = !hasImage;
   if (els.downloadBackupButtonDesktop) els.downloadBackupButtonDesktop.disabled = !hasImage;
+  if (els.mobileDockSaveButton) els.mobileDockSaveButton.disabled = !hasImage;
+  if (els.mobileDockResetButton) els.mobileDockResetButton.disabled = !hasImage;
   els.clearProjectButton.disabled = !hasImage;
   if (els.clearProjectButtonDesktop) els.clearProjectButtonDesktop.disabled = !hasImage;
   els.exportButton.hidden = mobileLayout;
