@@ -683,6 +683,13 @@ button:disabled,
     scrollbar-gutter: stable;
   }
 
+  .side-panels {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .side-panels > * { flex: 0 0 auto; }
+
   .canvas-wrap {
     position: static;
     top: auto;
@@ -792,6 +799,13 @@ body.mobile-landscape .side-panels {
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
+
+body.mobile-landscape .side-panels {
+  display: flex;
+  flex-direction: column;
+}
+
+body.mobile-landscape .side-panels > * { flex: 0 0 auto; }
 
 @media (min-width: 821px) {
   body.mobile-landscape .desktop-stage-panel { display: block; }

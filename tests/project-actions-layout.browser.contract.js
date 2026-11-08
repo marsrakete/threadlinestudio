@@ -64,6 +64,10 @@ test("wide and landscape layouts scroll preview and tools independently", async 
           toolsScroll: tools.scrollHeight,
           openPanelCount: document.querySelectorAll(".side-panels .collapsible[open]").length,
           panelCount: document.querySelectorAll(".side-panels .collapsible").length,
+          panelBounds: [...document.querySelectorAll(".side-panels .collapsible")].map(panel => {
+            const rect = panel.getBoundingClientRect();
+            return { top: Math.round(rect.top), bottom: Math.round(rect.bottom), height: Math.round(rect.height), content: panel.scrollHeight };
+          }),
           projectVisible: getComputedStyle(document.querySelector(".desktop-stage-panel")).display !== "none",
           projectInsidePreview: document.querySelector(".desktop-stage-panel").closest(".canvas-wrap") === preview,
         };
