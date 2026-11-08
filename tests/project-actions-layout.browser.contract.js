@@ -53,6 +53,7 @@ test("wide and landscape layouts scroll preview and tools independently", async 
     browser = await chromium.launch({ headless: true });
     for (const viewport of [{ width: 1440, height: 900 }, { width: 1024, height: 768 }]) {
       const page = await openPage(browser, url, viewport);
+      await page.locator(".side-panels .collapsible").evaluateAll(panels => panels.forEach(panel => { panel.open = true; }));
       const panes = await page.evaluate(() => {
         const preview = document.querySelector(".canvas-wrap");
         const tools = document.querySelector(".side-panels");
@@ -61,6 +62,8 @@ test("wide and landscape layouts scroll preview and tools independently", async 
           previewScroll: preview.scrollHeight,
           toolsClient: tools.clientHeight,
           toolsScroll: tools.scrollHeight,
+          openPanelCount: document.querySelectorAll(".side-panels .collapsible[open]").length,
+          panelCount: document.querySelectorAll(".side-panels .collapsible").length,
           projectVisible: getComputedStyle(document.querySelector(".desktop-stage-panel")).display !== "none",
           projectInsidePreview: document.querySelector(".desktop-stage-panel").closest(".canvas-wrap") === preview,
         };
