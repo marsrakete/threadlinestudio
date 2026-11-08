@@ -70,12 +70,15 @@ test("wide and landscape layouts scroll preview and tools independently", async 
           }),
           projectVisible: getComputedStyle(document.querySelector(".desktop-stage-panel")).display !== "none",
           projectInsidePreview: document.querySelector(".desktop-stage-panel").closest(".canvas-wrap") === preview,
+          previewColumnRatio: Number.parseFloat(getComputedStyle(document.querySelector(".workspace")).gridTemplateColumns.split(" ")[0])
+            / document.querySelector(".workspace").clientWidth,
         };
       });
       assert.ok(panes.previewClient > 0 && panes.previewScroll > panes.previewClient, `preview should scroll independently at ${viewport.width}px: ${JSON.stringify(panes)}`);
       assert.ok(panes.toolsClient > 0 && panes.toolsScroll > panes.toolsClient, `tools should scroll independently at ${viewport.width}px: ${JSON.stringify(panes)}`);
       assert.equal(panes.projectVisible, true);
       assert.equal(panes.projectInsidePreview, true);
+      assert.ok(panes.previewColumnRatio > 0.57, `preview column should use the available width at ${viewport.width}px: ${JSON.stringify(panes)}`);
 
       await page.evaluate(() => { document.querySelector(".side-panels").scrollTop = 180; });
       assert.equal(await page.locator(".canvas-wrap").evaluate(node => node.scrollTop), 0);
@@ -89,24 +92,19 @@ test("wide and landscape layouts scroll preview and tools independently", async 
   }
 });
 
-test("portrait mobile keeps project actions fixed and reachable while scrolling", async () => {
+test("portrait mobile returns to the original page flow without a fixed action dock", async () => {
   const { server, url } = await startServer();
   let browser;
   try {
     browser = await chromium.launch({ headless: true });
-    for (const viewport of [{ width: 390, height: 844 }, { width: 1024, height: 1366 }]) {
+    for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 1024, height: 1366 }]) {
       const page = await openPage(browser, url, viewport);
-      const dock = page.locator(".mobile-action-dock");
-      assert.equal(await dock.evaluate(node => getComputedStyle(node).position), "fixed");
-      assert.equal(await dock.isVisible(), true);
-      for (const key of ["loadImage", "saveProject", "loadProject", "resetImage"]) {
-        assert.equal(await dock.locator(`[data-i18n="${key}"]`).isVisible(), true);
-      }
-      const before = await dock.boundingBox();
+      assert.equal(await page.locator(".mobile-action-dock").count(), 0);
+      assert.equal(await page.locator(".mobile-project-panel").isVisible(), true);
+      assert.equal(await page.locator(".canvas-wrap").evaluate(node => getComputedStyle(node).position), "sticky");
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       await page.waitForTimeout(40);
-      const after = await dock.boundingBox();
-      assert.ok(Math.abs(before.y - after.y) < 1, `action dock should stay in place at ${viewport.width}px`);
+      assert.ok(await page.evaluate(() => window.scrollY > 0), `mobile layout should use document scrolling at ${viewport.width}px`);
       await page.close();
     }
   } finally {
