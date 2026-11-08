@@ -29,9 +29,9 @@ const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.86",
-  cacheVersion: "v189",
-  label: "PC-Vorschau verbreitert",
+  appVersion: "0.2.87",
+  cacheVersion: "v190",
+  label: "Bildaktionen auch mobil erreichbar",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
 const CURRENT_VERSION_INFO = DEFAULT_VERSION;
@@ -225,6 +225,9 @@ const els = {
   languageSelect: document.getElementById("languageSelect"),
   downloadBackupButton: document.getElementById("downloadBackupButton"),
   downloadBackupButtonDesktop: document.getElementById("downloadBackupButtonDesktop"),
+  mobileFitButton: document.getElementById("mobileFitButton"),
+  mobileResetImageButton: document.getElementById("mobileResetImageButton"),
+  mobileCenterButton: document.getElementById("mobileCenterButton"),
   backupInput: document.getElementById("backupInput"),
   clearProjectButton: document.getElementById("clearProjectButton"),
   clearProjectButtonDesktop: document.getElementById("clearProjectButtonDesktop"),
@@ -509,6 +512,7 @@ function bindEvents() {
   });
   els.fitButton.addEventListener("click", fitToFrame);
   els.fitButtonDesktop?.addEventListener("click", fitToFrame);
+  els.mobileFitButton?.addEventListener("click", fitToFrame);
   els.centerButton.addEventListener("click", () => {
     state.project.transform.panX = 0;
     state.project.transform.panY = 0;
@@ -519,8 +523,14 @@ function bindEvents() {
     state.project.transform.panY = 0;
     touchProject();
   });
+  els.mobileCenterButton?.addEventListener("click", () => {
+    state.project.transform.panX = 0;
+    state.project.transform.panY = 0;
+    touchProject();
+  });
   els.resetImageButton.addEventListener("click", resetEffects);
   els.resetImageButtonDesktop?.addEventListener("click", resetEffects);
+  els.mobileResetImageButton?.addEventListener("click", resetEffects);
   els.exportButton.addEventListener("click", exportCurrentImage);
   els.shareImageButton.addEventListener("click", shareCurrentImage);
   els.settingsButton.addEventListener("click", () => {

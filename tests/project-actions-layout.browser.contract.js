@@ -108,6 +108,9 @@ test("portrait mobile returns to the original page flow without a fixed action d
       const page = await openPage(browser, url, viewport);
       assert.equal(await page.locator(".mobile-action-dock").count(), 0);
       assert.equal(await page.locator(".mobile-project-panel").isVisible(), true);
+      for (const actionId of ["mobileFitButton", "mobileResetImageButton", "mobileCenterButton"]) {
+        assert.equal(await page.locator(`#${actionId}`).isVisible(), true, `${actionId} should be visible at ${viewport.width}px`);
+      }
       assert.equal(await page.locator(".canvas-wrap").evaluate(node => getComputedStyle(node).position), "sticky");
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       await page.waitForTimeout(40);

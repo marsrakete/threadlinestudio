@@ -561,6 +561,21 @@ input[type="color"] { inline-size: 100%; block-size: 44px; border: 0; border-rad
   text-align: center;
 }
 
+.mobile-image-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mobile-image-actions button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.65rem 0.4rem;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
 .mobile-project-panel {
   display: grid;
   gap: 14px;
