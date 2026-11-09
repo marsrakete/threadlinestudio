@@ -39,20 +39,17 @@
     <div class="app-shell">
       <header class="hero">
         <div class="hero-copy">
-          <p class="eyebrow" data-i18n="heroEyebrow">Threadline</p>
+          <p class="eyebrow" data-i18n="heroEyebrow">Threadline Studio</p>
           <div class="title-row">
-            <div>
-              <h1 data-i18n="appTitle">Threadline Studio</h1>
-              <p class="lede" data-i18n="heroLede">
-                Browserbasierte Bildbearbeitung ohne KI. Effekte, Zuschnitt, Export, Teilen und Projekt-Backup in einer mobilen PWA.
-              </p>
-            </div>
             <div class="header-actions">
               <button class="secondary" id="installButton" type="button" hidden data-i18n="installApp">App installieren</button>
               <button class="secondary" id="openReadmeButton" type="button" data-i18n="openReadme">README</button>
               <button class="secondary" id="settingsButton" type="button" data-i18n="settings">Einstellungen</button>
             </div>
           </div>
+          <p class="lede" data-i18n="heroLede">
+            Browserbasierte Bildbearbeitung ohne KI. Effekte, Zuschnitt, Export, Teilen und Projekt-Backup in einer mobilen PWA.
+          </p>
           <p class="hero-meta" id="autosaveBadge" data-i18n="autosaveReady">Autosave aktiv</p>
         </div>
       </header>
@@ -60,10 +57,6 @@
       <main class="workspace">
         <div class="canvas-wrap">
           <section class="stage">
-            <div class="stage-toolbar">
-              <input id="imageInput" type="file" accept="image/*" hidden />
-            </div>
-
             <div class="canvas-frame" id="canvasFrame">
               <canvas id="previewCanvas" width="1200" height="900" aria-label="Bildvorschau"></canvas>
               <div class="canvas-overlay" id="emptyState">
@@ -112,20 +105,22 @@
                 <label class="secondary faux-button" for="backupInput" data-i18n="loadProject">Projekt laden</label>
                 <button class="secondary" id="clearProjectButton" type="button" data-i18n="clearProject">Projekt löschen</button>
               </div>
+              <input id="imageInput" type="file" accept="image/*" hidden />
               <input id="backupInput" type="file" accept="application/json,.json" hidden />
             </div>
           </section>
 
           <div class="filter-legend" aria-label="Filter-Legende">
-            <p class="filter-legend-title" data-i18n="filterLegendTitle">Filter-Markierung</p>
+            <p class="filter-legend-title" data-i18n="filterLegendTitle">Leistungsbedarf</p>
+            <p class="filter-legend-description" data-i18n="filterLegendDescription">Markiert Filter, die bei großen Bildern die Bearbeitung verlangsamen können.</p>
             <div class="filter-legend-items">
               <div class="filter-legend-item">
                 <span class="filter-legend-swatch filter-legend-swatch-strong" aria-hidden="true"></span>
-                <span data-i18n="filterLegendStrong">Stark</span>
+                <span data-i18n="filterLegendStrong">Erhöht</span>
               </div>
               <div class="filter-legend-item">
                 <span class="filter-legend-swatch filter-legend-swatch-very-strong" aria-hidden="true"></span>
-                <span data-i18n="filterLegendVeryStrong">Sehr stark</span>
+                <span data-i18n="filterLegendVeryStrong">Hoch</span>
               </div>
             </div>
           </div>
@@ -219,10 +214,11 @@
             <summary class="panel-summary">
               <div class="panel-head">
                 <h2 data-i18n="styleColorFocusTitle">Farbfokus</h2>
-                <p data-i18n="styleColorFocusIntro">Jede Zielfarbe hat ihre eigene Stärke und Toleranz. Alles andere wird schwarzweiß. Zuerst beide Zielfarben aussuchen, danach mit den Reglern arbeiten.</p>
+                <p data-i18n="styleColorFocusIntro">Jede Zielfarbe hat ihre eigene Stärke und Toleranz. Alles andere wird schwarzweiß.</p>
               </div>
             </summary>
             <div class="panel-body">
+                <p class="focus-instruction" data-i18n="styleColorFocusInstruction">Zuerst beide Zielfarben aussuchen, danach mit den Reglern arbeiten.</p>
                 <div class="focus-pairs">
                   <fieldset class="focus-pair">
                     <legend data-i18n="focusColorOne">Zielfarbe 1</legend>
@@ -568,7 +564,6 @@
             <h2 id="confirmDialogTitle">Bitte bestätigen</h2>
             <p id="confirmDialogMessage" class="dialog-status"></p>
           </div>
-          <button class="icon-button" value="cancel" aria-label="Close">×</button>
         </div>
         <div class="button-row">
           <button class="secondary" id="confirmCancelButton" value="cancel" type="submit">Abbrechen</button>

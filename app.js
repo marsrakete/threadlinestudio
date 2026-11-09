@@ -29,9 +29,9 @@ const APP_SHARE_TITLE = "Threadline Studio";
 const APP_SHARE_URL = "https://marsrakete.github.io/threadlinestudio/";
 const APP_SHARE_QR_ASSET = "./assets/threadline-studio-share-qr.svg";
 const FALLBACK_VERSION_INFO = Object.freeze({
-  appVersion: "0.2.88",
-  cacheVersion: "v191",
-  label: "Mobilvorschau und Querformat optimiert",
+  appVersion: "0.2.101",
+  cacheVersion: "v204",
+  label: "Mobiles Layout und Bedienung optimiert",
 });
 const DEFAULT_VERSION = Object.freeze(normalizeVersionInfo(globalThis.APP_VERSION_INFO || FALLBACK_VERSION_INFO));
 const CURRENT_VERSION_INFO = DEFAULT_VERSION;
